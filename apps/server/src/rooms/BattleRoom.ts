@@ -104,6 +104,18 @@ export class BattleRoom extends Room<BattleRoomState> {
         serverTimestamp: Date.now(),
       });
     });
+
+    // Rematch Ready Handler
+    this.onMessage(ClientMessageType.READY, () => {
+      if (this.state.matchState === 'match_over' && this.simulation) {
+        this.simulation.resetMatch();
+        this.state.matchState = 'in_progress';
+        this.state.winnerId = '';
+        this.broadcast(ServerMessageType.MATCH_START, {
+          roundNumber: 1,
+        });
+      }
+    });
   }
 
   public onJoin(client: Client, options: { playerName?: string; warriorPreset?: string }): void {
@@ -190,17 +202,26 @@ export class BattleRoom extends Room<BattleRoomState> {
     this.state.warriors.delete(sessionId);
     RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clients.length);
 
-    if (this.clients.length < 2 && this.state.matchState === 'in_progress') {
+    if (
+      this.clientMetadata.size < 2 &&
+      (this.state.matchState === 'in_progress' || this.state.matchState === 'round_over')
+    ) {
       this.state.matchState = 'match_over';
       const remainingClient = Array.from(this.clientMetadata.keys())[0];
       if (remainingClient) {
         this.state.winnerId = remainingClient;
       }
+      this.broadcast(ServerMessageType.MATCH_END, {
+        winnerId: this.state.winnerId,
+      });
     }
   }
 
   private updateSimulation(deltaTimeMs: number): void {
-    if (!this.simulation || this.state.matchState !== 'in_progress') {
+    if (
+      !this.simulation ||
+      (this.state.matchState !== 'in_progress' && this.state.matchState !== 'round_over')
+    ) {
       return;
     }
 
@@ -212,6 +233,8 @@ export class BattleRoom extends Room<BattleRoomState> {
     const p1Input = p1Id ? this.clientInputs.get(p1Id) || null : null;
     const p2Input = p2Id ? this.clientInputs.get(p2Id) || null : null;
 
+    const previousState = this.state.matchState;
+
     // Step authoritative simulation
     this.simulation.step(p1Input, p2Input, deltaSec);
 
@@ -221,6 +244,18 @@ export class BattleRoom extends Room<BattleRoomState> {
     this.state.roundNumber = snap.roundNumber;
     this.state.timerSeconds = snap.timerSeconds;
     this.state.winnerId = snap.winnerId || '';
+
+    // Broadcast round transitions
+    if (snap.matchState === 'round_over' && previousState === 'in_progress') {
+      this.broadcast(ServerMessageType.ROUND_END, {
+        roundNumber: snap.roundNumber,
+        winnerId: snap.winnerId,
+      });
+    } else if (snap.matchState === 'match_over') {
+      this.broadcast(ServerMessageType.MATCH_END, {
+        winnerId: snap.winnerId,
+      });
+    }
 
     if (p1Id) {
       this.syncWarriorState(p1Id, snap.p1);
@@ -262,6 +297,7 @@ export class BattleRoom extends Room<BattleRoomState> {
     warrior.attackPhase = snap.attackPhase;
     warrior.currentAttackId = snap.currentAttackId || '';
     warrior.roundsWon = snap.roundsWon;
+    warrior.isExhausted = snap.isExhausted;
   }
 
   public onDispose(): void {

@@ -20,8 +20,9 @@ export const Header: React.FC = () => {
       <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span style={{ fontSize: '1.4rem' }}>👑</span>
         <div>
-          <h1
+          <span
             style={{
+              display: 'block',
               fontSize: '1.25rem',
               fontWeight: 900,
               letterSpacing: '0.15em',
@@ -33,7 +34,7 @@ export const Header: React.FC = () => {
             }}
           >
             LAST CROWN
-          </h1>
+          </span>
           <p
             style={{
               fontSize: '0.65rem',

@@ -16,6 +16,7 @@ export class CombatController {
   private _parryTimerMs: number = 0;
   private _hitstunTimerMs: number = 0;
   private _staminaRegenDelayTimerMs: number = 0;
+  private _exhaustionTimerMs: number = 0;
   private _hasHitInCurrentAttack: boolean = false;
 
   get attackPhase(): AttackPhase {
@@ -34,6 +35,14 @@ export class CombatController {
     return this._hitstunTimerMs;
   }
 
+  get exhaustionRemainingMs(): number {
+    return this._exhaustionTimerMs;
+  }
+
+  get isExhausted(): boolean {
+    return this._exhaustionTimerMs > 0;
+  }
+
   get isParryingActive(): boolean {
     return this._parryTimerMs > 0;
   }
@@ -43,7 +52,9 @@ export class CombatController {
     stamina: number,
     stateMachine: WarriorStateMachine
   ): { success: boolean; staminaConsumed: number } {
-    if (this._hitstunTimerMs > 0) return { success: false, staminaConsumed: 0 };
+    if (this._hitstunTimerMs > 0 || this._exhaustionTimerMs > 0) {
+      return { success: false, staminaConsumed: 0 };
+    }
     if (this._attackPhase !== 'none') return { success: false, staminaConsumed: 0 };
 
     const attack = getAttackDefinition(attackId);
@@ -68,7 +79,9 @@ export class CombatController {
     stamina: number,
     stateMachine: WarriorStateMachine
   ): { success: boolean; staminaConsumed: number } {
-    if (this._hitstunTimerMs > 0) return { success: false, staminaConsumed: 0 };
+    if (this._hitstunTimerMs > 0 || this._exhaustionTimerMs > 0) {
+      return { success: false, staminaConsumed: 0 };
+    }
     if (this._attackPhase !== 'none') return { success: false, staminaConsumed: 0 };
     if (stamina < 15) return { success: false, staminaConsumed: 0 };
 
@@ -85,8 +98,17 @@ export class CombatController {
   public update(
     deltaMs: number,
     isBlockingInput: boolean,
-    stateMachine: WarriorStateMachine
+    stateMachine: WarriorStateMachine,
+    stamina: number = 100
   ): void {
+    // Exhaustion update
+    if (this._exhaustionTimerMs > 0) {
+      this._exhaustionTimerMs -= deltaMs;
+      if (this._exhaustionTimerMs <= 0) {
+        this._exhaustionTimerMs = 0;
+      }
+    }
+
     // Hitstun update
     if (this._hitstunTimerMs > 0) {
       this._hitstunTimerMs -= deltaMs;
@@ -104,7 +126,8 @@ export class CombatController {
       if (this._parryTimerMs <= 0) {
         this._parryTimerMs = 0;
         if (stateMachine.state === 'parrying') {
-          stateMachine.transitionTo(isBlockingInput ? 'blocking' : 'idle');
+          const canChainBlock = isBlockingInput && stamina > 0 && this._exhaustionTimerMs === 0;
+          stateMachine.transitionTo(canChainBlock ? 'blocking' : 'idle');
         }
       }
     }
@@ -134,12 +157,22 @@ export class CombatController {
           }
         }
       }
-    } else if (isBlockingInput && this._hitstunTimerMs === 0 && this._parryTimerMs === 0) {
-      if (stateMachine.state !== 'blocking') {
-        stateMachine.transitionTo('blocking');
+    } else {
+      // Defensive blocking check: requires stamina > 0 and not exhausted
+      const canBlock =
+        isBlockingInput &&
+        this._hitstunTimerMs === 0 &&
+        this._parryTimerMs === 0 &&
+        this._exhaustionTimerMs === 0 &&
+        stamina > 0;
+
+      if (canBlock) {
+        if (stateMachine.state !== 'blocking') {
+          stateMachine.transitionTo('blocking');
+        }
+      } else if (stateMachine.state === 'blocking') {
+        stateMachine.transitionTo('idle');
       }
-    } else if (stateMachine.state === 'blocking' && !isBlockingInput) {
-      stateMachine.transitionTo('idle');
     }
   }
 
@@ -147,7 +180,8 @@ export class CombatController {
     return (
       this._staminaRegenDelayTimerMs <= 0 &&
       this._attackPhase === 'none' &&
-      this._hitstunTimerMs === 0
+      this._hitstunTimerMs === 0 &&
+      this._exhaustionTimerMs === 0
     );
   }
 
@@ -238,6 +272,14 @@ export class CombatController {
     this.interruptAttack();
     stateMachine.forceState('hitstun');
     this._hitstunTimerMs = stunDurationMs;
+  }
+
+  public applyExhaustion(durationMs: number, stateMachine: WarriorStateMachine): void {
+    this.interruptAttack();
+    stateMachine.forceState('hitstun');
+    this._hitstunTimerMs = durationMs;
+    this._exhaustionTimerMs = durationMs;
+    this._staminaRegenDelayTimerMs = BALANCE_CONFIG.combat.staminaRegenDelayMs;
   }
 
   public interruptAttack(): void {

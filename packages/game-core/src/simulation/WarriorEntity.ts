@@ -6,7 +6,12 @@ import {
   PlayerInputMessage,
   HitboxInstance,
 } from '@last-crown/shared';
-import { WarriorClassPreset, getWarriorPreset, ArenaConfig } from '@last-crown/game-config';
+import {
+  WarriorClassPreset,
+  getWarriorPreset,
+  ArenaConfig,
+  BALANCE_CONFIG,
+} from '@last-crown/game-config';
 import { MovementController } from '../movement/MovementController.js';
 import { WarriorStateMachine } from '../state-machine/WarriorStateMachine.js';
 import { CombatController } from '../combat/CombatController.js';
@@ -106,6 +111,12 @@ export class WarriorEntity {
       const result = this.combat.startAttack(attackId, this.stamina, this.stateMachine);
       if (result.success) {
         this.stamina = Math.max(0, this.stamina - result.staminaConsumed);
+        if (this.stamina === 0) {
+          this.combat.applyExhaustion(
+            BALANCE_CONFIG.combat.staminaDepletedExhaustionMs,
+            this.stateMachine
+          );
+        }
       }
       return;
     }
@@ -115,6 +126,12 @@ export class WarriorEntity {
       const result = this.combat.startParry(this.stamina, this.stateMachine);
       if (result.success) {
         this.stamina = Math.max(0, this.stamina - result.staminaConsumed);
+        if (this.stamina === 0) {
+          this.combat.applyExhaustion(
+            BALANCE_CONFIG.combat.staminaDepletedExhaustionMs,
+            this.stateMachine
+          );
+        }
       }
     }
   }
@@ -129,7 +146,7 @@ export class WarriorEntity {
     this.stateMachine.update(deltaMs);
 
     const isBlockingInput = Boolean(input?.block);
-    this.combat.update(deltaMs, isBlockingInput, this.stateMachine);
+    this.combat.update(deltaMs, isBlockingInput, this.stateMachine, this.stamina);
 
     // Can warrior move?
     // Cannot move if attacking, in hitstun, knocked down, dead, or blocking
@@ -143,11 +160,16 @@ export class WarriorEntity {
     const moveX = input ? input.moveX : 0;
     const jumpRequested = input ? input.jump : false;
 
+    // Movement speed halved when exhausted
+    const effectiveWalkSpeed = this.combat.isExhausted
+      ? this.preset.attributes.walkSpeed * 0.5
+      : this.preset.attributes.walkSpeed;
+
     this.movement.update(
       moveX,
       jumpRequested,
       canMove,
-      this.preset.attributes.walkSpeed,
+      effectiveWalkSpeed,
       this.preset.attributes.jumpVelocity,
       deltaSec,
       arena,
@@ -194,8 +216,13 @@ export class WarriorEntity {
     }
   }
 
-  public applyStaminaDamage(amount: number): void {
+  public applyStaminaDamage(amount: number): boolean {
+    const hadStamina = this.stamina > 0;
     this.stamina = Math.max(0, this.stamina - amount);
+    if (hadStamina && this.stamina === 0) {
+      return true; // Triggered guard break / exhaustion
+    }
+    return false;
   }
 
   public toSnapshot(): WarriorSnapshot {
@@ -217,6 +244,7 @@ export class WarriorEntity {
       hitstunRemainingMs: this.combat.hitstunRemainingMs,
       hurtbox: this.getHurtbox(),
       roundsWon: this.roundsWon,
+      isExhausted: this.combat.isExhausted,
     };
   }
 }

@@ -40,4 +40,5 @@ export interface WarriorSnapshot {
   hitstunRemainingMs: number;
   hurtbox: AABB;
   roundsWon: number;
+  isExhausted: boolean;
 }

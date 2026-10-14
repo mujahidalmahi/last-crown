@@ -1,6 +1,6 @@
 import * as Phaser from 'phaser';
 import { createPhaserConfig } from '../config/phaserConfig';
-import { BattleSceneConfig } from '../scenes/BattleScene';
+import { BattleScene, BattleSceneConfig } from '../scenes/BattleScene';
 
 export class GameBootstrap {
   private game: Phaser.Game | null = null;
@@ -15,13 +15,25 @@ export class GameBootstrap {
 
     // Pass runtime scene configuration when BattleScene starts
     this.game.events.once('ready', () => {
-      const battleScene = this.game?.scene.getScene('BattleScene');
+      const battleScene = this.game?.scene.getScene('BattleScene') as BattleScene | undefined;
       if (battleScene) {
         battleScene.scene.restart(sceneConfig);
       }
     });
 
     return this.game;
+  }
+
+  public getBattleScene(): BattleScene | null {
+    if (!this.game) return null;
+    return (this.game.scene.getScene('BattleScene') as BattleScene) || null;
+  }
+
+  public rematch(): void {
+    const battleScene = this.getBattleScene();
+    if (battleScene) {
+      battleScene.rematch();
+    }
   }
 
   public getGame(): Phaser.Game | null {

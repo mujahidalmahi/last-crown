@@ -22,7 +22,7 @@ app.use(
       if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
-        callback(new Error('Blocked by CORS policy'));
+        callback(null, false);
       }
     },
     credentials: true,
@@ -143,12 +143,33 @@ export function startServer(): Promise<http.Server> {
   });
 }
 
+// Express global error handler
+app.use((err: unknown, _req: Request, res: Response, _next: express.NextFunction) => {
+  const errorMessage = err instanceof Error ? err.message : 'Internal Server Error';
+  console.error('[LAST CROWN Error Handler]:', errorMessage);
+  res.status(500).json({ error: errorMessage });
+});
+
 // Start if executed directly
 if (process.env.NODE_ENV !== 'test') {
   startServer().catch(err => {
     console.error('Failed to start server:', err);
     process.exit(1);
   });
+
+  // Graceful shutdown on process termination signals
+  const handleShutdown = (signal: string) => {
+    console.info(`[LAST CROWN] Received ${signal}. Gracefully stopping server...`);
+    gameServer.gracefullyShutdown().finally(() => {
+      server.close(() => {
+        console.info('[LAST CROWN] HTTP server closed.');
+        process.exit(0);
+      });
+    });
+  };
+
+  process.on('SIGTERM', () => handleShutdown('SIGTERM'));
+  process.on('SIGINT', () => handleShutdown('SIGINT'));
 }
 
 export { app, server, gameServer };

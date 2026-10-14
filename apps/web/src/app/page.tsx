@@ -1,24 +1,47 @@
-import React from 'react';
+'use client';
+
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import {
+  StatisticsManager,
+  PlayerStatistics,
+  calculateWinRate,
+  formatWinRate,
+} from '@last-crown/shared';
 
 export default function HomePage() {
+  const [stats, setStats] = useState<PlayerStatistics | null>(null);
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        const currentStats = StatisticsManager.getInstance().getStats();
+        setStats(currentStats);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const winRate = stats ? calculateWinRate(stats) : 0;
+
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 24px', width: '100%' }}>
       {/* Hero Section */}
       <section
         style={{
           textAlign: 'center',
-          marginBottom: '56px',
+          marginBottom: '48px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: '16px',
         }}
       >
-        <Badge variant="gold">Production Architecture Foundation</Badge>
+        <Badge variant="gold">Production Ready 2D Medieval Duelist</Badge>
         <h1
           style={{
             fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
@@ -57,6 +80,35 @@ export default function HomePage() {
           netcode.
         </p>
 
+        {/* Career Record Summary Pill if matches have been played */}
+        {stats && stats.matchesPlayed > 0 && (
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '16px',
+              backgroundColor: 'rgba(212, 175, 55, 0.08)',
+              border: '1px solid var(--border-gold)',
+              borderRadius: '24px',
+              padding: '8px 20px',
+              fontSize: '0.9rem',
+              color: 'var(--text-primary)',
+            }}
+          >
+            <span>
+              ⚔️ <strong>{stats.matchesPlayed}</strong> Duels
+            </span>
+            <span style={{ color: 'var(--border-gold)' }}>•</span>
+            <span style={{ color: '#2ecc71' }}>
+              <strong>{stats.wins}</strong> Victories ({formatWinRate(winRate)})
+            </span>
+            <span style={{ color: 'var(--border-gold)' }}>•</span>
+            <span style={{ color: '#f1c40f' }}>
+              🔥 Streak: <strong>{stats.bestStreak}</strong>
+            </span>
+          </div>
+        )}
+
         <div
           style={{
             display: 'flex',
@@ -78,7 +130,7 @@ export default function HomePage() {
           </Link>
           <Link href="/settings">
             <Button variant="secondary" size="lg">
-              ⚙️ Controls & Settings
+              ⚙️ Controls & Records
             </Button>
           </Link>
         </div>

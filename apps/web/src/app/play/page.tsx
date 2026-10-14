@@ -97,6 +97,10 @@ export default function PlayPage() {
           <p style={{ color: 'var(--text-secondary)' }}>Heavy Strike (High Stun)</p>
         </div>
         <div>
+          <strong style={{ color: '#9b59b6' }}>U / I:</strong>
+          <p style={{ color: 'var(--text-secondary)' }}>Forward Thrust (Reach)</p>
+        </div>
+        <div>
           <strong style={{ color: '#3498db' }}>K / Shift:</strong>
           <p style={{ color: 'var(--text-secondary)' }}>Block (Absorbs 75%)</p>
         </div>

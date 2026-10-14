@@ -12,6 +12,7 @@ export interface MultiplayerState {
   error: string | null;
   roomState: BattleRoomState | null;
   latencyMs: number;
+  room: Room<BattleRoomState> | null;
 }
 
 export function useMultiplayerRoom() {
@@ -23,6 +24,7 @@ export function useMultiplayerRoom() {
     error: null,
     roomState: null,
     latencyMs: 0,
+    room: null,
   });
 
   const clientRef = useRef<Client | null>(null);
@@ -74,7 +76,7 @@ export function useMultiplayerRoom() {
         });
 
         room.onLeave(() => {
-          setState(prev => ({ ...prev, isConnected: false, roomId: null }));
+          setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null }));
         });
 
         setState({
@@ -85,6 +87,7 @@ export function useMultiplayerRoom() {
           error: null,
           roomState: room.state,
           latencyMs: 0,
+          room,
         });
 
         return { roomId: room.id, inviteCode: data.inviteCode };
@@ -95,6 +98,7 @@ export function useMultiplayerRoom() {
           ...prev,
           isConnecting: false,
           error: message,
+          room: null,
         }));
         return null;
       }
@@ -140,7 +144,7 @@ export function useMultiplayerRoom() {
         });
 
         room.onLeave(() => {
-          setState(prev => ({ ...prev, isConnected: false, roomId: null }));
+          setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null }));
         });
 
         setState({
@@ -151,6 +155,7 @@ export function useMultiplayerRoom() {
           error: null,
           roomState: room.state,
           latencyMs: 0,
+          room,
         });
 
         return { roomId: room.id };
@@ -163,6 +168,7 @@ export function useMultiplayerRoom() {
           ...prev,
           isConnecting: false,
           error: message,
+          room: null,
         }));
         return null;
       }
@@ -181,6 +187,7 @@ export function useMultiplayerRoom() {
       roomId: null,
       inviteCode: null,
       roomState: null,
+      room: null,
     }));
   }, []);
 
@@ -198,6 +205,5 @@ export function useMultiplayerRoom() {
     createPrivateRoom,
     joinPrivateRoom,
     leaveRoom,
-    room: roomRef.current,
   };
 }

@@ -4,9 +4,11 @@ export class KeyboardInputAdapter {
   private keysPressed = new Set<string>();
   private sequence: number = 0;
   private attackBuffer: boolean = false;
+  private thrustTriggered: boolean = false;
   private parryBuffer: boolean = false;
   private onKeyDownHandler: (e: KeyboardEvent) => void;
   private onKeyUpHandler: (e: KeyboardEvent) => void;
+  private onBlurHandler: () => void;
 
   constructor() {
     this.onKeyDownHandler = (e: KeyboardEvent) => {
@@ -19,6 +21,10 @@ export class KeyboardInputAdapter {
       if (e.code === 'KeyJ' || e.code === 'Space') {
         this.attackBuffer = true;
       }
+      if (e.code === 'KeyU' || e.code === 'KeyI') {
+        this.attackBuffer = true;
+        this.thrustTriggered = true;
+      }
       if (e.code === 'KeyL' || e.code === 'AltLeft' || e.code === 'AltRight') {
         this.parryBuffer = true;
       }
@@ -28,9 +34,17 @@ export class KeyboardInputAdapter {
       this.keysPressed.delete(e.code);
     };
 
+    this.onBlurHandler = () => {
+      this.keysPressed.clear();
+      this.attackBuffer = false;
+      this.thrustTriggered = false;
+      this.parryBuffer = false;
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', this.onKeyDownHandler);
       window.addEventListener('keyup', this.onKeyUpHandler);
+      window.addEventListener('blur', this.onBlurHandler);
     }
   }
 
@@ -55,6 +69,14 @@ export class KeyboardInputAdapter {
     const attack = this.attackBuffer;
     this.attackBuffer = false;
 
+    let attackType: 'light' | 'heavy' | 'thrust' = 'light';
+    if (this.thrustTriggered || this.keysPressed.has('KeyU') || this.keysPressed.has('KeyI')) {
+      attackType = 'thrust';
+    } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown')) {
+      attackType = 'heavy';
+    }
+    this.thrustTriggered = false;
+
     const parry = this.parryBuffer;
     this.parryBuffer = false;
 
@@ -64,7 +86,7 @@ export class KeyboardInputAdapter {
       moveX,
       jump,
       attack,
-      attackType: this.keysPressed.has('KeyS') ? 'heavy' : 'light',
+      attackType,
       block,
       parry,
     };
@@ -74,6 +96,7 @@ export class KeyboardInputAdapter {
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', this.onKeyDownHandler);
       window.removeEventListener('keyup', this.onKeyUpHandler);
+      window.removeEventListener('blur', this.onBlurHandler);
     }
     this.keysPressed.clear();
   }

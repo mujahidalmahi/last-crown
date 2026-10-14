@@ -1,24 +1,25 @@
 :root {
-  --bg-primary: #0a0c10;
-  --bg-surface: #12161f;
-  --bg-elevated: #1a202c;
-  --border-subtle: #2d3748;
+  --bg-primary: #07090e;
+  --bg-surface: #0f141f;
+  --bg-elevated: #161e2e;
+  --border-subtle: #242f42;
   --border-gold: #c59b27;
+  --border-gold-glow: rgba(212, 175, 55, 0.35);
   
-  --text-primary: #f7fafc;
-  --text-secondary: #a0aec0;
-  --text-muted: #718096;
-  --text-gold: #e2c044;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-gold: #f1c40f;
 
   --accent-gold: #d4af37;
   --accent-gold-hover: #f1c40f;
   --accent-crimson: #c53030;
   --accent-crimson-hover: #e53e3e;
-  --accent-steel: #4a5568;
+  --accent-steel: #475569;
 
   --health-full: #2ecc71;
   --health-low: #e74c3c;
-  --stamina-full: #3498db;
+  --stamina-full: #00cec9;
   --stamina-low: #f39c12;
 
   --font-heading: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -35,11 +36,28 @@ html,
 body {
   width: 100%;
   height: 100%;
-  background-color: var(--bg-primary);
+  background: radial-gradient(circle at 50% 15%, #131a27 0%, #07090e 85%);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-heading);
   overflow-x: hidden;
   line-height: 1.5;
+}
+
+/* Custom Medieval Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #07090e;
+}
+::-webkit-scrollbar-thumb {
+  background: #242f42;
+  border-radius: 4px;
+  border: 1px solid #161e2e;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #c59b27;
 }
 
 a {
@@ -72,4 +90,47 @@ button {
 
 .skip-link:focus {
   top: 0;
+}
+
+/* High Contrast Theme Overrides */
+body.high-contrast {
+  --bg-primary: #000000;
+  --bg-surface: #0a0a0a;
+  --bg-elevated: #141414;
+  --border-subtle: #ffffff;
+  --border-gold: #ffd700;
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-muted: #cccccc;
+  --text-gold: #ffd700;
+}
+
+/* Reduced Motion Mode */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body.reduced-motion *,
+body.reduced-motion ::before,
+body.reduced-motion ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Subtle pulse keyframe */
+@keyframes pulse {
+  0% { opacity: 0.7; transform: scale(0.98); }
+  100% { opacity: 1; transform: scale(1.02); }
+}
+
+/* Shimmer sweep animation */
+@keyframes shimmerSweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
 }

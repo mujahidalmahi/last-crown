@@ -5,7 +5,11 @@ dotenv.config();
 
 const ServerEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  SERVER_PORT: z.coerce.number().int().positive().default(2567),
+  SERVER_PORT: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(process.env.PORT ? Number(process.env.PORT) : 2567),
   SERVER_HOST: z.string().default('0.0.0.0'),
   SERVER_CORS_ORIGIN: z.string().default('http://localhost:3000'),
   SERVER_LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error']).default('info'),

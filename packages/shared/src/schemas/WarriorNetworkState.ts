@@ -18,4 +18,5 @@ export class WarriorNetworkState extends Schema {
   @type('string') currentAttackId: string = '';
   @type('number') roundsWon: number = 0;
   @type('boolean') isConnected: boolean = true;
+  @type('boolean') isExhausted: boolean = false;
 }

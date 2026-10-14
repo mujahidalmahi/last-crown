@@ -84,7 +84,9 @@ export class GameSimulation {
     p2Input: PlayerInputMessage | null,
     deltaSec: number
   ): void {
-    const deltaMs = deltaSec * 1000;
+    // Clamp delta to prevent physics tunneling or simulation jumps after tab suspension
+    const clampedDeltaSec = Math.min(Math.max(0, deltaSec), 0.1);
+    const deltaMs = clampedDeltaSec * 1000;
 
     // Handle round end or countdown transitions
     if (this._matchState === 'round_over') {
@@ -104,11 +106,11 @@ export class GameSimulation {
     if (p2Input) this.p2.processInput(p2Input);
 
     // Update warrior physics and states
-    this.p1.update(p1Input, deltaSec, this.arena, this._physics);
-    this.p2.update(p2Input, deltaSec, this.arena, this._physics);
+    this.p1.update(p1Input, clampedDeltaSec, this.arena, this._physics);
+    this.p2.update(p2Input, clampedDeltaSec, this.arena, this._physics);
 
     // Decrement round timer
-    this._roundTimerSec -= deltaSec;
+    this._roundTimerSec -= clampedDeltaSec;
 
     // Check combat collisions
     this.resolveCombatCollisions();
@@ -168,7 +170,13 @@ export class GameSimulation {
     } else {
       // Damage applied to defender
       defender.applyDamage(result.damage);
-      defender.applyStaminaDamage(result.staminaDamage);
+      const isGuardBroken = defender.applyStaminaDamage(result.staminaDamage);
+      if (isGuardBroken) {
+        defender.combat.applyExhaustion(
+          BALANCE_CONFIG.combat.staminaDepletedExhaustionMs,
+          defender.stateMachine
+        );
+      }
       defender.movement.applyImpulse(result.knockback, this._physics);
     }
 
@@ -180,24 +188,31 @@ export class GameSimulation {
 
   private checkRoundConditions(): void {
     let roundWinner: WarriorEntity | null = null;
+    let isRoundOver = false;
 
     if (this.p1.health <= 0 && this.p2.health <= 0) {
-      // Double KO -> whoever had more rounds or draw
+      // Simultaneous double KO -> Draw round
       roundWinner = null;
+      isRoundOver = true;
     } else if (this.p1.health <= 0) {
       roundWinner = this.p2;
+      isRoundOver = true;
     } else if (this.p2.health <= 0) {
       roundWinner = this.p1;
+      isRoundOver = true;
     } else if (this._roundTimerSec <= 0) {
       // Timeout
+      isRoundOver = true;
       if (this.p1.health > this.p2.health) {
         roundWinner = this.p1;
       } else if (this.p2.health > this.p1.health) {
         roundWinner = this.p2;
+      } else {
+        roundWinner = null;
       }
     }
 
-    if (roundWinner !== null || this._roundTimerSec <= 0) {
+    if (isRoundOver) {
       this._matchState = 'round_over';
       this._roundTransitionTimerMs = 2500; // 2.5s transition pause
 
@@ -207,6 +222,15 @@ export class GameSimulation {
           this._matchState = 'match_over';
           this._winnerId = roundWinner.id;
         }
+      } else {
+        // Draw round: check if deciding round reached
+        if (
+          this.p1.roundsWon >= BALANCE_CONFIG.rules.roundsToWin - 1 &&
+          this.p2.roundsWon >= BALANCE_CONFIG.rules.roundsToWin - 1
+        ) {
+          this._matchState = 'match_over';
+          this._winnerId = 'draw';
+        }
       }
     }
   }
@@ -214,6 +238,18 @@ export class GameSimulation {
   private startNextRound(): void {
     this._roundNumber++;
     this._roundTimerSec = BALANCE_CONFIG.rules.roundDurationSeconds;
+    this.p1.resetRound(this.arena.spawnPointP1, 'right');
+    this.p2.resetRound(this.arena.spawnPointP2, 'left');
+    this._matchState = 'in_progress';
+  }
+
+  public resetMatch(): void {
+    this._roundNumber = 1;
+    this._roundTimerSec = BALANCE_CONFIG.rules.roundDurationSeconds;
+    this._roundTransitionTimerMs = 0;
+    this._winnerId = null;
+    this.p1.roundsWon = 0;
+    this.p2.roundsWon = 0;
     this.p1.resetRound(this.arena.spawnPointP1, 'right');
     this.p2.resetRound(this.arena.spawnPointP2, 'left');
     this._matchState = 'in_progress';

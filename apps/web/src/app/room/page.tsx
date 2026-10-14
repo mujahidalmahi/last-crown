@@ -1,12 +1,43 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { useMultiplayerRoom } from '../../features/multiplayer/useMultiplayerRoom';
+
+const PhaserGameContainer = dynamic(
+  () => import('../../features/game/PhaserGameContainer').then(mod => mod.PhaserGameContainer),
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1280px',
+          aspectRatio: '16 / 9',
+          margin: '0 auto',
+          backgroundColor: '#070b12',
+          borderRadius: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px',
+          border: '1px solid var(--border-gold)',
+        }}
+      >
+        <span style={{ fontSize: '2rem' }}>⚔️</span>
+        <p style={{ color: 'var(--text-gold)', fontWeight: 700, letterSpacing: '0.1em' }}>
+          ENTERING MULTIPLAYER ARENA...
+        </p>
+      </div>
+    ),
+  }
+);
 
 export default function RoomPage() {
   const {
@@ -15,6 +46,8 @@ export default function RoomPage() {
     roomId,
     inviteCode,
     error,
+    roomState,
+    room,
     createPrivateRoom,
     joinPrivateRoom,
     leaveRoom,
@@ -22,7 +55,19 @@ export default function RoomPage() {
 
   const [inputCode, setInputCode] = useState('');
   const [playerName, setPlayerName] = useState('Crown Warrior');
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  // Check URL query parameters for invite code auto-fill
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const codeFromUrl = params.get('code') || params.get('join');
+      if (codeFromUrl) {
+        setInputCode(codeFromUrl.toUpperCase().trim());
+      }
+    }
+  }, []);
 
   const handleCreate = async () => {
     await createPrivateRoom(playerName, 'knight');
@@ -37,47 +82,93 @@ export default function RoomPage() {
   const handleCopyCode = () => {
     if (inviteCode) {
       navigator.clipboard.writeText(inviteCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
     }
   };
 
+  const handleCopyLink = () => {
+    if (inviteCode && typeof window !== 'undefined') {
+      const url = `${window.location.origin}/room?code=${inviteCode}`;
+      navigator.clipboard.writeText(url);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2000);
+    }
+  };
+
+  const warriorCount = roomState?.warriors ? roomState.warriors.size : 0;
+  const isMatchReady =
+    warriorCount >= 2 || (roomState?.matchState && roomState.matchState !== 'waiting');
+
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '48px 24px', width: '100%' }}>
+    <div
+      style={{
+        maxWidth: isMatchReady ? '1280px' : '840px',
+        margin: '0 auto',
+        padding: '32px 24px',
+        width: '100%',
+      }}
+    >
+      {/* Top Navigation & Status Bar */}
       <div
         style={{
           marginBottom: '24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
         }}
       >
-        <Link href="/">
-          <Button variant="secondary" size="sm">
-            ← Main Hall
-          </Button>
-        </Link>
-        <Badge variant={isConnected ? 'green' : 'steel'}>
-          {isConnected ? 'Connected to Room' : 'Private Matchmaking'}
-        </Badge>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <Link href="/">
+            <Button variant="secondary" size="sm">
+              ← Main Hall
+            </Button>
+          </Link>
+          <Badge variant={isConnected ? (isMatchReady ? 'green' : 'gold') : 'steel'}>
+            {!isConnected
+              ? 'Private Matchmaking'
+              : isMatchReady
+                ? '⚔️ Duel In Progress'
+                : '⏳ Waiting for Rival'}
+          </Badge>
+        </div>
+
+        {isConnected && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {inviteCode && (
+              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                Code: <strong style={{ color: '#f1c40f' }}>{inviteCode}</strong>
+              </span>
+            )}
+            <Button variant="danger" size="sm" onClick={leaveRoom}>
+              Abandon Chamber
+            </Button>
+          </div>
+        )}
       </div>
 
-      <h1
-        style={{
-          fontSize: '2rem',
-          fontWeight: 900,
-          color: 'var(--text-gold)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          marginBottom: '8px',
-        }}
-      >
-        Private Duel Chamber
-      </h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-        Create a private 2-player room and invite your rival with a secure 6-character invite code,
-        or enter a code to join.
-      </p>
+      {!isConnected && (
+        <>
+          <h1
+            style={{
+              fontSize: '2rem',
+              fontWeight: 900,
+              color: 'var(--text-gold)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '8px',
+            }}
+          >
+            Private Duel Chamber
+          </h1>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
+            Host a private 2-player chamber and invite your rival with a secure 6-character code, or
+            enter a chamber with an invitation code.
+          </p>
+        </>
+      )}
 
       {error && (
         <div
@@ -96,61 +187,133 @@ export default function RoomPage() {
         </div>
       )}
 
-      {isConnected ? (
-        <Card
-          header={
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.25rem', color: '#f1c40f' }}>Chamber Active</h2>
-              <Badge variant="green">2-Player Room</Badge>
-            </div>
-          }
-        >
-          <div style={{ textAlign: 'center', padding: '24px 0' }}>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>
-              Share this Invite Code with your opponent:
-            </p>
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '12px',
-                backgroundColor: 'var(--bg-primary)',
-                border: '2px dashed var(--border-gold)',
-                padding: '12px 28px',
-                borderRadius: '8px',
-                fontSize: '2rem',
-                fontWeight: 900,
-                letterSpacing: '0.25em',
-                color: '#f1c40f',
-                marginBottom: '16px',
-              }}
-            >
-              <span>{inviteCode}</span>
-            </div>
-            <div>
-              <Button variant="outline" size="sm" onClick={handleCopyCode}>
-                {copied ? '✓ Copied to Clipboard' : '📋 Copy Invite Code'}
-              </Button>
-            </div>
-
-            <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-              Room ID: <code style={{ color: 'var(--text-secondary)' }}>{roomId}</code>
-            </p>
-
-            <div
-              style={{ marginTop: '32px', display: 'flex', gap: '12px', justifyContent: 'center' }}
-            >
-              <Link href="/play">
-                <Button variant="primary" size="lg">
-                  Enter Duel Arena
-                </Button>
-              </Link>
-              <Button variant="danger" size="lg" onClick={leaveRoom}>
-                Abandon Chamber
-              </Button>
-            </div>
+      {isConnected && room ? (
+        isMatchReady ? (
+          // Active 2-Player Match View
+          <div>
+            <PhaserGameContainer mode="multiplayer" colyseusRoom={room} playerPreset="knight" />
           </div>
-        </Card>
+        ) : (
+          // Waiting Lobby View
+          <Card
+            header={
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <h2 style={{ fontSize: '1.25rem', color: '#f1c40f' }}>
+                  Chamber Active — Awaiting Opponent
+                </h2>
+                <Badge variant="gold">1 / 2 Warriors</Badge>
+              </div>
+            }
+          >
+            <div style={{ textAlign: 'center', padding: '24px 0' }}>
+              <p
+                style={{
+                  color: 'var(--text-secondary)',
+                  marginBottom: '12px',
+                  fontSize: '1.05rem',
+                }}
+              >
+                Share this Invite Code or Link with your rival:
+              </p>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  backgroundColor: 'var(--bg-primary)',
+                  border: '2px dashed var(--border-gold)',
+                  padding: '14px 32px',
+                  borderRadius: '8px',
+                  fontSize: '2.4rem',
+                  fontWeight: 900,
+                  letterSpacing: '0.25em',
+                  color: '#f1c40f',
+                  marginBottom: '20px',
+                  userSelect: 'all',
+                }}
+              >
+                <span>{inviteCode}</span>
+              </div>
+
+              <div
+                style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}
+              >
+                <Button variant="outline" size="sm" onClick={handleCopyCode}>
+                  {copiedCode ? '✓ Code Copied' : '📋 Copy Code'}
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleCopyLink}>
+                  {copiedLink ? '✓ Link Copied' : '🔗 Copy Direct Link'}
+                </Button>
+              </div>
+
+              {/* Roster Status Box */}
+              <div
+                style={{
+                  marginTop: '36px',
+                  backgroundColor: 'rgba(15, 23, 42, 0.6)',
+                  border: '1px solid #334155',
+                  borderRadius: '8px',
+                  padding: '20px',
+                  maxWidth: '480px',
+                  margin: '36px auto 0',
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: '1rem',
+                    color: '#cbd5e1',
+                    marginBottom: '16px',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  Chamber Roster
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 16px',
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, color: '#34d399' }}>
+                      👑 {playerName} (Host)
+                    </span>
+                    <Badge variant="green">Ready</Badge>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 16px',
+                      backgroundColor: 'rgba(148, 163, 184, 0.05)',
+                      border: '1px dashed #475569',
+                      borderRadius: '6px',
+                    }}
+                  >
+                    <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>
+                      Awaiting Challenger...
+                    </span>
+                    <Badge variant="steel">Connecting</Badge>
+                  </div>
+                </div>
+              </div>
+
+              <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                Room ID: <code style={{ color: 'var(--text-secondary)' }}>{roomId}</code>
+              </p>
+            </div>
+          </Card>
+        )
       ) : (
         <div
           style={{
@@ -164,7 +327,7 @@ export default function RoomPage() {
             header={<h2 style={{ fontSize: '1.2rem', color: 'var(--text-gold)' }}>Host a Duel</h2>}
           >
             <p style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.9rem' }}>
-              Generate a secure invitation code and wait for an opponent to enter your chamber.
+              Forge a private battle chamber and invite a friend with an exclusive code.
             </p>
             <Input
               label="Your Warrior Name"

@@ -218,4 +218,106 @@ describe('Combat Simulation', () => {
       expect(sim.p1.stateMachine.state).toBe('hitstun');
     }
   });
+
+  it('triggers guard break and exhaustion stun when incoming hit depletes stamina while blocking', () => {
+    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p1.movement.setFacing('right');
+    sim.p2.movement.setPosition({ x: 540, y: 560 });
+    sim.p2.movement.setFacing('left');
+
+    // Reduce P2 stamina to 5 (heavy attack does 28 * 0.8 = 22.4 stamina damage)
+    sim.p2.stamina = 5;
+
+    // P1 heavy strike, P2 blocks
+    sim.step(
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'heavy',
+        block: false,
+        parry: false,
+      },
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: true,
+        parry: false,
+      },
+      0.016
+    );
+
+    // Step until active phase hits
+    for (let i = 0; i < 24; i++) {
+      sim.step(
+        null,
+        {
+          sequence: i + 2,
+          timestamp: Date.now(),
+          moveX: 0,
+          jump: false,
+          attack: false,
+          block: true,
+          parry: false,
+        },
+        0.016
+      );
+    }
+
+    expect(sim.p2.stamina).toBe(0);
+    expect(sim.p2.combat.isExhausted).toBe(true);
+    expect(sim.p2.stateMachine.state).toBe('hitstun');
+  });
+
+  it('handles simultaneous double-KO cleanly without locking the simulation', () => {
+    // Both warriors at 5 HP
+    sim.p1.health = 5;
+    sim.p2.health = 5;
+
+    sim.p1.applyDamage(10);
+    sim.p2.applyDamage(10);
+
+    expect(sim.p1.health).toBe(0);
+    expect(sim.p2.health).toBe(0);
+
+    // Step simulation
+    sim.step(null, null, 0.016);
+
+    // Round should be 'round_over'
+    expect(sim.matchState).toBe('round_over');
+    expect(sim.p1.roundsWon).toBe(0);
+    expect(sim.p2.roundsWon).toBe(0);
+
+    // Advance 2.6 seconds (transition timer is 2.5s)
+    for (let i = 0; i < 30; i++) {
+      sim.step(null, null, 0.1);
+    }
+
+    // Should cleanly start next round with full stats
+    expect(sim.matchState).toBe('in_progress');
+    expect(sim.roundNumber).toBe(2);
+    expect(sim.p1.health).toBe(100);
+    expect(sim.p2.health).toBe(100);
+  });
+
+  it('resets entire match state cleanly on resetMatch call', () => {
+    sim.p1.roundsWon = 1;
+    sim.p1.health = 20;
+    sim.p2.health = 0;
+
+    sim.resetMatch();
+
+    expect(sim.roundNumber).toBe(1);
+    expect(sim.p1.roundsWon).toBe(0);
+    expect(sim.p2.roundsWon).toBe(0);
+    expect(sim.p1.health).toBe(100);
+    expect(sim.p2.health).toBe(100);
+    expect(sim.matchState).toBe('in_progress');
+    expect(sim.winnerId).toBeNull();
+  });
 });

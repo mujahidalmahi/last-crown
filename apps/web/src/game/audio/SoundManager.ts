@@ -3,6 +3,28 @@ export class SoundManager {
   private isMuted: boolean = false;
   private volume: number = 0.5;
 
+  constructor() {
+    this.loadSettings();
+  }
+
+  public loadSettings(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem('last_crown_player_settings_v1');
+      if (raw) {
+        const settings = JSON.parse(raw);
+        if (typeof settings.volume === 'number') {
+          this.volume = Math.max(0, Math.min(1, settings.volume / 100));
+        }
+        if (typeof settings.sfxMuted === 'boolean') {
+          this.isMuted = settings.sfxMuted;
+        }
+      }
+    } catch {
+      // Inaccessible storage fallback
+    }
+  }
+
   private initContext(): AudioContext | null {
     if (typeof window === 'undefined') return null;
     if (!this.ctx) {
@@ -28,7 +50,7 @@ export class SoundManager {
   }
 
   public playSwordSwing(): void {
-    if (this.isMuted) return;
+    if (this.isMuted || this.volume <= 0) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
@@ -55,13 +77,12 @@ export class SoundManager {
   }
 
   public playBlockClang(): void {
-    if (this.isMuted) return;
+    if (this.isMuted || this.volume <= 0) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
     try {
       const now = ctx.currentTime;
-      // Metallic dual ping
       [840, 1260].forEach(freq => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -79,18 +100,17 @@ export class SoundManager {
         osc.stop(now + 0.2);
       });
     } catch {
-      // Ignore audio policy errors
+      // Audio error handling
     }
   }
 
   public playParryChime(): void {
-    if (this.isMuted) return;
+    if (this.isMuted || this.volume <= 0) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
     try {
       const now = ctx.currentTime;
-      // High golden chime chords
       [1400, 1800, 2400].forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
@@ -108,12 +128,12 @@ export class SoundManager {
         osc.stop(now + 0.5);
       });
     } catch {
-      // Ignore audio policy errors
+      // Audio error handling
     }
   }
 
   public playHitFlesh(): void {
-    if (this.isMuted) return;
+    if (this.isMuted || this.volume <= 0) return;
     const ctx = this.initContext();
     if (!ctx) return;
 
@@ -135,7 +155,42 @@ export class SoundManager {
       osc.start(now);
       osc.stop(now + 0.22);
     } catch {
-      // Ignore audio policy errors
+      // Audio error handling
+    }
+  }
+
+  public playExhaustionBreak(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      [220, 165].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+
+        gain.gain.setValueAtTime(0.45 * this.volume, now + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + idx * 0.05);
+        osc.stop(now + 0.45);
+      });
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public destroy(): void {
+    if (this.ctx) {
+      this.ctx.close().catch(() => {});
+      this.ctx = null;
     }
   }
 }
