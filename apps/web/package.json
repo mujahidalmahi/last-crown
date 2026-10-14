@@ -1,0 +1,30 @@
+{
+  "name": "@last-crown/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@last-crown/game-config": "*",
+    "@last-crown/game-core": "*",
+    "@last-crown/shared": "*",
+    "colyseus.js": "^0.15.28",
+    "next": "14.2.35",
+    "phaser": "3.88.2",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

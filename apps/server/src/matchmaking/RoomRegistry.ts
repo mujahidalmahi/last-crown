@@ -1,0 +1,74 @@
+import { InviteCodeGenerator } from '../security/InviteCodeGenerator.js';
+
+export interface RoomRegistration {
+  roomId: string;
+  inviteCode: string;
+  createdAt: number;
+  playerCount: number;
+}
+
+export class RoomRegistry {
+  private static instance: RoomRegistry;
+
+  private codeToRoom = new Map<string, RoomRegistration>();
+  private roomToCode = new Map<string, string>();
+
+  public static getInstance(): RoomRegistry {
+    if (!RoomRegistry.instance) {
+      RoomRegistry.instance = new RoomRegistry();
+    }
+    return RoomRegistry.instance;
+  }
+
+  public registerRoom(roomId: string): string {
+    // Generate unique code that is not currently assigned
+    let code = '';
+    let attempts = 0;
+    do {
+      code = InviteCodeGenerator.generate();
+      attempts++;
+      if (attempts > 50) {
+        throw new Error('Unable to generate unique invite code; namespace saturated');
+      }
+    } while (this.codeToRoom.has(code));
+
+    const registration: RoomRegistration = {
+      roomId,
+      inviteCode: code,
+      createdAt: Date.now(),
+      playerCount: 1,
+    };
+
+    this.codeToRoom.set(code, registration);
+    this.roomToCode.set(roomId, code);
+
+    return code;
+  }
+
+  public getRoomByCode(code: string): RoomRegistration | undefined {
+    return this.codeToRoom.get(code.toUpperCase());
+  }
+
+  public updatePlayerCount(roomId: string, count: number): void {
+    const code = this.roomToCode.get(roomId);
+    if (code) {
+      const reg = this.codeToRoom.get(code);
+      if (reg) {
+        reg.playerCount = count;
+      }
+    }
+  }
+
+  public unregisterRoom(roomId: string): void {
+    const code = this.roomToCode.get(roomId);
+    if (code) {
+      this.codeToRoom.delete(code);
+      this.roomToCode.delete(roomId);
+    }
+  }
+
+  public clear(): void {
+    this.codeToRoom.clear();
+    this.roomToCode.clear();
+  }
+}
