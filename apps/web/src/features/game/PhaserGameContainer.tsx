@@ -40,6 +40,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFadingIn, setIsFadingIn] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,8 +49,21 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     return () => clearTimeout(timer);
   }, []);
 
+  const handleTogglePause = useCallback(() => {
+    if (mode !== 'singleplayer') return;
+    setIsPaused(prev => {
+      const next = !prev;
+      if (bootstrapRef.current) {
+        bootstrapRef.current.setPaused(next);
+      }
+      return next;
+    });
+  }, [mode]);
+
   const handleRematch = useCallback(() => {
+    setIsPaused(false);
     if (bootstrapRef.current) {
+      bootstrapRef.current.setPaused(false);
       bootstrapRef.current.rematch();
     }
     if (onRematch) {
@@ -156,6 +170,28 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   }, [toggleFullscreen]);
 
   useEffect(() => {
+    if (mode !== 'singleplayer') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.code === 'Escape' || e.code === 'KeyP') {
+        e.preventDefault();
+        handleTogglePause();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, handleTogglePause]);
+
+  useEffect(() => {
     // Client-side guard: do not run in Node/SSR environment
     if (typeof window === 'undefined' || !containerRef.current) return;
 
@@ -227,6 +263,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           onExit={handleExit}
           isFullscreen={isFullscreen}
           onToggleFullscreen={toggleFullscreen}
+          isPaused={isPaused}
+          onTogglePause={handleTogglePause}
         />
 
         {/* Floating prompt if browser was opened in windowed mode */}

@@ -33,6 +33,7 @@ export class BattleRoom extends Room<BattleRoomState> {
   private simulation: GameSimulation | null = null;
   private clientMetadata = new Map<string, ClientMetadata>();
   private clientInputs = new Map<string, PlayerInputMessage>();
+  private rematchReadyClients = new Set<string>();
   private inviteCode: string = '';
 
   public onCreate(options: {
@@ -63,14 +64,14 @@ export class BattleRoom extends Room<BattleRoomState> {
       const meta = this.clientMetadata.get(client.sessionId);
       if (!meta) return;
 
-      // Rate limit inputs (max 120 messages / sec per client)
+      // Rate limit inputs (ceiling of 240 messages / sec per client to safely support high-refresh monitors)
       const now = Date.now();
       if (now - meta.lastInputWindowReset > 1000) {
         meta.inputMessageCount = 0;
         meta.lastInputWindowReset = now;
       }
       meta.inputMessageCount++;
-      if (meta.inputMessageCount > 120) {
+      if (meta.inputMessageCount > 240) {
         // Discard excessive input spam
         return;
       }
@@ -106,14 +107,19 @@ export class BattleRoom extends Room<BattleRoomState> {
     });
 
     // Rematch Ready Handler
-    this.onMessage(ClientMessageType.READY, () => {
+    this.onMessage(ClientMessageType.READY, client => {
       if (this.state.matchState === 'match_over' && this.simulation) {
-        this.simulation.resetMatch();
-        this.state.matchState = 'in_progress';
-        this.state.winnerId = '';
-        this.broadcast(ServerMessageType.MATCH_START, {
-          roundNumber: 1,
-        });
+        this.rematchReadyClients.add(client.sessionId);
+        // Start rematch when all connected clients in the room signal ready
+        if (this.rematchReadyClients.size >= this.clients.length) {
+          this.rematchReadyClients.clear();
+          this.simulation.resetMatch();
+          this.state.matchState = 'in_progress';
+          this.state.winnerId = '';
+          this.broadcast(ServerMessageType.MATCH_START, {
+            roundNumber: 1,
+          });
+        }
       }
     });
   }
@@ -199,6 +205,7 @@ export class BattleRoom extends Room<BattleRoomState> {
   private cleanupClient(sessionId: string): void {
     this.clientMetadata.delete(sessionId);
     this.clientInputs.delete(sessionId);
+    this.rematchReadyClients.delete(sessionId);
     this.state.warriors.delete(sessionId);
     RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clientMetadata.size);
 
@@ -237,6 +244,18 @@ export class BattleRoom extends Room<BattleRoomState> {
 
     // Step authoritative simulation
     this.simulation.step(p1Input, p2Input, deltaSec);
+
+    // Clear one-shot action impulses so they aren't repeatedly processed on subsequent ticks
+    if (p1Input) {
+      p1Input.attack = false;
+      p1Input.dash = false;
+      p1Input.parry = false;
+    }
+    if (p2Input) {
+      p2Input.attack = false;
+      p2Input.dash = false;
+      p2Input.parry = false;
+    }
 
     // Synchronize simulation output with Colyseus state schema
     const snap = this.simulation.getSnapshot();
@@ -298,12 +317,15 @@ export class BattleRoom extends Room<BattleRoomState> {
     warrior.currentAttackId = snap.currentAttackId || '';
     warrior.roundsWon = snap.roundsWon;
     warrior.isExhausted = snap.isExhausted;
+    warrior.isDecapitated = snap.isDecapitated || false;
+    warrior.comboCount = snap.comboCount || 0;
   }
 
   public onDispose(): void {
     if (this.inviteCode) {
       RoomRegistry.getInstance().unregisterRoom(this.roomId);
     }
+    this.rematchReadyClients.clear();
     this.clientMetadata.clear();
     this.clientInputs.clear();
   }

@@ -55,8 +55,19 @@ export class BattleScene extends Phaser.Scene {
   private wasP2Attacking: boolean = false;
   private wasP1Exhausted: boolean = false;
   private wasP2Exhausted: boolean = false;
+  private wasP2Dashing: boolean = false;
+  private lastInputSendTime: number = 0;
 
   private lastRemoteSnapshot: GameSimulationSnapshot | null = null;
+  private isPaused: boolean = false;
+
+  public setPaused(paused: boolean): void {
+    this.isPaused = paused;
+  }
+
+  public getIsPaused(): boolean {
+    return this.isPaused;
+  }
 
   constructor() {
     super({ key: 'BattleScene' });
@@ -195,6 +206,11 @@ export class BattleScene extends Phaser.Scene {
   }
 
   public update(_time: number, delta: number): void {
+    // 0. Pause guard (for singleplayer offline play)
+    if (this.isPaused) {
+      return;
+    }
+
     // 1. Process Hit-Stop (fighting game impact freeze)
     if (this.hitStopRemainingMs > 0) {
       this.hitStopRemainingMs -= delta;
@@ -229,6 +245,31 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
+    // Dynamic Cinematic Camera Tracking & Zoom
+    let p1X = 360;
+    let p2X = 920;
+    if (this.simulation) {
+      p1X = this.simulation.p1.movement.position.x;
+      p2X = this.simulation.p2.movement.position.x;
+    } else if (this.lastRemoteSnapshot) {
+      p1X = this.lastRemoteSnapshot.p1.position.x;
+      p2X = this.lastRemoteSnapshot.p2.position.x;
+    }
+
+    const midX = (p1X + p2X) / 2;
+    const { width } = this.scale;
+    const targetScrollX = Phaser.Math.Clamp(midX - width / 2, -100, 100);
+    this.cameras.main.scrollX = Phaser.Math.Linear(this.cameras.main.scrollX, targetScrollX, 0.04);
+
+    const fighterDist = Math.abs(p1X - p2X);
+    let targetZoom = 1.0;
+    if (fighterDist < 190) {
+      targetZoom = 1.05; // Zoom in for intense close quarters
+    } else if (fighterDist > 550) {
+      targetZoom = 0.96; // Zoom out to keep full spacing in frame
+    }
+    this.cameras.main.zoom = Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.03);
+
     // 4. Update Game Simulation
     if (this.config.mode === 'singleplayer' && this.simulation && this.botAI && this.inputAdapter) {
       // Poll human keyboard input
@@ -240,6 +281,15 @@ export class BattleScene extends Phaser.Scene {
       }
       this.wasP1Attacking = !!p1Input.attack;
 
+      if (p1Input.dash) {
+        if (this.soundManager) this.soundManager.playDashWhoosh();
+        if (this.effects)
+          this.effects.triggerDashDust(
+            this.simulation.p1.movement.position,
+            this.simulation.p1.movement.facing
+          );
+      }
+
       // Compute Bot AI input
       const p1Snap = this.simulation.p1.toSnapshot();
       const p2Snap = this.simulation.p2.toSnapshot();
@@ -249,6 +299,15 @@ export class BattleScene extends Phaser.Scene {
         this.soundManager.playSwordSwing();
       }
       this.wasP2Attacking = !!p2Input.attack;
+
+      if (p2Input.dash) {
+        if (this.soundManager) this.soundManager.playDashWhoosh();
+        if (this.effects)
+          this.effects.triggerDashDust(
+            this.simulation.p2.movement.position,
+            this.simulation.p2.movement.facing
+          );
+      }
 
       // Step local simulation
       this.simulation.step(p1Input, p2Input, deltaSec);
@@ -280,7 +339,7 @@ export class BattleScene extends Phaser.Scene {
       this.config.colyseusRoom &&
       this.inputAdapter
     ) {
-      // Poll human keyboard input and send to multiplayer room
+      // Poll human keyboard input
       const localInput = this.inputAdapter.pollInput();
 
       if (localInput.attack && !this.wasP1Attacking && this.soundManager) {
@@ -288,7 +347,28 @@ export class BattleScene extends Phaser.Scene {
       }
       this.wasP1Attacking = !!localInput.attack;
 
-      this.config.colyseusRoom.send(ClientMessageType.PLAYER_INPUT, localInput);
+      if (localInput.dash) {
+        if (this.soundManager) this.soundManager.playDashWhoosh();
+        if (this.effects && this.lastRemoteSnapshot) {
+          this.effects.triggerDashDust(
+            this.lastRemoteSnapshot.p1.position,
+            this.lastRemoteSnapshot.p1.facing
+          );
+        }
+      }
+
+      // Transmit immediately on tactical triggers (attack, dash, parry) or at 60Hz tick interval (>= 16ms) for movement
+      const now = Date.now();
+      const hasActionTrigger = localInput.attack || localInput.dash || localInput.parry;
+      if (hasActionTrigger || now - this.lastInputSendTime >= 16) {
+        this.lastInputSendTime = now;
+        this.config.colyseusRoom.send(ClientMessageType.PLAYER_INPUT, localInput);
+      }
+    }
+
+    // 5. Update Visual Combat Effects (severed heads, arterial blood geysers, expanding pools)
+    if (this.effects) {
+      this.effects.update(deltaSec);
     }
   }
 
@@ -312,6 +392,8 @@ export class BattleScene extends Phaser.Scene {
       hurtbox: { x: nw.x - 20, y: nw.y - 70, width: 40, height: 70 },
       roundsWon: nw.roundsWon,
       isExhausted: nw.isExhausted || false,
+      isDecapitated: nw.isDecapitated || false,
+      comboCount: nw.comboCount || 0,
     };
   }
 
@@ -323,14 +405,21 @@ export class BattleScene extends Phaser.Scene {
 
     if (warriorsList.length < 2) return;
 
-    // Identify local player vs opponent based on sessionId if available
+    // Identify local player vs opponent by sessionId
     const mySessionId = this.config.colyseusRoom?.sessionId;
-    let p1Nw = warriorsList[0];
-    let p2Nw = warriorsList[1];
+    let p1Nw: WarriorNetworkState | undefined;
+    let p2Nw: WarriorNetworkState | undefined;
 
-    if (mySessionId && p2Nw && p2Nw.id === mySessionId) {
-      p1Nw = warriorsList[1];
-      p2Nw = warriorsList[0];
+    if (mySessionId && state.warriors.has(mySessionId)) {
+      p1Nw = state.warriors.get(mySessionId);
+      state.warriors.forEach((w, key) => {
+        if (key !== mySessionId && !p2Nw) {
+          p2Nw = w;
+        }
+      });
+    } else {
+      p1Nw = warriorsList[0];
+      p2Nw = warriorsList[1];
     }
 
     if (!p1Nw || !p2Nw) return;
@@ -340,6 +429,21 @@ export class BattleScene extends Phaser.Scene {
 
     if (this.p1Renderer) this.p1Renderer.render(p1Snap);
     if (this.p2Renderer) this.p2Renderer.render(p2Snap);
+
+    // Opponent attack sound cue
+    const isP2Attacking = p2Snap.attackPhase === 'windup' || p2Snap.attackPhase === 'active';
+    if (isP2Attacking && !this.wasP2Attacking && this.soundManager) {
+      this.soundManager.playSwordSwing();
+    }
+    this.wasP2Attacking = isP2Attacking;
+
+    // Opponent dash whoosh & dust
+    const isP2Dashing = Math.abs(p2Snap.velocity.x) > 350;
+    if (isP2Dashing && !this.wasP2Dashing) {
+      if (this.soundManager) this.soundManager.playDashWhoosh();
+      if (this.effects) this.effects.triggerDashDust(p2Snap.position, p2Snap.facing);
+    }
+    this.wasP2Dashing = isP2Dashing;
 
     // Exhaustion edge chime & FX
     if (p1Snap.isExhausted && !this.wasP1Exhausted) {
@@ -414,6 +518,26 @@ export class BattleScene extends Phaser.Scene {
       impactY = defender.position.y;
     }
 
+    if (result.resolution === 'clash' || result.isClash) {
+      this.effects.triggerClashSparks({ x: impactX, y: impactY - 20 });
+      this.soundManager.playSwordClash();
+      this.hitStopRemainingMs = 120; // Dramatic double-freeze on sword clash
+      this.cameras.main.zoomTo(1.08, 120, 'Quad.easeOut');
+      this.time.delayedCall(220, () => {
+        this.cameras.main.zoomTo(1.0, 320, 'Quad.easeIn');
+      });
+      return;
+    }
+
+    if (result.isWallBounce) {
+      const isLeft = impactX < 640;
+      const wallX = isLeft ? 80 : 1200;
+      this.effects.triggerWallBounceImpact({ x: wallX, y: impactY }, isLeft);
+      this.soundManager.playWallBounce();
+      this.hitStopRemainingMs = 60;
+      return;
+    }
+
     if (result.resolution === 'parried') {
       this.effects.triggerParryFlash({ x: impactX, y: impactY });
       this.soundManager.playParryChime();
@@ -423,13 +547,54 @@ export class BattleScene extends Phaser.Scene {
       this.soundManager.playBlockClang();
       this.hitStopRemainingMs = 30; // 30ms block hit-stop
     } else if (result.resolution === 'hit') {
-      this.effects.triggerHitImpact({ x: impactX, y: impactY }, result.isCritical, result.damage);
-      this.soundManager.playHitFlesh();
-      this.hitStopRemainingMs = result.isCritical ? 80 : 45; // Satisfying impact weight
+      if (result.isDecapitation) {
+        let attackerFacing: Direction = 'right';
+        let isVictimPlayer = false;
+
+        if (this.simulation) {
+          const attacker = result.attackerId === 'p1' ? this.simulation.p1 : this.simulation.p2;
+          attackerFacing = attacker.movement.facing;
+          isVictimPlayer = result.defenderId === 'p1';
+        } else if (this.lastRemoteSnapshot) {
+          const attacker =
+            result.attackerId === this.lastRemoteSnapshot.p1.id
+              ? this.lastRemoteSnapshot.p1
+              : this.lastRemoteSnapshot.p2;
+          attackerFacing = attacker.facing;
+          isVictimPlayer = result.defenderId === this.lastRemoteSnapshot.p1.id;
+        }
+
+        this.effects.triggerDecapitation(
+          { x: impactX, y: impactY },
+          attackerFacing,
+          isVictimPlayer,
+          () => this.soundManager?.playHeadThud()
+        );
+        this.soundManager.playDecapitationSlash();
+        this.hitStopRemainingMs = 180; // Dramatic mortal decapitation hit-stop freeze
+
+        // Cinematic slow-motion camera zoom punch
+        this.cameras.main.zoomTo(1.1, 240, 'Quad.easeOut');
+        this.time.delayedCall(900, () => {
+          this.cameras.main.zoomTo(1.0, 450, 'Quad.easeIn');
+        });
+      } else {
+        this.effects.triggerHitImpact({ x: impactX, y: impactY }, result.isCritical, result.damage);
+        if (result.comboCount && result.comboCount >= 2) {
+          this.soundManager.playComboWhack(result.comboCount);
+        } else {
+          this.soundManager.playHitFlesh();
+        }
+        this.hitStopRemainingMs = result.isCritical ? 85 : 50; // Satisfying impact weight
+      }
     }
   }
 
   private cleanUp(): void {
+    if (this.effects) {
+      this.effects.destroy();
+      this.effects = null;
+    }
     if (this.soundManager) {
       this.soundManager.destroy();
       this.soundManager = null;

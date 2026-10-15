@@ -18,9 +18,29 @@ export class KinematicPhysicsAdapter implements IPhysicsAdapter {
     let vy = velocity.y;
     let grounded = isGrounded;
 
-    // Horizontal movement handling
+    // Horizontal movement handling with realistic acceleration & skid braking
     if (moveInputX !== 0) {
-      vx = moveInputX * walkSpeed;
+      const targetVx = moveInputX * walkSpeed;
+      if (grounded) {
+        // If moving fast and reversing direction, apply high skid deceleration
+        const isReversing = (vx > 30 && moveInputX < 0) || (vx < -30 && moveInputX > 0);
+        const rate = isReversing
+          ? BALANCE_CONFIG.movement.skidDeceleration
+          : BALANCE_CONFIG.movement.groundAcceleration;
+        if (vx < targetVx) {
+          vx = Math.min(targetVx, vx + rate * deltaSec);
+        } else if (vx > targetVx) {
+          vx = Math.max(targetVx, vx - rate * deltaSec);
+        }
+      } else {
+        // Aerial directional control
+        const airRate = BALANCE_CONFIG.movement.airAcceleration;
+        if (vx < targetVx) {
+          vx = Math.min(targetVx, vx + airRate * deltaSec);
+        } else if (vx > targetVx) {
+          vx = Math.max(targetVx, vx - airRate * deltaSec);
+        }
+      }
     } else {
       const friction = grounded
         ? BALANCE_CONFIG.movement.frictionX
@@ -37,9 +57,13 @@ export class KinematicPhysicsAdapter implements IPhysicsAdapter {
       grounded = false;
     }
 
-    // Gravity calculation
+    // Gravity calculation & variable jump cut (short-hop on quick release)
     if (!grounded) {
-      vy += BALANCE_CONFIG.movement.gravity * deltaSec;
+      let currentGravity = BALANCE_CONFIG.movement.gravity;
+      if (vy < -50 && !jumpRequested) {
+        currentGravity *= BALANCE_CONFIG.movement.jumpReleaseGravityScale;
+      }
+      vy += currentGravity * deltaSec;
       if (vy > BALANCE_CONFIG.movement.maxFallSpeed) {
         vy = BALANCE_CONFIG.movement.maxFallSpeed;
       }
@@ -64,19 +88,36 @@ export class KinematicPhysicsAdapter implements IPhysicsAdapter {
       if (vy < 0) vy = 0;
     }
 
-    // Left and right arena boundary clamps
+    let wallBounced = false;
+    let bounceDirection: 'left' | 'right' | undefined;
+
+    // Left and right arena boundary clamps with kinetic wall bounce
     if (newX < arena.leftBoundX) {
       newX = arena.leftBoundX;
-      if (vx < 0) vx = 0;
+      if (vx < -BALANCE_CONFIG.movement.wallBounceVelocityThreshold) {
+        vx = -vx * BALANCE_CONFIG.movement.wallBounceRestitution;
+        wallBounced = true;
+        bounceDirection = 'left';
+      } else if (vx < 0) {
+        vx = 0;
+      }
     } else if (newX > arena.rightBoundX) {
       newX = arena.rightBoundX;
-      if (vx > 0) vx = 0;
+      if (vx > BALANCE_CONFIG.movement.wallBounceVelocityThreshold) {
+        vx = -vx * BALANCE_CONFIG.movement.wallBounceRestitution;
+        wallBounced = true;
+        bounceDirection = 'right';
+      } else if (vx > 0) {
+        vx = 0;
+      }
     }
 
     return {
       position: { x: newX, y: newY },
       velocity: { x: vx, y: vy },
       isGrounded: grounded,
+      wallBounced,
+      bounceDirection,
     };
   }
 

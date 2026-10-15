@@ -1,4 +1,4 @@
-import { PlayerInputMessage } from '@last-crown/shared';
+import { PlayerInputMessage, AttackType } from '@last-crown/shared';
 
 export class KeyboardInputAdapter {
   private keysPressed = new Set<string>();
@@ -6,6 +6,9 @@ export class KeyboardInputAdapter {
   private attackBuffer: boolean = false;
   private thrustTriggered: boolean = false;
   private parryBuffer: boolean = false;
+  private dashBuffer: boolean = false;
+  private lastTapKey: string = '';
+  private lastTapTime: number = 0;
   private onKeyDownHandler: (e: KeyboardEvent) => void;
   private onKeyUpHandler: (e: KeyboardEvent) => void;
   private onBlurHandler: () => void;
@@ -15,9 +18,7 @@ export class KeyboardInputAdapter {
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable)
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       ) {
         return;
       }
@@ -31,6 +32,22 @@ export class KeyboardInputAdapter {
         e.preventDefault();
       }
       this.keysPressed.add(e.code);
+
+      const now = Date.now();
+
+      // Double-tap direction detection for tactical evasive dash
+      if (['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code) && !e.repeat) {
+        if (this.lastTapKey === e.code && now - this.lastTapTime < 250) {
+          this.dashBuffer = true;
+        }
+        this.lastTapKey = e.code;
+        this.lastTapTime = now;
+      }
+
+      // Dedicated Dash key (KeyC or KeyE)
+      if (e.code === 'KeyC' || e.code === 'KeyE') {
+        this.dashBuffer = true;
+      }
 
       if (e.code === 'KeyJ' || e.code === 'Space') {
         this.attackBuffer = true;
@@ -48,9 +65,7 @@ export class KeyboardInputAdapter {
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable)
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       ) {
         return;
       }
@@ -62,6 +77,7 @@ export class KeyboardInputAdapter {
       this.attackBuffer = false;
       this.thrustTriggered = false;
       this.parryBuffer = false;
+      this.dashBuffer = false;
     };
 
     if (typeof window !== 'undefined') {
@@ -92,8 +108,17 @@ export class KeyboardInputAdapter {
     const attack = this.attackBuffer;
     this.attackBuffer = false;
 
-    let attackType: 'light' | 'heavy' | 'thrust' = 'light';
-    if (this.thrustTriggered || this.keysPressed.has('KeyU') || this.keysPressed.has('KeyI')) {
+    const dash = this.dashBuffer;
+    this.dashBuffer = false;
+
+    let attackType: AttackType = 'light';
+    if (dash && attack) {
+      attackType = 'dash';
+    } else if (
+      this.thrustTriggered ||
+      this.keysPressed.has('KeyU') ||
+      this.keysPressed.has('KeyI')
+    ) {
       attackType = 'thrust';
     } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown')) {
       attackType = 'heavy';
@@ -112,6 +137,7 @@ export class KeyboardInputAdapter {
       attackType,
       block,
       parry,
+      dash,
     };
   }
 

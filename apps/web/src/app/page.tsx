@@ -109,19 +109,14 @@ export default function HomePage() {
     <div className={styles.coverContainer} role="region" aria-label="Game modes">
       <SettingsIcon onClick={handleSettingsClick} className={styles.settingsIconTopRight} />
       <div className={styles.buttonGroup}>
-        <PixelButton
-          size="lg"
-          onClick={() => handleModeClick('/play')}
-          className={styles.modeButton}
-        >
+        <PixelButton size="lg" onClick={() => handleModeClick('/play')} className={styles.modeButton}>
           BATTLE AI WARRIOR
         </PixelButton>
-        <PixelButton
-          size="lg"
-          onClick={() => handleModeClick('/room')}
-          className={styles.modeButton}
-        >
+        <PixelButton size="lg" onClick={() => handleModeClick('/room')} className={styles.modeButton}>
           Private 2 Player Room
+        </PixelButton>
+        <PixelButton size="lg" onClick={handleSettingsClick} className={styles.modeButton}>
+          Controls & Records
         </PixelButton>
         <PixelButton size="md" onClick={handleBackToCover1} variant="danger" className={styles.backButton}>
           Back
@@ -134,10 +129,14 @@ export default function HomePage() {
     const isForward = transitionDirection === 'forward';
     return (
       <div className={styles.transitionWrapper} aria-hidden="true">
-        <div className={`${styles.transitionLayer} ${styles.cover1Layer} ${isForward ? styles.slideOutLeft : styles.slideInRight}`}>
+        <div
+          className={`${styles.transitionLayer} ${styles.cover1Layer} ${isForward ? styles.slideOutLeft : styles.slideInRight}`}
+        >
           <div className={styles.cover1Image} />
         </div>
-        <div className={`${styles.transitionLayer} ${styles.cover2Layer} ${isForward ? styles.slideInFromRight : styles.slideOutToRight}`}>
+        <div
+          className={`${styles.transitionLayer} ${styles.cover2Layer} ${isForward ? styles.slideInFromRight : styles.slideOutToRight}`}
+        >
           <div className={styles.cover2Image} />
         </div>
       </div>
@@ -146,10 +145,14 @@ export default function HomePage() {
 
   return (
     <div className={styles.pageWrapper}>
-      <div className={`${styles.backgroundLayer} ${screen === 'cover1' ? styles.visible : ''} ${screen === 'transition' && transitionDirection === 'reverse' ? styles.visible : ''}`}>
+      <div
+        className={`${styles.backgroundLayer} ${screen === 'cover1' ? styles.visible : ''} ${screen === 'transition' && transitionDirection === 'reverse' ? styles.visible : ''}`}
+      >
         <div className={styles.cover1Image} />
       </div>
-      <div className={`${styles.backgroundLayer} ${screen === 'cover2' ? styles.visible : ''} ${screen === 'transition' && transitionDirection === 'forward' ? styles.visible : ''}`}>
+      <div
+        className={`${styles.backgroundLayer} ${screen === 'cover2' ? styles.visible : ''} ${screen === 'transition' && transitionDirection === 'forward' ? styles.visible : ''}`}
+      >
         <div className={styles.cover2Image} />
       </div>
 

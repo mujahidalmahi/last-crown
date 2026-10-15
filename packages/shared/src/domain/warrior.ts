@@ -41,4 +41,6 @@ export interface WarriorSnapshot {
   hurtbox: AABB;
   roundsWon: number;
   isExhausted: boolean;
+  isDecapitated?: boolean;
+  comboCount?: number;
 }

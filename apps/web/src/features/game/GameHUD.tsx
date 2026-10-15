@@ -12,6 +12,8 @@ export interface GameHUDProps {
   onExit?: () => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  isPaused?: boolean;
+  onTogglePause?: () => void;
 }
 
 export const GameHUD: React.FC<GameHUDProps> = ({
@@ -21,6 +23,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   onExit,
   isFullscreen,
   onToggleFullscreen,
+  isPaused = false,
+  onTogglePause,
 }) => {
   const currentMatchIdRef = useRef<string>(
     `match_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
@@ -29,6 +33,47 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
   // In-game controls guide modal state
   const [showControls, setShowControls] = useState<boolean>(false);
+
+  // Audio pause menu settings state
+  const [volume, setVolume] = useState<number>(50);
+  const [sfxMuted, setSfxMuted] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = window.localStorage.getItem('last_crown_player_settings_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed.volume === 'number') setVolume(parsed.volume);
+        if (typeof parsed.sfxMuted === 'boolean') setSfxMuted(parsed.sfxMuted);
+      }
+    } catch {
+      // localStorage fallback
+    }
+  }, []);
+
+  const handleVolumeChange = (newVol: number) => {
+    setVolume(newVol);
+    try {
+      const raw = window.localStorage.getItem('last_crown_player_settings_v1');
+      const parsed = raw ? JSON.parse(raw) : {};
+      parsed.volume = newVol;
+      window.localStorage.setItem('last_crown_player_settings_v1', JSON.stringify(parsed));
+      window.dispatchEvent(new CustomEvent('last_crown_settings_changed'));
+    } catch {}
+  };
+
+  const handleMuteToggle = () => {
+    const next = !sfxMuted;
+    setSfxMuted(next);
+    try {
+      const raw = window.localStorage.getItem('last_crown_player_settings_v1');
+      const parsed = raw ? JSON.parse(raw) : {};
+      parsed.sfxMuted = next;
+      window.localStorage.setItem('last_crown_player_settings_v1', JSON.stringify(parsed));
+      window.dispatchEvent(new CustomEvent('last_crown_settings_changed'));
+    } catch {}
+  };
 
   // Ghost health trailing states (arcade fighting game damage delay)
   const [p1GhostHealth, setP1GhostHealth] = useState<number>(100);
@@ -332,6 +377,27 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               ⚠️ POSTURE BROKEN — EXHAUSTED
             </div>
           )}
+
+          {/* P1 Combo Counter Badge */}
+          {p1.comboCount !== undefined && p1.comboCount >= 2 && (
+            <div
+              style={{
+                fontSize: '0.92rem',
+                fontWeight: 900,
+                color: '#f1c40f',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                textShadow: '0 0 12px rgba(241, 196, 15, 0.95), 0 2px 4px #000',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                animation: 'pulse 0.4s infinite alternate',
+              }}
+            >
+              <span>🔥</span>
+              <span>{p1.comboCount} HITS COMBO!</span>
+            </div>
+          )}
         </div>
 
         {/* Center Round & Match Timer Medallion */}
@@ -377,6 +443,33 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           >
             {timerSeconds}
           </span>
+
+          {/* Pause Button - ONLY rendered in Singleplayer Mode, NEVER in online matches */}
+          {mode === 'singleplayer' && onTogglePause && (
+            <button
+              type="button"
+              onClick={onTogglePause}
+              style={{
+                marginTop: '6px',
+                backgroundColor: isPaused ? '#f1c40f' : 'rgba(21, 28, 40, 0.9)',
+                color: isPaused ? '#070b12' : '#f1c40f',
+                border: '1px solid var(--border-gold)',
+                borderRadius: '4px',
+                padding: '3px 12px',
+                fontSize: '0.72rem',
+                fontWeight: 900,
+                letterSpacing: '0.08em',
+                cursor: 'pointer',
+                pointerEvents: 'auto',
+                textTransform: 'uppercase',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
+                transition: 'all 0.15s ease',
+              }}
+              title="Pause duel (Hotkey: P or Escape)"
+            >
+              {isPaused ? '▶️ Resume' : '⏸️ Pause (P)'}
+            </button>
+          )}
         </div>
 
         {/* P2 Stats (Opponent / Bot) */}
@@ -537,6 +630,29 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               ⚠️ POSTURE BROKEN — EXHAUSTED
             </div>
           )}
+
+          {/* P2 Combo Counter Badge */}
+          {p2.comboCount !== undefined && p2.comboCount >= 2 && (
+            <div
+              style={{
+                fontSize: '0.92rem',
+                fontWeight: 900,
+                color: '#e74c3c',
+                letterSpacing: '0.12em',
+                textTransform: 'uppercase',
+                textAlign: 'right',
+                textShadow: '0 0 12px rgba(231, 76, 60, 0.95), 0 2px 4px #000',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '6px',
+                animation: 'pulse 0.4s infinite alternate',
+              }}
+            >
+              <span>{p2.comboCount} HITS COMBO!</span>
+              <span>🔥</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -599,7 +715,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               textShadow: '0 4px 16px rgba(0, 0, 0, 0.9)',
             }}
           >
-            {winnerId === p1.id ? 'VICTORY' : winnerId === 'draw' ? 'STALEMATE' : 'DEFEATED'}
+            {winnerId === p1.id
+              ? p2.isDecapitated
+                ? 'DECAPITATION VICTORY'
+                : 'VICTORY'
+              : winnerId === 'draw'
+                ? 'STALEMATE'
+                : p1.isDecapitated
+                  ? 'DECAPITATED'
+                  : 'DEFEATED'}
           </h2>
           <p
             style={{
@@ -611,10 +735,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             }}
           >
             {winnerId === p1.id
-              ? 'The Crown Belongs To You!'
+              ? p2.isDecapitated
+                ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
+                : 'The Crown Belongs To You!'
               : winnerId === 'draw'
                 ? 'Both Champions Stood Equal In Blood & Steel.'
-                : 'Only One Shall Reign.'}
+                : p1.isDecapitated
+                  ? 'Your Head Fell To The Arena Floor. Only One Shall Reign.'
+                  : 'Only One Shall Reign.'}
           </p>
 
           <div
@@ -884,6 +1012,359 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Gothic Pause Menu Modal Overlay (Singleplayer Only) */}
+      {mode === 'singleplayer' && isPaused && matchState !== 'match_over' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(5, 7, 14, 0.88)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 200,
+            pointerEvents: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: 'rgba(10, 14, 24, 0.96)',
+              border: '2px solid var(--border-gold)',
+              borderRadius: '16px',
+              padding: '28px 36px',
+              maxWidth: '680px',
+              width: '100%',
+              boxShadow: '0 20px 70px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '18px',
+              color: '#e2e8f0',
+            }}
+          >
+            {/* Header */}
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2.2rem', filter: 'drop-shadow(0 0 10px #f1c40f)' }}>⚔️</div>
+              <h2
+                style={{
+                  fontSize: '2rem',
+                  fontWeight: 900,
+                  color: '#f1c40f',
+                  letterSpacing: '0.14em',
+                  textTransform: 'uppercase',
+                  margin: '4px 0 0 0',
+                  textShadow: '0 3px 12px rgba(0,0,0,0.9), 0 0 20px rgba(241,196,15,0.4)',
+                }}
+              >
+                DUEL PAUSED
+              </h2>
+              <p
+                style={{
+                  color: '#a0aec0',
+                  fontSize: '0.88rem',
+                  fontStyle: 'italic',
+                  margin: '4px 0 0 0',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                Tactical Respite — The Battle Awaits Your Command
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div
+              style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
+              {onTogglePause && (
+                <button
+                  type="button"
+                  onClick={onTogglePause}
+                  style={{
+                    backgroundColor: '#f1c40f',
+                    color: '#070b12',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px 26px',
+                    fontSize: '0.98rem',
+                    fontWeight: 900,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 16px rgba(241, 196, 15, 0.45)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  ▶️ Resume Duel (P / Esc)
+                </button>
+              )}
+              {onRematch && (
+                <button
+                  type="button"
+                  onClick={onRematch}
+                  style={{
+                    backgroundColor: '#1a2233',
+                    color: '#f1c40f',
+                    border: '1px solid var(--border-gold)',
+                    borderRadius: '8px',
+                    padding: '12px 22px',
+                    fontSize: '0.98rem',
+                    fontWeight: 800,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  🔄 Restart Match
+                </button>
+              )}
+              <Link href="/" style={{ textDecoration: 'none' }}>
+                <button
+                  type="button"
+                  style={{
+                    backgroundColor: '#121722',
+                    color: '#cbd5e1',
+                    border: '1px solid #4a5568',
+                    borderRadius: '8px',
+                    padding: '12px 20px',
+                    fontSize: '0.98rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🏰 Castle Hall
+                </button>
+              </Link>
+            </div>
+
+            {/* Audio Settings Bar */}
+            <div
+              style={{
+                backgroundColor: 'rgba(15, 20, 32, 0.85)',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                borderRadius: '10px',
+                padding: '12px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '14px',
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  flex: 1,
+                  minWidth: '220px',
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: '0.84rem',
+                    fontWeight: 800,
+                    color: '#f1c40f',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.06em',
+                  }}
+                >
+                  🔊 Audio Volume
+                </span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={volume}
+                  onChange={e => handleVolumeChange(Number(e.target.value))}
+                  style={{
+                    flex: 1,
+                    accentColor: '#f1c40f',
+                    cursor: 'pointer',
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: '0.82rem',
+                    fontWeight: 800,
+                    color: '#cbd5e1',
+                    width: '38px',
+                    textAlign: 'right',
+                  }}
+                >
+                  {volume}%
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleMuteToggle}
+                style={{
+                  backgroundColor: sfxMuted ? '#7f1d1d' : '#1e293b',
+                  color: sfxMuted ? '#fca5a5' : '#f1c40f',
+                  border: `1px solid ${sfxMuted ? '#ef4444' : 'rgba(212, 175, 55, 0.4)'}`,
+                  borderRadius: '6px',
+                  padding: '6px 14px',
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {sfxMuted ? '🔇 Audio Muted' : '🔊 SFX Active'}
+              </button>
+            </div>
+
+            {/* Tactical Fighting Techniques & Move Reference */}
+            <div
+              style={{
+                backgroundColor: 'rgba(12, 16, 26, 0.85)',
+                border: '1px solid #2d3748',
+                borderRadius: '10px',
+                padding: '14px 18px',
+              }}
+            >
+              <div
+                style={{
+                  fontSize: '0.8rem',
+                  fontWeight: 900,
+                  color: '#f1c40f',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                  marginBottom: '8px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>📜</span>
+                <span>Tactical Fighting Arts & Maneuvers</span>
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
+                  gap: '8px 16px',
+                  fontSize: '0.78rem',
+                  color: '#cbd5e1',
+                  lineHeight: '1.4',
+                }}
+              >
+                <div>
+                  <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly tap{' '}
+                  <strong style={{ color: '#fff' }}>J / Space</strong> for Slash ➔ Rising Slash ➔
+                  Spinning Finisher.
+                </div>
+                <div>
+                  <strong style={{ color: '#f1c40f' }}>💥 Weapon Clash:</strong> Simultaneous weapon
+                  strikes clash with sparks, staggering both duelists backwards.
+                </div>
+                <div>
+                  <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
+                  <strong style={{ color: '#fff' }}>W</strong>, then strike with{' '}
+                  <strong style={{ color: '#fff' }}>J</strong> in mid-air to plunge downward with
+                  ground-slam impact.
+                </div>
+                <div>
+                  <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Dash forward with{' '}
+                  <strong style={{ color: '#fff' }}>C</strong>, then hit{' '}
+                  <strong style={{ color: '#fff' }}>J</strong> to pierce enemy defenses.
+                </div>
+                <div>
+                  <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes into
+                  arena bounds cause warriors to violently rebound off stone walls.
+                </div>
+                <div>
+                  <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed parry with{' '}
+                  <strong style={{ color: '#fff' }}>L / Alt</strong> deflects blows and causes heavy
+                  posture exhaustion.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Realistic Combat Controls Ribbon */}
+      {matchState !== 'match_over' && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: '12px',
+            backgroundColor: 'rgba(5, 8, 16, 0.88)',
+            border: '1px solid rgba(212, 175, 55, 0.35)',
+            borderRadius: '20px',
+            padding: '6px 18px',
+            fontSize: '0.76rem',
+            color: '#a0aec0',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.7)',
+          }}
+        >
+          <span>
+            <strong style={{ color: '#f1c40f' }}>A/D</strong> Move & Skid
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>W</strong> Jump / Hop
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>C</strong> Dash
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>J / Space</strong> 3-Hit Combo
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>Air + J</strong> Helm Splitter
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>Dash + J</strong> Lunge
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>S + J</strong> Heavy
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>U / I</strong> Thrust
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>K</strong> Block
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>L</strong> Parry
+          </span>
+          {mode === 'singleplayer' && (
+            <>
+              <span style={{ color: '#4a5568' }}>•</span>
+              <span>
+                <strong style={{ color: '#f1c40f' }}>P / Esc</strong> Pause
+              </span>
+            </>
+          )}
         </div>
       )}
     </div>

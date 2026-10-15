@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Client, Room } from 'colyseus.js';
-import { BattleRoomState } from '@last-crown/shared';
+import { BattleRoomState, ClientMessageType, ServerMessageType } from '@last-crown/shared';
 
 export interface MultiplayerState {
   isConnected: boolean;
@@ -29,25 +29,87 @@ export function useMultiplayerRoom() {
 
   const clientRef = useRef<Client | null>(null);
   const roomRef = useRef<Room<BattleRoomState> | null>(null);
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const getClient = useCallback((): Client => {
     if (!clientRef.current) {
-      const serverWsUrl = process.env.NEXT_PUBLIC_SERVER_WS_URL || 'ws://localhost:2567';
-      clientRef.current = new Client(serverWsUrl);
+      if (process.env.NEXT_PUBLIC_SERVER_WS_URL) {
+        clientRef.current = new Client(process.env.NEXT_PUBLIC_SERVER_WS_URL);
+      } else if (typeof window !== 'undefined') {
+        const isLocal =
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1' ||
+          window.location.hostname === '0.0.0.0';
+        if (isLocal) {
+          clientRef.current = new Client(`ws://${window.location.hostname}:2567`);
+        } else {
+          const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          clientRef.current = new Client(`${wsProtocol}//${window.location.host}`);
+        }
+      } else {
+        clientRef.current = new Client('ws://localhost:2567');
+      }
     }
     return clientRef.current;
   }, []);
 
   const getServerHttpUrl = (): string => {
-    return process.env.NEXT_PUBLIC_SERVER_HTTP_URL || 'http://localhost:2567';
+    // 1. Explicit override via env variable
+    if (process.env.NEXT_PUBLIC_SERVER_HTTP_URL) {
+      return process.env.NEXT_PUBLIC_SERVER_HTTP_URL;
+    }
+    if (typeof window === 'undefined') {
+      return process.env.SERVER_URL || 'http://localhost:2567';
+    }
+
+    // 2. Same-origin deployment URL (Next.js App Router API route proxies to backend Colyseus service)
+    return window.location.origin;
   };
+
+  const setupRoomListeners = useCallback((room: Room<BattleRoomState>) => {
+    room.onStateChange(newState => {
+      setState(prev => ({ ...prev, roomState: newState }));
+    });
+
+    room.onError((code, message) => {
+      setState(prev => ({ ...prev, error: `Room error [${code}]: ${message}` }));
+    });
+
+    room.onLeave(() => {
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current);
+        pingIntervalRef.current = null;
+      }
+      setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null, latencyMs: 0 }));
+    });
+
+    // PONG ping/latency measurement
+    room.onMessage(ServerMessageType.PONG, (data: { clientTimestamp?: number }) => {
+      if (data && data.clientTimestamp) {
+        const rtt = Math.max(1, Date.now() - data.clientTimestamp);
+        setState(prev => ({ ...prev, latencyMs: rtt }));
+      }
+    });
+
+    // Periodic ping loop
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+    }
+    room.send(ClientMessageType.PING, { timestamp: Date.now() });
+    pingIntervalRef.current = setInterval(() => {
+      if (roomRef.current && roomRef.current.sessionId) {
+        roomRef.current.send(ClientMessageType.PING, { timestamp: Date.now() });
+      }
+    }, 2000);
+  }, []);
 
   const createPrivateRoom = useCallback(
     async (playerName: string = 'Host Warrior', warriorPreset: string = 'knight') => {
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
       try {
         const httpUrl = getServerHttpUrl();
-        const res = await fetch(`${httpUrl}/api/rooms/create`, {
+        const targetUrl = new URL('/api/rooms/create', httpUrl).toString();
+        const res = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isPrivate: true, playerName, warriorPreset }),
@@ -55,7 +117,11 @@ export function useMultiplayerRoom() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to create private room');
+          const fallbackMsg =
+            res.status === 404
+              ? 'Multiplayer room endpoint not found (HTTP 404). Ensure game server is running.'
+              : `Server error creating room (HTTP ${res.status})`;
+          throw new Error(errData.error || fallbackMsg);
         }
 
         const data = await res.json();
@@ -66,18 +132,7 @@ export function useMultiplayerRoom() {
         });
 
         roomRef.current = room;
-
-        room.onStateChange(newState => {
-          setState(prev => ({ ...prev, roomState: newState }));
-        });
-
-        room.onError((code, message) => {
-          setState(prev => ({ ...prev, error: `Room error [${code}]: ${message}` }));
-        });
-
-        room.onLeave(() => {
-          setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null }));
-        });
+        setupRoomListeners(room);
 
         setState({
           isConnected: true,
@@ -92,8 +147,20 @@ export function useMultiplayerRoom() {
 
         return { roomId: room.id, inviteCode: data.inviteCode };
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : 'Multiplayer server is currently unavailable.';
+        let message = 'Multiplayer server is currently unavailable.';
+        if (err instanceof Error) {
+          if (
+            err.message.includes('Failed to fetch') ||
+            err.message.includes('NetworkError') ||
+            err.message.includes('Failed to load') ||
+            err.message.includes('ECONNREFUSED')
+          ) {
+            message =
+              'Cannot reach game server. Make sure the server is running on port 2567 (npm run dev).';
+          } else {
+            message = err.message;
+          }
+        }
         setState(prev => ({
           ...prev,
           isConnecting: false,
@@ -103,7 +170,7 @@ export function useMultiplayerRoom() {
         return null;
       }
     },
-    [getClient]
+    [getClient, setupRoomListeners]
   );
 
   const joinPrivateRoom = useCallback(
@@ -115,7 +182,8 @@ export function useMultiplayerRoom() {
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
       try {
         const httpUrl = getServerHttpUrl();
-        const verifyRes = await fetch(`${httpUrl}/api/rooms/verify`, {
+        const targetUrl = new URL('/api/rooms/verify', httpUrl).toString();
+        const verifyRes = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ inviteCode, playerName, warriorPreset }),
@@ -123,7 +191,11 @@ export function useMultiplayerRoom() {
 
         if (!verifyRes.ok) {
           const errData = await verifyRes.json().catch(() => ({}));
-          throw new Error(errData.error || 'Invalid or expired invite code');
+          const fallbackMsg =
+            verifyRes.status === 404
+              ? 'Room not found or invite code expired'
+              : `Unable to verify chamber (HTTP ${verifyRes.status})`;
+          throw new Error(errData.error || fallbackMsg);
         }
 
         const { roomId } = await verifyRes.json();
@@ -134,18 +206,7 @@ export function useMultiplayerRoom() {
         });
 
         roomRef.current = room;
-
-        room.onStateChange(newState => {
-          setState(prev => ({ ...prev, roomState: newState }));
-        });
-
-        room.onError((code, message) => {
-          setState(prev => ({ ...prev, error: `Room error [${code}]: ${message}` }));
-        });
-
-        room.onLeave(() => {
-          setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null }));
-        });
+        setupRoomListeners(room);
 
         setState({
           isConnected: true,
@@ -160,10 +221,20 @@ export function useMultiplayerRoom() {
 
         return { roomId: room.id };
       } catch (err: unknown) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : 'Unable to join room. Verify the code and server status.';
+        let message = 'Unable to join room. Verify the code and server status.';
+        if (err instanceof Error) {
+          if (
+            err.message.includes('Failed to fetch') ||
+            err.message.includes('NetworkError') ||
+            err.message.includes('Failed to load') ||
+            err.message.includes('ECONNREFUSED')
+          ) {
+            message =
+              'Cannot reach game server. Make sure the server is running on port 2567 (npm run dev).';
+          } else {
+            message = err.message;
+          }
+        }
         setState(prev => ({
           ...prev,
           isConnecting: false,
@@ -173,10 +244,14 @@ export function useMultiplayerRoom() {
         return null;
       }
     },
-    [getClient]
+    [getClient, setupRoomListeners]
   );
 
   const leaveRoom = useCallback(() => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+      pingIntervalRef.current = null;
+    }
     if (roomRef.current) {
       roomRef.current.leave();
       roomRef.current = null;
@@ -187,12 +262,17 @@ export function useMultiplayerRoom() {
       roomId: null,
       inviteCode: null,
       roomState: null,
+      latencyMs: 0,
       room: null,
     }));
   }, []);
 
   useEffect(() => {
     return () => {
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current);
+        pingIntervalRef.current = null;
+      }
       if (roomRef.current) {
         roomRef.current.leave();
         roomRef.current = null;

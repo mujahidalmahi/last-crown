@@ -3,8 +3,15 @@ export class SoundManager {
   private isMuted: boolean = false;
   private volume: number = 0.5;
 
+  private boundSettingsListener: (() => void) | null = null;
+
   constructor() {
     this.loadSettings();
+    if (typeof window !== 'undefined') {
+      this.boundSettingsListener = () => this.loadSettings();
+      window.addEventListener('storage', this.boundSettingsListener);
+      window.addEventListener('last_crown_settings_changed', this.boundSettingsListener);
+    }
   }
 
   public loadSettings(): void {
@@ -187,7 +194,256 @@ export class SoundManager {
     }
   }
 
+  public playDecapitationSlash(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+
+      // 1. Heavy visceral bone cleave (deep punch)
+      const subOsc = ctx.createOscillator();
+      const subGain = ctx.createGain();
+      subOsc.type = 'sawtooth';
+      subOsc.frequency.setValueAtTime(110, now);
+      subOsc.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+
+      subGain.gain.setValueAtTime(0.6 * this.volume, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+      subOsc.connect(subGain);
+      subGain.connect(ctx.destination);
+      subOsc.start(now);
+      subOsc.stop(now + 0.36);
+
+      // 2. High-speed steel blade slice
+      const sliceOsc = ctx.createOscillator();
+      const sliceGain = ctx.createGain();
+      sliceOsc.type = 'triangle';
+      sliceOsc.frequency.setValueAtTime(750, now);
+      sliceOsc.frequency.exponentialRampToValueAtTime(180, now + 0.22);
+
+      sliceGain.gain.setValueAtTime(0.4 * this.volume, now);
+      sliceGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+      sliceOsc.connect(sliceGain);
+      sliceGain.connect(ctx.destination);
+      sliceOsc.start(now);
+      sliceOsc.stop(now + 0.23);
+
+      // 3. Wet arterial severing gush
+      setTimeout(() => this.playBloodGush(), 80);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playBloodGush(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      [160, 120, 90].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+        osc.frequency.linearRampToValueAtTime(freq * 0.7, now + idx * 0.04 + 0.15);
+
+        gain.gain.setValueAtTime(0.3 * this.volume, now + idx * 0.04);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.2);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + idx * 0.04);
+        osc.stop(now + idx * 0.04 + 0.21);
+      });
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playHeadThud(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // Dull metal armor helmet bounce on flagstones
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(280, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.12);
+
+      gain.gain.setValueAtTime(0.4 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.13);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playDashWhoosh(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(360, now + 0.06);
+      osc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+
+      gain.gain.setValueAtTime(0.25 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.13);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playSwordClash(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // High-frequency dual metal harmonic clash
+      [980, 1420, 1850].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.005);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.85, now + 0.28);
+
+        gain.gain.setValueAtTime(0.45 * this.volume, now + idx * 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + idx * 0.005);
+        osc.stop(now + 0.34);
+      });
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playWallBounce(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // Low heavy masonry impact thud
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.2);
+
+      gain.gain.setValueAtTime(0.5 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.22);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playGroundSlam(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // Deep sub-bass floor slam
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.28);
+
+      gain.gain.setValueAtTime(0.55 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playComboWhack(comboCount: number): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const baseFreq = 160 + Math.min(8, comboCount) * 25;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(baseFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, now + 0.16);
+
+      gain.gain.setValueAtTime(0.4 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.18);
+    } catch {
+      // Audio error handling
+    }
+  }
+
   public destroy(): void {
+    if (typeof window !== 'undefined' && this.boundSettingsListener) {
+      window.removeEventListener('storage', this.boundSettingsListener);
+      window.removeEventListener('last_crown_settings_changed', this.boundSettingsListener);
+      this.boundSettingsListener = null;
+    }
     if (this.ctx) {
       this.ctx.close().catch(() => {});
       this.ctx = null;

@@ -109,19 +109,119 @@ export class GameSimulation {
     this.p1.update(p1Input, clampedDeltaSec, this.arena, this._physics);
     this.p2.update(p2Input, clampedDeltaSec, this.arena, this._physics);
 
+    // Resolve soft-body fighter separation (prevent ghosting through each other)
+    this.resolveFighterSeparation();
+
+    // Check wall bounces
+    this.checkWallBounces();
+
     // Decrement round timer
     this._roundTimerSec -= clampedDeltaSec;
 
-    // Check combat collisions
+    // Check combat collisions (including weapon clash)
     this.resolveCombatCollisions();
 
     // Check round win conditions
     this.checkRoundConditions();
   }
 
+  private resolveFighterSeparation(): void {
+    if (this.p1.health <= 0 || this.p2.health <= 0) return;
+    if (this.p1.isDecapitated || this.p2.isDecapitated) return;
+
+    const p1Pos = this.p1.movement.position;
+    const p2Pos = this.p2.movement.position;
+
+    // Only apply horizontal separation if roughly on same vertical level
+    if (Math.abs(p1Pos.y - p2Pos.y) > 65) return;
+
+    const minSep = BALANCE_CONFIG.movement.fighterSeparationDistance;
+    const dx = p2Pos.x - p1Pos.x;
+    const dist = Math.abs(dx);
+
+    if (dist < minSep) {
+      const overlap = minSep - dist;
+      const pushSign = dx >= 0 ? 1 : -1;
+      const halfOverlap = overlap * 0.5;
+
+      const newP1X = Math.max(
+        this.arena.leftBoundX,
+        Math.min(this.arena.rightBoundX, p1Pos.x - pushSign * halfOverlap)
+      );
+      const newP2X = Math.max(
+        this.arena.leftBoundX,
+        Math.min(this.arena.rightBoundX, p2Pos.x + pushSign * halfOverlap)
+      );
+
+      this.p1.movement.setPosition({ x: newP1X, y: p1Pos.y });
+      this.p2.movement.setPosition({ x: newP2X, y: p2Pos.y });
+    }
+  }
+
+  private checkWallBounces(): void {
+    if (this.p1.movement.lastWallBounced) {
+      this.p1.movement.clearWallBounce();
+      const wallResult: HitResult = {
+        resolution: 'hit',
+        attackerId: 'arena_wall',
+        defenderId: this.p1.id,
+        damage: 0,
+        blockedDamage: 0,
+        staminaDamage: 0,
+        knockback: { x: 0, y: 0 },
+        hitstunMs: 140,
+        isCritical: false,
+        isWallBounce: true,
+      };
+      for (const listener of this._combatEventListeners) {
+        listener(wallResult);
+      }
+    }
+
+    if (this.p2.movement.lastWallBounced) {
+      this.p2.movement.clearWallBounce();
+      const wallResult: HitResult = {
+        resolution: 'hit',
+        attackerId: 'arena_wall',
+        defenderId: this.p2.id,
+        damage: 0,
+        blockedDamage: 0,
+        staminaDamage: 0,
+        knockback: { x: 0, y: 0 },
+        hitstunMs: 140,
+        isCritical: false,
+        isWallBounce: true,
+      };
+      for (const listener of this._combatEventListeners) {
+        listener(wallResult);
+      }
+    }
+  }
+
   private resolveCombatCollisions(): void {
-    // Check P1 attacking P2
     const p1Hitbox = this.p1.getActiveHitbox();
+    const p2Hitbox = this.p2.getActiveHitbox();
+
+    // 1. Check for simultaneous WEAPON CLASH
+    if (
+      p1Hitbox &&
+      p2Hitbox &&
+      !this.p1.combat.hasAlreadyHit() &&
+      !this.p2.combat.hasAlreadyHit()
+    ) {
+      // If active hitboxes overlap directly, or both intersect opposing hurtboxes simultaneously
+      const hitboxesOverlap = checkAABBOverlap(p1Hitbox.bounds, p2Hitbox.bounds);
+      const mutualHurtboxIntersect =
+        checkAABBOverlap(p1Hitbox.bounds, this.p2.getHurtbox()) &&
+        checkAABBOverlap(p2Hitbox.bounds, this.p1.getHurtbox());
+
+      if (hitboxesOverlap || mutualHurtboxIntersect) {
+        this.executeClash();
+        return;
+      }
+    }
+
+    // 2. Check P1 attacking P2
     if (p1Hitbox && !this.p1.combat.hasAlreadyHit()) {
       const p2Hurtbox = this.p2.getHurtbox();
       if (checkAABBOverlap(p1Hitbox.bounds, p2Hurtbox)) {
@@ -129,13 +229,46 @@ export class GameSimulation {
       }
     }
 
-    // Check P2 attacking P1
-    const p2Hitbox = this.p2.getActiveHitbox();
+    // 3. Check P2 attacking P1
     if (p2Hitbox && !this.p2.combat.hasAlreadyHit()) {
       const p1Hurtbox = this.p1.getHurtbox();
       if (checkAABBOverlap(p2Hitbox.bounds, p1Hurtbox)) {
         this.executeHit(this.p2, this.p1);
       }
+    }
+  }
+
+  private executeClash(): void {
+    this.p1.combat.markHitConfirmed();
+    this.p2.combat.markHitConfirmed();
+
+    const stunDuration = BALANCE_CONFIG.combat.clashRecoilStunMs;
+    this.p1.combat.applyClashStagger(stunDuration, this.p1.stateMachine);
+    this.p2.combat.applyClashStagger(stunDuration, this.p2.stateMachine);
+
+    // Apply opposing recoil impulses
+    const p1FacingSign = this.p1.movement.facing === 'right' ? 1 : -1;
+    const p2FacingSign = this.p2.movement.facing === 'right' ? 1 : -1;
+    const recoil = BALANCE_CONFIG.combat.clashRecoilImpulse;
+
+    this.p1.movement.applyImpulse({ x: -p1FacingSign * recoil, y: -40 }, this._physics);
+    this.p2.movement.applyImpulse({ x: -p2FacingSign * recoil, y: -40 }, this._physics);
+
+    const clashResult: HitResult = {
+      resolution: 'clash',
+      attackerId: this.p1.id,
+      defenderId: this.p2.id,
+      damage: 0,
+      blockedDamage: 0,
+      staminaDamage: 0,
+      knockback: { x: 0, y: 0 },
+      hitstunMs: stunDuration,
+      isCritical: false,
+      isClash: true,
+    };
+
+    for (const listener of this._combatEventListeners) {
+      listener(clashResult);
     }
   }
 
@@ -167,7 +300,23 @@ export class GameSimulation {
       // Slight pushback on attacker
       const counterSign = defender.movement.facing === 'right' ? 1 : -1;
       attacker.movement.applyImpulse({ x: -counterSign * 180, y: -60 }, this._physics);
+      attacker.combat.resetCombo();
     } else {
+      if (result.resolution === 'hit') {
+        const combo = attacker.combat.registerHitLanded();
+        result.comboCount = combo;
+        defender.combat.resetCombo();
+      } else {
+        attacker.combat.resetCombo();
+      }
+
+      // Check for lethal finishing blow
+      const willKill = defender.health <= result.damage;
+      if (willKill) {
+        defender.isDecapitated = true;
+        result.isDecapitation = true;
+      }
+
       // Damage applied to defender
       defender.applyDamage(result.damage);
       const isGuardBroken = defender.applyStaminaDamage(result.staminaDamage);

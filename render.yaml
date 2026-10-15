@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: last-crown-server
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm ci --include=dev && npm run build:packages && npm run build --workspace=@last-crown/server
+    startCommand: npm run start --workspace=@last-crown/server
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SERVER_HOST
+        value: 0.0.0.0
+      - key: SERVER_CORS_ORIGIN
+        value: '*'

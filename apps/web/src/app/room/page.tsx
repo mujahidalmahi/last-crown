@@ -55,6 +55,7 @@ export default function RoomPage() {
     inviteCode,
     error,
     roomState,
+    latencyMs,
     room,
     createPrivateRoom,
     joinPrivateRoom,
@@ -147,6 +148,11 @@ export default function RoomPage() {
                 ? '⚔️ Duel In Progress'
                 : '⏳ Waiting for Rival'}
           </Badge>
+          {isConnected && latencyMs > 0 && (
+            <Badge variant={latencyMs < 65 ? 'green' : latencyMs < 120 ? 'gold' : 'crimson'}>
+              📶 {latencyMs}ms
+            </Badge>
+          )}
         </div>
 
         {isConnected && (
@@ -195,9 +201,24 @@ export default function RoomPage() {
             color: '#feb2b2',
             marginBottom: '24px',
             fontSize: '0.95rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px',
           }}
         >
-          <strong>Notice:</strong> {error}
+          <div>
+            <strong>Notice:</strong> {error}
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <Link href="/play">
+              <Button variant="primary" size="sm">
+                ⚔️ Play Offline Practice (Bot Duel)
+              </Button>
+            </Link>
+            <span style={{ fontSize: '0.8rem', color: '#cbd5e0' }}>
+              No server required for local/bot duels.
+            </span>
+          </div>
         </div>
       )}
 
