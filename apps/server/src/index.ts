@@ -19,14 +19,19 @@ const allowedOrigins = serverEnv.SERVER_CORS_ORIGIN.split(',').map(o => o.trim()
 app.use(
   cors({
     origin: (origin, callback) => {
+      const isLocalhost =
+        !origin ||
+        /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
+        /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin) ||
+        /^https?:\/\/0\.0\.0\.0(:\d+)?$/.test(origin);
       const isVercelDomain =
         origin &&
         (origin.endsWith('.vercel.app') ||
           (process.env.VERCEL_URL && origin.includes(process.env.VERCEL_URL)));
       if (
-        !origin ||
+        isLocalhost ||
         allowedOrigins.includes('*') ||
-        allowedOrigins.includes(origin) ||
+        (origin && allowedOrigins.includes(origin)) ||
         isVercelDomain
       ) {
         callback(null, true);

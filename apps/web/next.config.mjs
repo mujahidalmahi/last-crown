@@ -12,6 +12,20 @@ const nextConfig = {
     };
     return config;
   },
+  async rewrites() {
+    const serverUrl =
+      process.env.SERVER_URL || process.env.NEXT_PUBLIC_SERVER_HTTP_URL || 'http://localhost:2567';
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${serverUrl}/api/:path*`,
+      },
+      {
+        source: '/health',
+        destination: `${serverUrl}/health`,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

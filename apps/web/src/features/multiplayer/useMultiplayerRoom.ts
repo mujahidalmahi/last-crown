@@ -36,11 +36,12 @@ export function useMultiplayerRoom() {
       if (process.env.NEXT_PUBLIC_SERVER_WS_URL) {
         clientRef.current = new Client(process.env.NEXT_PUBLIC_SERVER_WS_URL);
       } else if (typeof window !== 'undefined') {
-        if (
-          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-          window.location.port === '3000'
-        ) {
-          clientRef.current = new Client('ws://localhost:2567');
+        const isLocal =
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1' ||
+          window.location.hostname === '0.0.0.0';
+        if (isLocal) {
+          clientRef.current = new Client(`ws://${window.location.hostname}:2567`);
         } else {
           const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
           clientRef.current = new Client(`${wsProtocol}//${window.location.host}`);
@@ -53,27 +54,15 @@ export function useMultiplayerRoom() {
   }, []);
 
   const getServerHttpUrl = (): string => {
-    // 1. Server-side runtime (uses Vercel internal service binding)
-    if (typeof window === 'undefined') {
-      return (
-        process.env.SERVER_URL || process.env.NEXT_PUBLIC_SERVER_HTTP_URL || 'http://localhost:2567'
-      );
-    }
-
-    // 2. Explicit client override
+    // 1. Explicit override via env variable
     if (process.env.NEXT_PUBLIC_SERVER_HTTP_URL) {
       return process.env.NEXT_PUBLIC_SERVER_HTTP_URL;
     }
-
-    // 3. Local standalone development fallback (web on 3000, server on 2567)
-    if (
-      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
-      window.location.port === '3000'
-    ) {
-      return 'http://localhost:2567';
+    if (typeof window === 'undefined') {
+      return process.env.SERVER_URL || 'http://localhost:2567';
     }
 
-    // 4. Same-origin deployment URL (Vercel rewrites /api/* to the server service)
+    // 2. Same-origin deployment URL (Next.js App Router API route proxies to backend Colyseus service)
     return window.location.origin;
   };
 
@@ -128,7 +117,11 @@ export function useMultiplayerRoom() {
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to create private room');
+          const fallbackMsg =
+            res.status === 404
+              ? 'Multiplayer room endpoint not found (HTTP 404). Ensure game server is running.'
+              : `Server error creating room (HTTP ${res.status})`;
+          throw new Error(errData.error || fallbackMsg);
         }
 
         const data = await res.json();
@@ -154,8 +147,20 @@ export function useMultiplayerRoom() {
 
         return { roomId: room.id, inviteCode: data.inviteCode };
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : 'Multiplayer server is currently unavailable.';
+        let message = 'Multiplayer server is currently unavailable.';
+        if (err instanceof Error) {
+          if (
+            err.message.includes('Failed to fetch') ||
+            err.message.includes('NetworkError') ||
+            err.message.includes('Failed to load') ||
+            err.message.includes('ECONNREFUSED')
+          ) {
+            message =
+              'Cannot reach game server. Make sure the server is running on port 2567 (npm run dev).';
+          } else {
+            message = err.message;
+          }
+        }
         setState(prev => ({
           ...prev,
           isConnecting: false,
@@ -186,7 +191,11 @@ export function useMultiplayerRoom() {
 
         if (!verifyRes.ok) {
           const errData = await verifyRes.json().catch(() => ({}));
-          throw new Error(errData.error || 'Invalid or expired invite code');
+          const fallbackMsg =
+            verifyRes.status === 404
+              ? 'Room not found or invite code expired'
+              : `Unable to verify chamber (HTTP ${verifyRes.status})`;
+          throw new Error(errData.error || fallbackMsg);
         }
 
         const { roomId } = await verifyRes.json();
@@ -212,10 +221,20 @@ export function useMultiplayerRoom() {
 
         return { roomId: room.id };
       } catch (err: unknown) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : 'Unable to join room. Verify the code and server status.';
+        let message = 'Unable to join room. Verify the code and server status.';
+        if (err instanceof Error) {
+          if (
+            err.message.includes('Failed to fetch') ||
+            err.message.includes('NetworkError') ||
+            err.message.includes('Failed to load') ||
+            err.message.includes('ECONNREFUSED')
+          ) {
+            message =
+              'Cannot reach game server. Make sure the server is running on port 2567 (npm run dev).';
+          } else {
+            message = err.message;
+          }
+        }
         setState(prev => ({
           ...prev,
           isConnecting: false,
