@@ -6,6 +6,7 @@ import { Room } from 'colyseus.js';
 import { BattleRoomState } from '@last-crown/shared';
 import { GameBootstrap } from '../../game/bootstrap/GameBootstrap';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
+import { VoiceChatState } from '../voice/useVoiceChat';
 import { GameHUD } from './GameHUD';
 import {
   requestBrowserFullscreen,
@@ -19,6 +20,7 @@ export interface PhaserGameContainerProps {
   opponentPreset?: string;
   arenaId?: string;
   colyseusRoom?: Room<BattleRoomState>;
+  voiceState?: VoiceChatState;
   onRematch?: () => void;
   onExit?: () => void;
 }
@@ -29,6 +31,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   opponentPreset = 'knight',
   arenaId = 'bastion_courtyard',
   colyseusRoom,
+  voiceState,
   onRematch,
   onExit,
 }) => {
@@ -258,6 +261,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           snapshot={snapshot}
           mode={mode}
           colyseusRoom={colyseusRoom}
+          voiceState={voiceState}
           onRematch={handleRematch}
           onExit={handleExit}
           isFullscreen={isFullscreen}

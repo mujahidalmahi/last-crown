@@ -10,6 +10,7 @@ import { BattleRoom } from './rooms/BattleRoom.js';
 import { RoomRegistry } from './matchmaking/RoomRegistry.js';
 import { InMemoryRateLimiter } from './security/RateLimiter.js';
 import { serverEnv } from './config/env.js';
+import { IceServerService } from './services/IceServerService.js';
 
 const app = express();
 app.use(express.json());
@@ -239,6 +240,16 @@ app.post('/api/rooms/verify', (req: Request, res: Response) => {
   });
 });
 
+// WebRTC ICE / TURN servers endpoint (Cloudflare Realtime TURN with fallback)
+app.get('/api/ice-servers', async (_req: Request, res: Response) => {
+  try {
+    const iceServers = await IceServerService.getIceServers();
+    res.json({ iceServers });
+  } catch (err) {
+    res.json({ iceServers: IceServerService.getDefaultIceServers() });
+  }
+});
+
 // Create HTTP and Colyseus Game Server
 const server = http.createServer(app);
 
@@ -247,6 +258,7 @@ const gameServer = new Server({
     server,
     pingInterval: 5000,
     pingMaxRetries: 3,
+    maxPayload: 32 * 1024,
   }),
 });
 
