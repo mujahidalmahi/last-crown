@@ -1,0 +1,43 @@
+.settingsIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(26, 26, 46, 0.85);
+  border: 3px solid #1a1a2e;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 -3px 0 #3a7b3a,
+    inset -3px 0 0 #3a7b3a,
+    0 4px 0 #1a1a2e,
+    0 6px 12px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: transform 0.05s linear, box-shadow 0.05s linear;
+  color: #5fd65f;
+}
+
+.settingsIcon:focus-visible {
+  outline: 2px solid #5fd65f;
+  outline-offset: 2px;
+}
+
+.settingsIcon:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 -1px 0 #3a7b3a,
+    inset -1px 0 0 #3a7b3a,
+    0 2px 0 #1a1a2e,
+    0 3px 6px rgba(0, 0, 0, 0.4);
+}
+
+.settingsIcon svg {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(1px 1px 0 #1a1a2e);
+}
+
+.settingsIcon:hover {
+  background: rgba(26, 26, 46, 0.95);
+}

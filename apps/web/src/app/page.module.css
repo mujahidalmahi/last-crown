@@ -1,0 +1,180 @@
+.pageWrapper {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a0f;
+}
+
+.backgroundLayer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.backgroundLayer.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cover1Image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/backgrounds/cover1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.cover2Image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/backgrounds/cover.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.coverContainer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.mainButton {
+  width: 100%;
+  max-width: 360px;
+  min-width: 280px;
+}
+
+.modeButton {
+  width: 100%;
+  max-width: 420px;
+  min-width: 300px;
+  text-align: center;
+}
+
+.backButton {
+  margin-top: 8px;
+  max-width: 200px;
+  align-self: center;
+}
+
+.settingsIconTopRight {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 20;
+}
+
+.transitionWrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.transitionLayer {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  transform: translateX(0);
+}
+
+.cover1Layer {
+  left: 0;
+}
+
+.cover2Layer {
+  left: 0;
+}
+
+.slideOutLeft {
+  animation: slideOutLeft 0.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+
+.slideInFromRight {
+  animation: slideInFromRight 0.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+
+.slideOutToRight {
+  animation: slideOutToRight 0.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+
+.slideInRight {
+  animation: slideInRight 0.8s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+
+@keyframes slideOutLeft {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+@keyframes slideInFromRight {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes slideOutToRight {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes slideInRight {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slideOutLeft,
+  .slideInFromRight,
+  .slideOutToRight,
+  .slideInRight {
+    animation: none !important;
+  }
+  .transitionWrapper {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .mainButton {
+    min-width: 240px;
+    font-size: 0.7rem;
+  }
+  .modeButton {
+    min-width: 260px;
+    font-size: 0.65rem;
+  }
+  .settingsIconTopRight {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+  }
+  .settingsIconTopRight svg {
+    width: 20px;
+    height: 20px;
+  }
+}

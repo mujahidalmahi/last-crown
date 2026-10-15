@@ -64,7 +64,9 @@ app.post('/api/rooms/create', async (req: Request, res: Response) => {
       playerName,
     });
 
-    const inviteCode = RoomRegistry.getInstance().registerRoom(room.roomId);
+    const inviteCode =
+      RoomRegistry.getInstance().getCodeByRoomId(room.roomId) ||
+      RoomRegistry.getInstance().registerRoom(room.roomId);
 
     res.json({
       roomId: room.roomId,

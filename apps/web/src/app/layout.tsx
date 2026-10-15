@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import React from 'react';
 import '../styles/globals.css';
-import { Header } from '../components/layout/Header';
 import { Footer } from '../components/layout/Footer';
 import { SkipLink } from '../components/accessibility/SkipLink';
 
@@ -22,7 +21,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <SkipLink />
-        <Header />
         <main id="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           {children}
         </main>
