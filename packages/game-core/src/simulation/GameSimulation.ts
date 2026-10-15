@@ -33,6 +33,7 @@ export class GameSimulation {
   private _roundTransitionTimerMs: number = 0;
   private _winnerId: string | null = null;
   private _combatEventListeners: ((result: HitResult) => void)[] = [];
+  private _roundStartListeners: ((roundNumber: number) => void)[] = [];
 
   constructor(
     p1Id: string,
@@ -76,6 +77,13 @@ export class GameSimulation {
     this._combatEventListeners.push(callback);
     return () => {
       this._combatEventListeners = this._combatEventListeners.filter(cb => cb !== callback);
+    };
+  }
+
+  public onRoundStart(callback: (roundNumber: number) => void): () => void {
+    this._roundStartListeners.push(callback);
+    return () => {
+      this._roundStartListeners = this._roundStartListeners.filter(cb => cb !== callback);
     };
   }
 
@@ -404,6 +412,9 @@ export class GameSimulation {
     this.p1.resetRound(this.arena.spawnPointP1, 'right');
     this.p2.resetRound(this.arena.spawnPointP2, 'left');
     this._matchState = 'in_progress';
+    for (const listener of this._roundStartListeners) {
+      listener(this._roundNumber);
+    }
   }
 
   public resetMatch(): void {
@@ -416,6 +427,9 @@ export class GameSimulation {
     this.p1.resetRound(this.arena.spawnPointP1, 'right');
     this.p2.resetRound(this.arena.spawnPointP2, 'left');
     this._matchState = 'in_progress';
+    for (const listener of this._roundStartListeners) {
+      listener(this._roundNumber);
+    }
   }
 
   public getSnapshot(): GameSimulationSnapshot {

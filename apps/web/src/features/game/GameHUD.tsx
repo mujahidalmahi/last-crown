@@ -7,6 +7,7 @@ import { BattleRoomState, StatisticsManager } from '@last-crown/shared';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
 import { useVoiceChat } from '../voice/useVoiceChat';
 import { VoiceControls } from '../voice/VoiceControls';
+import victoryStyles from './VictoryCard.module.css';
 
 export interface GameHUDProps {
   snapshot: GameSimulationSnapshot | null;
@@ -735,117 +736,85 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       )}
 
-      {/* Post-Match Victory / Stalemate Banner */}
-      {matchState === 'match_over' && (
-        <div
-          style={{
-            alignSelf: 'center',
-            margin: 'auto 0',
-            backgroundColor: 'rgba(9, 12, 18, 0.97)',
-            border: '2px solid var(--border-gold)',
-            borderRadius: '14px',
-            padding: '36px 52px',
-            textAlign: 'center',
-            boxShadow: '0 16px 64px rgba(0, 0, 0, 0.95), 0 0 32px rgba(212, 175, 55, 0.25)',
-            pointerEvents: 'auto',
-            maxWidth: '560px',
-            width: '92%',
-          }}
-        >
-          <span style={{ fontSize: '3rem', filter: 'drop-shadow(0 0 12px #f1c40f)' }}>👑</span>
-          <h2
-            style={{
-              fontSize: '3rem',
-              fontWeight: 900,
-              color: winnerId === p1.id ? '#f1c40f' : winnerId === 'draw' ? '#bdc3c7' : '#e74c3c',
-              textTransform: 'uppercase',
-              letterSpacing: '0.14em',
-              margin: '8px 0 0 0',
-              textShadow: '0 4px 16px rgba(0, 0, 0, 0.9)',
-            }}
-          >
-            {winnerId === p1.id
-              ? p2.isDecapitated
-                ? 'DECAPITATION VICTORY'
-                : 'VICTORY'
-              : winnerId === 'draw'
-                ? 'STALEMATE'
-                : p1.isDecapitated
-                  ? 'DECAPITATED'
-                  : 'DEFEATED'}
-          </h2>
-          <p
-            style={{
-              color: 'var(--text-secondary)',
-              marginTop: '10px',
-              marginBottom: '28px',
-              fontSize: '1.2rem',
-              fontStyle: 'italic',
-            }}
-          >
-            {winnerId === p1.id
-              ? p2.isDecapitated
-                ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
-                : 'The Crown Belongs To You!'
-              : winnerId === 'draw'
-                ? 'Both Champions Stood Equal In Blood & Steel.'
-                : p1.isDecapitated
-                  ? 'Your Head Fell To The Arena Floor. Only One Shall Reign.'
-                  : 'Only One Shall Reign.'}
-          </p>
+      {/* Post-Match Victory / Stalemate Medieval Stone Card */}
+      {matchState === 'match_over' && (() => {
+        const isWin = winnerId === p1.id;
+        const isDraw = winnerId === 'draw';
 
-          <div
-            style={{
-              display: 'flex',
-              gap: '16px',
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            {onRematch && (
-              <button
-                type="button"
-                onClick={onRematch}
-                style={{
-                  backgroundColor: '#f1c40f',
-                  color: '#070b12',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '14px 32px',
-                  fontSize: '1.05rem',
-                  fontWeight: 900,
-                  cursor: 'pointer',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  boxShadow: '0 4px 20px rgba(241, 196, 15, 0.5)',
-                  transition: 'transform 0.15s, box-shadow 0.15s',
-                }}
-              >
-                ⚔️ Fight Again
-              </button>
-            )}
-            <Link href="/" style={{ textDecoration: 'none' }}>
-              <button
-                type="button"
-                style={{
-                  backgroundColor: '#1b222d',
-                  color: '#e2e8f0',
-                  border: '1px solid #4a5568',
-                  borderRadius: '6px',
-                  padding: '14px 26px',
-                  fontSize: '1.05rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                }}
-              >
-                🏰 Castle Hall
-              </button>
-            </Link>
+        let titleLines: string[] = [];
+        const titleVariant = isWin ? 'win' : isDraw ? 'draw' : 'defeat';
+
+        if (isWin) {
+          titleLines = p2.isDecapitated ? ['DECAPITATION', 'VICTORY'] : ['VICTORY'];
+        } else if (isDraw) {
+          titleLines = ['STALEMATE'];
+        } else {
+          titleLines = p1.isDecapitated ? ['DECAPITATED', 'DEFEAT'] : ['DEFEATED'];
+        }
+
+        const subtitleText = isWin
+          ? p2.isDecapitated
+            ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
+            : 'The Crown Belongs To You!'
+          : isDraw
+            ? 'Both Champions Stood Equal In Blood & Steel.'
+            : p1.isDecapitated
+              ? 'Your Head Fell To The Arena Floor. Only One Shall Reign.'
+              : 'Only One Shall Reign.';
+
+        return (
+          <div className={victoryStyles.victoryCardOverlay} role="dialog" aria-modal="true" aria-label="Match outcome">
+            <div className={victoryStyles.victoryCardStage}>
+              {/* Retro Pixel Victory Title */}
+              <div className={victoryStyles.titleContainer}>
+                {titleLines.map((line, idx) => (
+                  <h2
+                    key={idx}
+                    className={`${victoryStyles.victoryTitle} ${titleVariant === 'draw' ? victoryStyles.draw : titleVariant === 'defeat' ? victoryStyles.defeat : ''}`}
+                  >
+                    {line}
+                  </h2>
+                ))}
+              </div>
+
+              {/* Subtitle */}
+              <p className={victoryStyles.subtitle}>
+                {subtitleText}
+              </p>
+
+              {/* Fight Again Gold Pixel Button */}
+              {onRematch && (
+                <button
+                  type="button"
+                  onClick={onRematch}
+                  className={victoryStyles.fightAgainBtn}
+                  aria-label="Fight Again"
+                  title="Fight Again"
+                />
+              )}
+
+              {/* Castle Hall Stone Socket Link */}
+              {onExit ? (
+                <button
+                  type="button"
+                  onClick={onExit}
+                  className={victoryStyles.castleHallLink}
+                  aria-label="Castle Hall"
+                  title="Return to Castle Hall"
+                  style={{ background: 'transparent', border: 'none' }}
+                />
+              ) : (
+                <Link
+                  href="/"
+                  className={victoryStyles.castleHallLink}
+                  aria-label="Castle Hall"
+                  title="Return to Castle Hall"
+                />
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Bottom Floating Utility Controls */}
       <div
@@ -939,153 +908,52 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       </div>
 
-      {/* Gothic Combat Controls Guide Modal */}
+      {/* Combat Controls Reference Medieval Stone Modal (Hotkey: H) */}
       {showControls && (
         <div
-          role="dialog"
-          aria-label="Combat Controls Reference"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(5, 8, 16, 0.88)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 300,
-            pointerEvents: 'auto',
-          }}
+          className={victoryStyles.controlsModalBackdrop}
           onClick={() => setShowControls(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Combat Controls Reference"
         >
           <div
-            style={{
-              backgroundColor: '#0a0e18',
-              border: '2px solid var(--border-gold)',
-              borderRadius: '10px',
-              padding: '24px 32px',
-              maxWidth: '660px',
-              width: '92%',
-              boxShadow: '0 12px 48px rgba(0,0,0,0.9), 0 0 24px rgba(212, 175, 55, 0.2)',
-            }}
+            className={victoryStyles.controlsCardStage}
             onClick={e => e.stopPropagation()}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: '20px',
-              }}
-            >
-              <h3
-                style={{
-                  margin: 0,
-                  color: 'var(--text-gold)',
-                  fontSize: '1.25rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                ⚔️ Combat Controls Reference
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowControls(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  fontSize: '1.5rem',
-                  cursor: 'pointer',
-                  padding: '4px 8px',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-                gap: '14px',
-                fontSize: '0.9rem',
-              }}
-            >
-              <div>
-                <strong style={{ color: 'var(--text-gold)' }}>A / D / Arrows:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Move Left / Right
-                </p>
-              </div>
-              <div>
-                <strong style={{ color: 'var(--text-gold)' }}>Space (or W / ↑):</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Jump</p>
-              </div>
-              <div>
-                <strong style={{ color: '#e67e22' }}>C / E:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Tactical Dash</p>
-              </div>
-              <div>
-                <strong style={{ color: '#f39c12' }}>J:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Light Slash (3-Hit Combo)
-                </p>
-              </div>
-              <div>
-                <strong style={{ color: '#e67e22' }}>S + J:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Low Sweep (Trips High Guard; Jump to evade)
-                </p>
-              </div>
-              <div>
-                <strong style={{ color: '#e74c3c' }}>K:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Heavy Strike & Execution
-                </p>
-              </div>
-              <div>
-                <strong style={{ color: '#9b59b6' }}>L / U:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Forward Thrust (Reach)
-                </p>
-              </div>
-              <div>
-                <strong style={{ color: '#1abc9c' }}>Windup + Dash/Guard:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Feint Cancel (Bait Parries)
-                </p>
-              </div>
-              <div>
-                <strong style={{ color: '#3498db' }}>Shift / I:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Block (Absorbs 75%)
-                </p>
-              </div>
-              <div>
-                <strong style={{ color: '#f1c40f' }}>Alt / O:</strong>
-                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Parry & Riposte Counter
-                </p>
-              </div>
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '24px' }}>
-              <button
-                type="button"
-                onClick={() => setShowControls(false)}
-                style={{
-                  backgroundColor: 'var(--border-gold)',
-                  color: '#070b12',
-                  border: 'none',
-                  borderRadius: '4px',
-                  padding: '8px 24px',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  letterSpacing: '0.05em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Back To Duel [Esc]
-              </button>
+            {/* Top-Right Stone 'X' Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowControls(false)}
+              className={victoryStyles.closeButton}
+              aria-label="Close Controls Reference"
+              title="Close [Esc]"
+            />
+
+            {/* Bottom Golden Pixel 'BACK TO DUEL [ESC]' Button */}
+            <button
+              type="button"
+              onClick={() => setShowControls(false)}
+              className={victoryStyles.backToDuelBtn}
+              aria-label="Back To Duel"
+              title="Back To Duel [Esc]"
+            />
+
+            {/* Semantic screen-reader accessibility */}
+            <div className={victoryStyles.srOnly}>
+              <h3>Combat Controls Reference</h3>
+              <ul>
+                <li>A / D / Arrows: Move Left / Right</li>
+                <li>Space (or W / ↑): Jump</li>
+                <li>C / E: Tactical Dash</li>
+                <li>J: Light Slash (3-Hit Combo)</li>
+                <li>S + J: Low Sweep (Trips High Guard; Jump to evade)</li>
+                <li>K: Heavy Strike & Execution</li>
+                <li>L / U: Forward Thrust (Reach)</li>
+                <li>Windup + Dash/Guard: Feint Cancel (Bait Parries)</li>
+                <li>Shift / I: Block (Absorbs 75%)</li>
+                <li>Alt / O: Parry & Riposte Counter</li>
+              </ul>
             </div>
           </div>
         </div>

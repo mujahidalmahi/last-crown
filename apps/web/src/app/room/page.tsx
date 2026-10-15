@@ -3,14 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { Input } from '../../components/ui/Input';
-import { Badge } from '../../components/ui/Badge';
 import { useMultiplayerRoom } from '../../features/multiplayer/useMultiplayerRoom';
 import { useVoiceChat } from '../../features/voice/useVoiceChat';
 import { VoiceControls } from '../../features/voice/VoiceControls';
 import { requestBrowserFullscreen } from '../../utils/fullscreen';
+import styles from './room.module.css';
 
 const PhaserGameContainer = dynamic(
   () => import('../../features/game/PhaserGameContainer').then(mod => mod.PhaserGameContainer),
@@ -30,14 +27,15 @@ const PhaserGameContainer = dynamic(
           justifyContent: 'center',
           gap: '16px',
           zIndex: 9999,
+          fontFamily: "'Press Start 2P', monospace",
         }}
       >
         <span style={{ fontSize: '3rem', filter: 'drop-shadow(0 0 12px #f1c40f)' }}>⚔️</span>
         <p
           style={{
-            color: 'var(--text-gold)',
+            color: '#f1c40f',
             fontWeight: 800,
-            fontSize: '1.2rem',
+            fontSize: '1rem',
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
           }}
@@ -93,7 +91,9 @@ export default function RoomPage() {
             totalConnectedPlayers: data.totalConnectedPlayers ?? 0,
           });
         }
-      } catch {}
+      } catch {
+        // Handled gracefully
+      }
     };
 
     fetchStats();
@@ -115,24 +115,31 @@ export default function RoomPage() {
   const handleQuickMatch = async () => {
     try {
       await requestBrowserFullscreen();
-    } catch {}
-    await findQuickMatch(playerName, 'knight');
+    } catch {
+      // Handled gracefully
+    }
+    await findQuickMatch(playerName.trim() || 'Crown Warrior', 'knight');
   };
 
   const handleCreate = async () => {
     try {
       await requestBrowserFullscreen();
-    } catch {}
-    await createPrivateRoom(playerName, 'knight');
+    } catch {
+      // Handled gracefully
+    }
+    await createPrivateRoom(playerName.trim() || 'Crown Warrior', 'knight');
   };
 
-  const handleJoin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputCode.trim()) return;
+  const handleJoin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const cleanCode = inputCode.trim().toUpperCase();
+    if (cleanCode.length !== 6) return;
     try {
       await requestBrowserFullscreen();
-    } catch {}
-    await joinPrivateRoom(inputCode.trim(), playerName, 'knight');
+    } catch {
+      // Handled gracefully
+    }
+    await joinPrivateRoom(cleanCode, playerName.trim() || 'Crown Warrior', 'knight');
   };
 
   const handleCopyCode = () => {
@@ -156,409 +163,207 @@ export default function RoomPage() {
   const isMatchReady =
     warriorCount >= 2 || (roomState?.matchState && roomState.matchState !== 'waiting');
 
-  return (
-    <div
-      style={{
-        maxWidth: isMatchReady ? '1280px' : '840px',
-        margin: '0 auto',
-        padding: '32px 24px',
-        width: '100%',
-      }}
-    >
-      {/* Top Navigation & Status Bar */}
-      <div
-        style={{
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link href="/">
-            <Button variant="secondary" size="sm">
-              ← Main Hall
-            </Button>
-          </Link>
-          <Badge variant={isConnected ? (isMatchReady ? 'green' : 'gold') : 'steel'}>
-            {!isConnected
-              ? 'Multiplayer Arena'
-              : isMatchReady
-                ? '⚔️ Duel In Progress'
-                : inviteCode
-                  ? '⏳ Waiting for Rival'
-                  : '⚔️ Searching for Match...'}
-          </Badge>
-          {isConnected && latencyMs > 0 && (
-            <Badge variant={latencyMs < 65 ? 'green' : latencyMs < 120 ? 'gold' : 'crimson'}>
-              📶 {latencyMs}ms
-            </Badge>
-          )}
-          {serverStats && !isConnected && (
-            <Badge variant="steel">
-              🌐 {serverStats.activeMatches} Active{' '}
-              {serverStats.activeMatches === 1 ? 'Duel' : 'Duels'} ·{' '}
-              {serverStats.totalConnectedPlayers} Warriors
-            </Badge>
-          )}
-        </div>
+  // Case 1: Active 2-Player Match in Progress
+  if (isConnected && room && isMatchReady) {
+    return (
+      <div className={styles.matchViewport}>
+        <PhaserGameContainer
+          mode="multiplayer"
+          colyseusRoom={room}
+          playerPreset="knight"
+          onExit={leaveRoom}
+        />
+      </div>
+    );
+  }
 
-        {isConnected && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+  // Case 2: Waiting in Chamber Lobby
+  if (isConnected && room && !isMatchReady) {
+    return (
+      <div className={styles.viewport}>
+        <div className={styles.scanlineOverlay} aria-hidden="true" />
+        <div className={styles.stageWrapper}>
+          <div className={styles.waitingCard} role="region" aria-label="Waiting Chamber">
+            <h2 className={styles.waitingTitle}>
+              {inviteCode ? '⚔️ Private Duel Chamber' : '⚔️ Public Matchmaking'}
+            </h2>
+            <p className={styles.waitingSubtitle}>
+              {inviteCode
+                ? 'Awaiting your opponent to enter the crucible. Share your 6-character code below:'
+                : 'Seeking a worthy challenger in the global queue...'}
+            </p>
+
             {inviteCode && (
-              <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                Code: <strong style={{ color: '#f1c40f' }}>{inviteCode}</strong>
+              <>
+                <div className={styles.codeBox} title="Click to select code">
+                  {inviteCode}
+                </div>
+
+                <div className={styles.copyButtonGroup}>
+                  <button type="button" className={styles.copyBtn} onClick={handleCopyCode}>
+                    {copiedCode ? '✓ Code Copied!' : '📋 Copy Code'}
+                  </button>
+                  <button type="button" className={styles.copyBtn} onClick={handleCopyLink}>
+                    {copiedLink ? '✓ Link Copied!' : '🔗 Copy Direct Link'}
+                  </button>
+                </div>
+              </>
+            )}
+
+            <div className={styles.rosterBox}>
+              <div className={styles.rosterTitle}>Chamber Roster (1/2)</div>
+              <div className={`${styles.rosterItem} ${styles.rosterItemReady}`}>
+                <span>👑 {playerName || 'Crown Warrior'}</span>
+                <span>READY</span>
+              </div>
+              <div className={`${styles.rosterItem} ${styles.rosterItemWaiting}`}>
+                <span>⚔️ Awaiting Challenger...</span>
+                <span>WAITING</span>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <VoiceControls voice={voice} compact={true} />
+              <button type="button" className={styles.leaveBtn} onClick={leaveRoom}>
+                Abandon Chamber
+              </button>
+            </div>
+
+            {roomId && (
+              <span style={{ fontSize: '7px', color: '#64748b', marginTop: '4px' }}>
+                Room ID: {roomId}
               </span>
             )}
-            {!isMatchReady && <VoiceControls voice={voice} compact={true} />}
-            <Button variant="danger" size="sm" onClick={leaveRoom}>
-              Abandon Chamber
-            </Button>
           </div>
-        )}
+        </div>
       </div>
+    );
+  }
 
-      {!isConnected && (
-        <>
-          <h1
-            style={{
-              fontSize: '2rem',
-              fontWeight: 900,
-              color: 'var(--text-gold)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '8px',
-            }}
-          >
-            Online Duel Arena
-          </h1>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
+  // Case 3: Online Duel Arena Screen (Exact Match to Reference Design)
+  return (
+    <div className={styles.viewport}>
+      {/* Subtle CRT Scanline Filter */}
+      <div className={styles.scanlineOverlay} aria-hidden="true" />
+
+      {/* Main 1024x572 Stage */}
+      <div className={styles.stageWrapper}>
+        {/* Top Navigation Pill Bar */}
+        <nav className={styles.topNav} aria-label="Duel arena navigation">
+          <Link href="/" className={styles.mainHallBtn} title="Return to Main Hall">
+            <span>←</span> MAIN HALL
+          </Link>
+          <div className={styles.arenaBadge}>MULTIPLAYER ARENA</div>
+          <div className={styles.statsBadge} title="Real-time live battle statistics">
+            <span>🌐</span>{' '}
+            {serverStats
+              ? `${serverStats.activeMatches} ACTIVE ${serverStats.activeMatches === 1 ? 'DUEL' : 'DUELS'} · ${serverStats.totalConnectedPlayers} WARRIORS`
+              : '0 ACTIVE DUELS · 0 WARRIORS'}
+          </div>
+          {latencyMs > 0 && (
+            <div
+              className={styles.latencyBadge}
+              style={{
+                color: latencyMs < 65 ? '#34d399' : latencyMs < 120 ? '#fbbf24' : '#f87171',
+                border: `1.5px solid ${latencyMs < 65 ? '#10b981' : latencyMs < 120 ? '#f59e0b' : '#ef4444'}`,
+              }}
+            >
+              📶 {latencyMs}ms
+            </div>
+          )}
+        </nav>
+
+        {/* Central Stone Card (1024x572 pixel-art frame) */}
+        <main className={styles.stoneCard} role="main" aria-label="Online Duel Arena Menu">
+          {/* Accessible Headings for SEO and Screen Readers */}
+          <h1 className={styles.srOnly}>Online Duel Arena</h1>
+          <p className={styles.srOnly}>
             Join a public match to test your blade against online rivals, or forge an exclusive
             private chamber with a secret invite code.
           </p>
-        </>
-      )}
 
-      {error && (
-        <div
-          role="alert"
-          style={{
-            backgroundColor: 'rgba(197, 48, 48, 0.2)',
-            border: '1px solid var(--accent-crimson)',
-            borderRadius: '6px',
-            padding: '16px',
-            color: '#feb2b2',
-            marginBottom: '24px',
-            fontSize: '0.95rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-          }}
-        >
-          <div>
-            <strong>Notice:</strong> {error}
-          </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link href="/play">
-              <Button variant="primary" size="sm">
-                ⚔️ Play Offline Practice (Bot Duel)
-              </Button>
-            </Link>
-            <span style={{ fontSize: '0.8rem', color: '#cbd5e0' }}>
-              No server required for local/bot duels.
-            </span>
-          </div>
-        </div>
-      )}
+          {/* 1. YOUR BATTLE NAME INPUT */}
+          <input
+            type="text"
+            className={styles.nameInput}
+            value={playerName}
+            onChange={e => setPlayerName(e.target.value)}
+            maxLength={20}
+            placeholder="Crown Warrior"
+            aria-label="Your Battle Name"
+            title="Choose your battle name before entering combat"
+          />
 
-      {isConnected && room ? (
-        isMatchReady ? (
-          // Active 2-Player Match View
-          <div>
-            <PhaserGameContainer
-              mode="multiplayer"
-              colyseusRoom={room}
-              playerPreset="knight"
-              onExit={leaveRoom}
-            />
-          </div>
-        ) : (
-          // Waiting Lobby View
-          <Card
-            header={
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <h2 style={{ fontSize: '1.25rem', color: '#f1c40f' }}>
-                  {inviteCode
-                    ? 'Private Chamber — Awaiting Opponent'
-                    : 'Public Queue — Searching for Rival'}
-                </h2>
-                <Badge variant="gold">1 / 2 Warriors</Badge>
-              </div>
-            }
+          {/* 2. QUICK DUEL BUTTON */}
+          <button
+            type="button"
+            className={styles.quickDuelBtn}
+            onClick={handleQuickMatch}
+            disabled={isConnecting}
+            aria-label="Find Match (Quick Duel)"
+            title="Instantly pair up with any open challenger searching for an online match right now."
           >
-            <div style={{ textAlign: 'center', padding: '24px 0' }}>
-              {inviteCode ? (
-                <>
-                  <p
-                    style={{
-                      color: 'var(--text-secondary)',
-                      marginBottom: '12px',
-                      fontSize: '1.05rem',
-                    }}
-                  >
-                    Share this Invite Code or Link with your rival:
-                  </p>
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      backgroundColor: 'var(--bg-primary)',
-                      border: '2px dashed var(--border-gold)',
-                      padding: '14px 32px',
-                      borderRadius: '8px',
-                      fontSize: '2.4rem',
-                      fontWeight: 900,
-                      letterSpacing: '0.25em',
-                      color: '#f1c40f',
-                      marginBottom: '20px',
-                      userSelect: 'all',
-                    }}
-                  >
-                    <span>{inviteCode}</span>
-                  </div>
+            {isConnecting && <span className={styles.btnLoadingOverlay}>SEARCHING...</span>}
+            <span className={styles.srOnly}>Find Match (Quick Duel)</span>
+          </button>
 
-                  <div
-                    style={{
-                      display: 'flex',
-                      gap: '12px',
-                      justifyContent: 'center',
-                      flexWrap: 'wrap',
-                    }}
-                  >
-                    <Button variant="outline" size="sm" onClick={handleCopyCode}>
-                      {copiedCode ? '✓ Code Copied' : '📋 Copy Code'}
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={handleCopyLink}>
-                      {copiedLink ? '✓ Link Copied' : '🔗 Copy Direct Link'}
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div style={{ padding: '16px 0' }}>
-                  <span style={{ fontSize: '2.4rem', display: 'block', marginBottom: '12px' }}>
-                    ⚔️
-                  </span>
-                  <p
-                    style={{
-                      color: '#f1c40f',
-                      fontWeight: 800,
-                      fontSize: '1.2rem',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    Seeking a worthy challenger...
-                  </p>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
-                    The match will automatically begin the moment another warrior enters
-                    matchmaking.
-                  </p>
-                </div>
-              )}
-
-              {/* Roster Status Box */}
-              <div
-                style={{
-                  marginTop: '36px',
-                  backgroundColor: 'rgba(15, 23, 42, 0.6)',
-                  border: '1px solid #334155',
-                  borderRadius: '8px',
-                  padding: '20px',
-                  maxWidth: '480px',
-                  margin: '36px auto 0',
-                }}
-              >
-                <h3
-                  style={{
-                    fontSize: '1rem',
-                    color: '#cbd5e1',
-                    marginBottom: '16px',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}
-                >
-                  Chamber Roster
-                </h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 16px',
-                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                      border: '1px solid rgba(16, 185, 129, 0.3)',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    <span style={{ fontWeight: 700, color: '#34d399' }}>👑 {playerName}</span>
-                    <Badge variant="green">Ready</Badge>
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 16px',
-                      backgroundColor: 'rgba(148, 163, 184, 0.05)',
-                      border: '1px dashed #475569',
-                      borderRadius: '6px',
-                    }}
-                  >
-                    <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>
-                      Awaiting Challenger...
-                    </span>
-                    <Badge variant="steel">Queueing</Badge>
-                  </div>
-                </div>
-              </div>
-
-              <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                Room ID: <code style={{ color: 'var(--text-secondary)' }}>{roomId}</code>
-              </p>
-            </div>
-          </Card>
-        )
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          {/* Warrior Name Bar */}
-          <div
-            style={{
-              backgroundColor: 'var(--bg-secondary)',
-              border: '1px solid var(--border-gold)',
-              borderRadius: '8px',
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              flexWrap: 'wrap',
-            }}
+          {/* 3. HOST PRIVATE DUEL BUTTON */}
+          <button
+            type="button"
+            className={styles.createRoomBtn}
+            onClick={handleCreate}
+            disabled={isConnecting}
+            aria-label="Create Private Room"
+            title="Forge a private chamber and invite a friend with a secret 6 character invitation code."
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                flex: 1,
-                minWidth: '240px',
-              }}
-            >
-              <span style={{ fontSize: '1.4rem' }}>🛡️</span>
-              <Input
-                label="Your Battle Name"
-                value={playerName}
-                onChange={e => setPlayerName(e.target.value)}
-                maxLength={24}
-                style={{ margin: 0 }}
-              />
-            </div>
-            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-              Choose your moniker before entering the crucible.
-            </span>
-          </div>
+            {isConnecting && <span className={styles.btnLoadingOverlay}>FORGING...</span>}
+            <span className={styles.srOnly}>Create Private Room</span>
+          </button>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '24px',
-            }}
-          >
-            {/* Quick Match Card */}
-            <Card header={<h2 style={{ fontSize: '1.2rem', color: '#2ecc71' }}>⚔️ Quick Duel</h2>}>
-              <p
-                style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.9rem' }}
-              >
-                Instantly pair up with any open challenger searching for an online match right now.
-              </p>
-              <Button
-                variant="primary"
-                size="md"
-                style={{ width: '100%', backgroundColor: '#27ae60', borderColor: '#2ecc71' }}
-                onClick={handleQuickMatch}
-                disabled={isConnecting}
-              >
-                {isConnecting ? 'Searching Queue...' : 'Find Match (Quick Duel)'}
-              </Button>
-            </Card>
-
-            {/* Create Room Card */}
-            <Card
-              header={
-                <h2 style={{ fontSize: '1.2rem', color: 'var(--text-gold)' }}>
-                  🔒 Host Private Duel
-                </h2>
+          {/* 4. JOIN BY CODE INPUT */}
+          <input
+            type="text"
+            className={styles.codeInput}
+            value={inputCode}
+            onChange={e => setInputCode(e.target.value.toUpperCase().slice(0, 6))}
+            maxLength={6}
+            placeholder="E.G. 7K2M9X"
+            aria-label="Enter 6-character Invite Code"
+            title="Enter the 6-character code provided by your opponent"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleJoin();
               }
-            >
-              <p
-                style={{ color: 'var(--text-secondary)', marginBottom: '20px', fontSize: '0.9rem' }}
-              >
-                Forge a private chamber and invite a friend with a secret 6-character invitation
-                code.
-              </p>
-              <Button
-                variant="primary"
-                size="md"
-                style={{ width: '100%' }}
-                onClick={handleCreate}
-                disabled={isConnecting}
-              >
-                {isConnecting ? 'Forging Chamber...' : 'Create Private Room'}
-              </Button>
-            </Card>
+            }}
+          />
 
-            {/* Join Room Card */}
-            <Card
-              header={<h2 style={{ fontSize: '1.2rem', color: '#3498db' }}>🗝️ Join by Code</h2>}
-            >
-              <form onSubmit={handleJoin}>
-                <p
-                  style={{
-                    color: 'var(--text-secondary)',
-                    marginBottom: '16px',
-                    fontSize: '0.9rem',
-                  }}
-                >
-                  Enter the 6-character code provided by your opponent.
-                </p>
-                <Input
-                  label="Invite Code"
-                  placeholder="e.g. 7K2M9X"
-                  value={inputCode}
-                  onChange={e => setInputCode(e.target.value.toUpperCase())}
-                  maxLength={6}
-                  style={{ textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 800 }}
-                />
-                <Button
-                  variant="outline"
-                  size="md"
-                  type="submit"
-                  style={{ width: '100%', marginTop: '8px' }}
-                  disabled={isConnecting || inputCode.length !== 6}
-                >
-                  {isConnecting ? 'Joining Chamber...' : 'Enter with Code'}
-                </Button>
-              </form>
-            </Card>
+          {/* 5. ENTER WITH CODE BUTTON */}
+          <button
+            type="button"
+            className={styles.enterCodeBtn}
+            onClick={() => handleJoin()}
+            disabled={isConnecting || inputCode.trim().length !== 6}
+            aria-label="Enter with Code"
+            title="Enter chamber with the 6-character invite code"
+          >
+            {isConnecting && <span className={styles.btnLoadingOverlay}>JOINING...</span>}
+            <span className={styles.srOnly}>Enter With Code</span>
+          </button>
+        </main>
+
+        {/* Error Notification Banner */}
+        {error && (
+          <div className={styles.errorBanner} role="alert">
+            <span>⚠️ {error}</span>
+            <Link href="/play">
+              <button type="button" className={styles.dismissErrorBtn}>
+                ⚔️ Play Offline Bot
+              </button>
+            </Link>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

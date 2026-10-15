@@ -74,13 +74,6 @@
   align-self: center;
 }
 
-.settingsIconTopRight {
-  position: absolute;
-  top: 24px;
-  right: 24px;
-  z-index: 20;
-}
-
 .transitionWrapper {
   position: fixed;
   inset: 0;
@@ -177,16 +170,6 @@
   .modeButton {
     min-width: 260px;
     font-size: 0.65rem;
-  }
-  .settingsIconTopRight {
-    top: 12px;
-    right: 12px;
-    width: 40px;
-    height: 40px;
-  }
-  .settingsIconTopRight svg {
-    width: 20px;
-    height: 20px;
   }
 }
 

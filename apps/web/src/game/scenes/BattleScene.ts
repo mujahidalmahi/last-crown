@@ -58,6 +58,10 @@ export class BattleScene extends Phaser.Scene {
   private wasP2Dashing: boolean = false;
   private lastInputSendTime: number = 0;
 
+  // Round lifecycle tracking for effects cleanup
+  private currentRoundNumber: number = 1;
+  private previousMatchState: MatchState = 'in_progress';
+
   private lastRemoteSnapshot: GameSimulationSnapshot | null = null;
   private isPaused: boolean = false;
 
@@ -154,8 +158,18 @@ export class BattleScene extends Phaser.Scene {
         }
       });
 
+      this.simulation.onRoundStart((roundNum: number) => {
+        this.currentRoundNumber = roundNum;
+        this.hitStopRemainingMs = 0;
+        if (this.effects) {
+          this.effects.resetRound();
+        }
+      });
+
       // Render initial warrior poses immediately so both warriors are ready for fight on frame 1
       const initialSnap = this.simulation.getSnapshot();
+      this.currentRoundNumber = initialSnap.roundNumber;
+      this.previousMatchState = initialSnap.matchState;
       if (this.p1Renderer) this.p1Renderer.render(initialSnap.p1);
       if (this.p2Renderer) this.p2Renderer.render(initialSnap.p2);
       if (this.config.onSnapshot) {
@@ -170,6 +184,15 @@ export class BattleScene extends Phaser.Scene {
         this.handleCombatEvent(result);
         if (this.config.onCombatEvent) {
           this.config.onCombatEvent(result);
+        }
+      });
+
+      room.onMessage(ServerMessageType.MATCH_START, () => {
+        this.currentRoundNumber = 1;
+        this.previousMatchState = 'in_progress';
+        this.hitStopRemainingMs = 0;
+        if (this.effects) {
+          this.effects.resetRound();
         }
       });
 
@@ -319,6 +342,7 @@ export class BattleScene extends Phaser.Scene {
 
       // Render updated warrior states
       const snap = this.simulation.getSnapshot();
+      this.handleRoundTransition(snap);
       if (this.p1Renderer) this.p1Renderer.render(snap.p1);
       if (this.p2Renderer) this.p2Renderer.render(snap.p2);
 
@@ -483,6 +507,7 @@ export class BattleScene extends Phaser.Scene {
       activeHitboxes: [],
     };
 
+    this.handleRoundTransition(snapshot);
     this.lastRemoteSnapshot = snapshot;
 
     if (this.config.onSnapshot) {
@@ -491,6 +516,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   public syncRemoteSnapshot(snapshot: GameSimulationSnapshot): void {
+    this.handleRoundTransition(snapshot);
     this.lastRemoteSnapshot = snapshot;
     if (this.p1Renderer && snapshot.p1) {
       this.p1Renderer.render(snapshot.p1);
@@ -504,6 +530,13 @@ export class BattleScene extends Phaser.Scene {
   }
 
   public rematch(): void {
+    this.currentRoundNumber = 1;
+    this.previousMatchState = 'in_progress';
+    this.hitStopRemainingMs = 0;
+    if (this.effects) {
+      this.effects.resetRound();
+    }
+
     if (this.config.mode === 'singleplayer' && this.simulation) {
       this.simulation.resetMatch();
       this.wasP1Exhausted = false;
@@ -511,6 +544,22 @@ export class BattleScene extends Phaser.Scene {
     } else if (this.config.mode === 'multiplayer' && this.config.colyseusRoom) {
       this.config.colyseusRoom.send(ClientMessageType.READY, { ready: true });
     }
+  }
+
+  private handleRoundTransition(snapshot: GameSimulationSnapshot): void {
+    const isNewRound =
+      (snapshot.roundNumber > 0 && snapshot.roundNumber !== this.currentRoundNumber) ||
+      (snapshot.matchState === 'in_progress' &&
+        (this.previousMatchState === 'round_over' || this.previousMatchState === 'match_over'));
+
+    if (isNewRound && snapshot.matchState === 'in_progress') {
+      this.currentRoundNumber = snapshot.roundNumber;
+      this.hitStopRemainingMs = 0;
+      if (this.effects) {
+        this.effects.resetRound();
+      }
+    }
+    this.previousMatchState = snapshot.matchState;
   }
 
   public handleCombatEvent(result: HitResult): void {

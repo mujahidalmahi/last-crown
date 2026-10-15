@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PixelButton } from '../components/ui/PixelButton';
-import { SettingsIcon } from '../components/ui/SettingsIcon';
 import { requestBrowserFullscreen, isBrowserFullscreen } from '../utils/fullscreen';
 import styles from './page.module.css';
 
@@ -107,7 +106,6 @@ export default function HomePage() {
 
   const renderCover2 = () => (
     <div className={styles.coverContainer} role="region" aria-label="Game modes">
-      <SettingsIcon onClick={handleSettingsClick} className={styles.settingsIconTopRight} />
       <div className={styles.buttonGroup}>
         <PixelButton
           size="lg"
@@ -122,9 +120,6 @@ export default function HomePage() {
           className={styles.modeButton}
         >
           Private 2 Player Room
-        </PixelButton>
-        <PixelButton size="lg" onClick={handleSettingsClick} className={styles.modeButton}>
-          Controls & Records
         </PixelButton>
         <PixelButton
           size="md"

@@ -480,6 +480,25 @@ describe('Combat Simulation', () => {
       expect(sim.p2.isDecapitated).toBe(true);
       expect(sim.p2.toSnapshot().isDecapitated).toBe(true);
     }
+
+    // Register onRoundStart listener
+    let startedRound = 0;
+    sim.onRoundStart(roundNum => {
+      startedRound = roundNum;
+    });
+
+    // Advance 2.6s (past 2.5s round transition timer)
+    for (let i = 0; i < 30; i++) {
+      sim.step(null, null, 0.1);
+    }
+
+    // Next round should cleanly reset isDecapitated, restore full health, and trigger onRoundStart
+    expect(sim.roundNumber).toBe(2);
+    expect(startedRound).toBe(2);
+    expect(sim.matchState).toBe('in_progress');
+    expect(sim.p2.isDecapitated).toBe(false);
+    expect(sim.p2.toSnapshot().isDecapitated).toBe(false);
+    expect(sim.p2.health).toBe(100);
   });
 
   it('triggers weapon clash when both warriors attack simultaneously', () => {

@@ -960,22 +960,45 @@ export class CombatEffects {
     });
   }
 
-  public destroy(): void {
+  /**
+   * Resets all per-round severed heads, blood pools, arterial spurts,
+   * in-flight blood particles, and floor splatter decals so the new round begins in a clean arena.
+   */
+  public resetRound(): void {
     for (const head of this.severedHeads) {
-      head.container.destroy();
+      if (head.container && head.container.scene) {
+        head.container.destroy();
+      }
     }
     this.severedHeads = [];
+
     for (const p of this.bloodParticles) {
-      p.graphics.destroy();
+      if (p.graphics && p.graphics.scene) {
+        p.graphics.destroy();
+      }
     }
     this.bloodParticles = [];
+
     for (const pool of this.bloodPools) {
-      pool.graphics.destroy();
+      if (pool.graphics && pool.graphics.scene) {
+        pool.graphics.destroy();
+      }
     }
     this.bloodPools = [];
+
     this.arterialSpurts = [];
+
+    if (this.floorDecalsGraphics && this.floorDecalsGraphics.scene) {
+      this.floorDecalsGraphics.clear();
+    }
+  }
+
+  public destroy(): void {
+    this.resetRound();
     if (this.floorDecalsGraphics) {
-      this.floorDecalsGraphics.destroy();
+      if (this.floorDecalsGraphics.scene) {
+        this.floorDecalsGraphics.destroy();
+      }
       this.floorDecalsGraphics = null;
     }
   }

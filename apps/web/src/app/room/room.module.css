@@ -1,0 +1,516 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+/* Main Fullscreen Viewport displaying settings.jpg dungeon background */
+.viewport {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #050810 url('/assets/backgrounds/settings.jpg') no-repeat center center;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  font-family: 'Press Start 2P', monospace;
+  image-rendering: pixelated;
+  user-select: none;
+  box-sizing: border-box;
+  z-index: 10;
+}
+
+/* Subtle CRT Scanline Overlay */
+.scanlineOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Central 16:9 Stage Container (1024x572 aspect ratio) */
+.stageWrapper {
+  position: relative;
+  width: min(98vw, calc(94vh * (1024 / 572)));
+  aspect-ratio: 1024 / 572;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+/* Top Navigation Bar: Aligning perfectly with the card */
+.topNav {
+  position: absolute;
+  top: 2.80%;
+  left: 25.00%;
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.8vw, 8px);
+  z-index: 30;
+}
+
+.mainHallBtn {
+  background-color: rgba(22, 28, 38, 0.95);
+  color: #d1d5db;
+  border: 1.5px solid #4a5568;
+  border-radius: 4px;
+  padding: clamp(3px, 0.6vh, 5px) clamp(6px, 0.9vw, 10px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6.5px, 0.85vw, 8.5px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.mainHallBtn:hover {
+  border-color: #ffd333;
+  color: #ffd333;
+  box-shadow: 0 0 10px rgba(255, 211, 51, 0.5);
+  transform: translateY(-1px);
+}
+
+.arenaBadge {
+  background-color: rgba(22, 28, 38, 0.95);
+  color: #9ca3af;
+  border: 1.5px solid #4a5568;
+  border-radius: 4px;
+  padding: clamp(3px, 0.6vh, 5px) clamp(6px, 0.9vw, 10px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6.5px, 0.85vw, 8.5px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.statsBadge {
+  background-color: rgba(22, 28, 38, 0.95);
+  color: #93c5fd;
+  border: 1.5px solid #3b82f6;
+  border-radius: 4px;
+  padding: clamp(3px, 0.6vh, 5px) clamp(6px, 0.9vw, 10px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6.5px, 0.85vw, 8.5px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.latencyBadge {
+  background-color: rgba(22, 28, 38, 0.95);
+  border-radius: 4px;
+  padding: clamp(3px, 0.6vh, 5px) clamp(6px, 0.9vw, 10px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6.5px, 0.85vw, 8.5px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* The exact 1024x572 Pixel Art Stone Card */
+.stoneCard {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: url('/assets/ui/online-arena-card-clean.png') no-repeat center center;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.95));
+}
+
+/* Battle Name Input */
+.nameInput {
+  position: absolute;
+  left: 29.10%;
+  top: 30.20%;
+  width: 13.90%;
+  height: 4.40%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ecf0f1;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7.5px, 1vw, 10px);
+  padding: 0 4px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  transition: box-shadow 0.15s ease;
+  z-index: 20;
+}
+
+.nameInput:focus {
+  box-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+}
+
+/* Quick Duel Button */
+.quickDuelBtn {
+  position: absolute;
+  left: 27.25%;
+  top: 54.37%;
+  width: 20.61%;
+  height: 5.07%;
+  background: url('/assets/ui/button-gold-quick-duel.png') no-repeat center center;
+  background-size: 100% 100%;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  image-rendering: pixelated;
+  transition: transform 0.1s ease, filter 0.15s ease;
+  z-index: 20;
+}
+
+.quickDuelBtn:hover:not(:disabled) {
+  transform: scale(1.02);
+  filter: brightness(1.15) drop-shadow(0 0 10px rgba(245, 196, 24, 0.8));
+}
+
+.quickDuelBtn:active:not(:disabled) {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+}
+
+.quickDuelBtn:disabled {
+  opacity: 0.85;
+  cursor: wait;
+}
+
+/* Host Private Room Button */
+.createRoomBtn {
+  position: absolute;
+  left: 52.05%;
+  top: 54.55%;
+  width: 20.41%;
+  height: 4.72%;
+  background: url('/assets/ui/button-gold-create-room.png') no-repeat center center;
+  background-size: 100% 100%;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  image-rendering: pixelated;
+  transition: transform 0.1s ease, filter 0.15s ease;
+  z-index: 20;
+}
+
+.createRoomBtn:hover:not(:disabled) {
+  transform: scale(1.02);
+  filter: brightness(1.15) drop-shadow(0 0 10px rgba(245, 196, 24, 0.8));
+}
+
+.createRoomBtn:active:not(:disabled) {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+}
+
+.createRoomBtn:disabled {
+  opacity: 0.85;
+  cursor: wait;
+}
+
+/* Invite Code Input */
+.codeInput {
+  position: absolute;
+  left: 26.56%;
+  top: 80.77%;
+  width: 20.90%;
+  height: 4.89%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffd333;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px, 1.1vw, 11px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0 6px;
+  box-sizing: border-box;
+  border-radius: 2px;
+  transition: box-shadow 0.15s ease;
+  z-index: 20;
+}
+
+.codeInput::placeholder {
+  color: #555860;
+  letter-spacing: 0.14em;
+  opacity: 1;
+}
+
+.codeInput:focus {
+  box-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+}
+
+/* Enter With Code Button */
+.enterCodeBtn {
+  position: absolute;
+  left: 26.37%;
+  top: 86.71%;
+  width: 22.07%;
+  height: 6.99%;
+  background: url('/assets/ui/button-steel-enter-code.png') no-repeat center center;
+  background-size: 100% 100%;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  image-rendering: pixelated;
+  transition: transform 0.1s ease, filter 0.15s ease, opacity 0.15s ease;
+  z-index: 20;
+}
+
+.enterCodeBtn:hover:not(:disabled) {
+  transform: scale(1.02);
+  filter: brightness(1.2) drop-shadow(0 0 12px rgba(96, 165, 250, 0.7));
+}
+
+.enterCodeBtn:active:not(:disabled) {
+  transform: scale(0.98);
+  filter: brightness(0.95);
+}
+
+.enterCodeBtn:disabled {
+  opacity: 0.45;
+  filter: grayscale(0.5);
+  cursor: not-allowed;
+}
+
+/* Button Loading Pulse Overlay */
+.btnLoadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 14, 22, 0.88);
+  color: #ffd333;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6px, 0.78vw, 8px);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: 4px;
+  animation: pulse 0.8s infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 0.7; }
+  to { opacity: 1; }
+}
+
+/* Error Banner Overlay */
+.errorBanner {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(26, 12, 16, 0.95);
+  border: 2px solid #ef4444;
+  outline: 1px solid #7f1d1d;
+  color: #fca5a5;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px, 0.85vw, 9px);
+  line-height: 1.6;
+  max-width: 90%;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9), 0 0 16px rgba(239, 68, 68, 0.4);
+}
+
+.dismissErrorBtn {
+  background: none;
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px;
+  border-radius: 3px;
+}
+
+.dismissErrorBtn:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+/* Screen Reader Accessible Headings */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* WAITING CHAMBER (LOBBY VIEW) */
+.waitingCard {
+  position: relative;
+  width: min(94vw, 680px);
+  background: rgba(15, 20, 30, 0.95);
+  border: 3px solid #4a5568;
+  outline: 2px solid #d4af37;
+  border-radius: 8px;
+  padding: 24px 28px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.95), inset 0 0 20px rgba(0, 0, 0, 0.8);
+  z-index: 20;
+}
+
+.waitingTitle {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(12px, 1.8vw, 16px);
+  color: #f1c40f;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.waitingSubtitle {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7.5px, 0.95vw, 9.5px);
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.codeBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0b0f17;
+  border: 2px dashed #f1c40f;
+  padding: 14px 28px;
+  border-radius: 6px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(18px, 2.8vw, 28px);
+  font-weight: 900;
+  letter-spacing: 0.28em;
+  color: #ffd333;
+  text-shadow: 0 0 14px rgba(255, 211, 51, 0.6);
+  user-select: all;
+  box-shadow: inset 0 0 16px rgba(0, 0, 0, 0.8);
+}
+
+.copyButtonGroup {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.copyBtn {
+  background-color: rgba(26, 32, 46, 0.95);
+  color: #e2e8f0;
+  border: 1.5px solid #475569;
+  border-radius: 4px;
+  padding: 8px 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px, 0.9vw, 9px);
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.copyBtn:hover {
+  border-color: #f1c40f;
+  color: #f1c40f;
+  transform: translateY(-1px);
+}
+
+.rosterBox {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(10, 14, 22, 0.7);
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 14px 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rosterTitle {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 8px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.rosterItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px, 0.85vw, 9px);
+}
+
+.rosterItemReady {
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.rosterItemWaiting {
+  background: rgba(148, 163, 184, 0.06);
+  border: 1px dashed #475569;
+  color: #94a3b8;
+}
+
+.leaveBtn {
+  background-color: rgba(185, 28, 28, 0.85);
+  color: #ffffff;
+  border: 2px solid #ef4444;
+  border-radius: 4px;
+  padding: 8px 18px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(7px, 0.9vw, 9px);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  margin-top: 6px;
+}
+
+.leaveBtn:hover {
+  background-color: #dc2626;
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Active Match Fullscreen Wrapper */
+.matchViewport {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000000;
+  z-index: 1000;
+}
