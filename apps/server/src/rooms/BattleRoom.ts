@@ -298,6 +298,7 @@ export class BattleRoom extends Room<BattleRoomState> {
     warrior.currentAttackId = snap.currentAttackId || '';
     warrior.roundsWon = snap.roundsWon;
     warrior.isExhausted = snap.isExhausted;
+    warrior.isDecapitated = snap.isDecapitated || false;
   }
 
   public onDispose(): void {

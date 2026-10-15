@@ -320,4 +320,165 @@ describe('Combat Simulation', () => {
     expect(sim.matchState).toBe('in_progress');
     expect(sim.winnerId).toBeNull();
   });
+
+  it('smoothly accelerates when moving and applies skid braking when reversing direction', () => {
+    // Start stationary
+    expect(sim.p1.movement.velocity.x).toBe(0);
+
+    // Apply right movement for 1 frame (16ms)
+    sim.step(
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 1,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+      },
+      null,
+      0.016
+    );
+
+    // Speed should have accelerated, not instantly jumped to max 220
+    expect(sim.p1.movement.velocity.x).toBeGreaterThan(0);
+    expect(sim.p1.movement.velocity.x).toBeLessThan(sim.p1.preset.attributes.walkSpeed);
+
+    // Accelerate to full speed
+    for (let i = 0; i < 20; i++) {
+      sim.step(
+        {
+          sequence: i + 2,
+          timestamp: Date.now(),
+          moveX: 1,
+          jump: false,
+          attack: false,
+          block: false,
+          parry: false,
+        },
+        null,
+        0.016
+      );
+    }
+    expect(sim.p1.movement.velocity.x).toBe(sim.p1.preset.attributes.walkSpeed);
+
+    // Now pull reverse direction (moveX = -1): should apply skid brake
+    sim.step(
+      {
+        sequence: 30,
+        timestamp: Date.now(),
+        moveX: -1,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+      },
+      null,
+      0.016
+    );
+    expect(sim.p1.movement.velocity.x).toBeLessThan(sim.p1.preset.attributes.walkSpeed);
+  });
+
+  it('applies variable jump gravity cut when jump is released early', () => {
+    // Initiate jump with jump held
+    sim.step(
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: true,
+        attack: false,
+        block: false,
+        parry: false,
+      },
+      null,
+      0.016
+    );
+    expect(sim.p1.movement.isGrounded).toBe(false);
+    const initialVy = sim.p1.movement.velocity.y;
+    expect(initialVy).toBeLessThan(0); // Ascending
+
+    // Next frame with jump RELEASED: upward velocity should drop faster due to jump cut
+    sim.step(
+      {
+        sequence: 2,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+      },
+      null,
+      0.016
+    );
+    expect(sim.p1.movement.velocity.y).toBeGreaterThan(initialVy);
+  });
+
+  it('executes tactical combat dash costing stamina and applying velocity impulse', () => {
+    const initialStamina = sim.p1.stamina;
+
+    sim.step(
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 1,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+        dash: true,
+      },
+      null,
+      0.016
+    );
+
+    expect(sim.p1.stamina).toBeLessThan(initialStamina);
+    expect(sim.p1.movement.velocity.x).toBeGreaterThanOrEqual(350);
+  });
+
+  it('triggers decapitation execution on fatal finishing strike', () => {
+    // Position warriors adjacent in melee range
+    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p1.movement.setFacing('right');
+    sim.p2.movement.setPosition({ x: 540, y: 560 });
+    sim.p2.movement.setFacing('left');
+
+    // Set defender to 5 HP so next strike is lethal
+    sim.p2.health = 5;
+
+    let hitEvent: HitResult | null = null;
+    sim.onCombatEvent(result => {
+      hitEvent = result;
+    });
+
+    // P1 initiates heavy strike
+    sim.step(
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'heavy',
+        block: false,
+        parry: false,
+      },
+      null,
+      0.016
+    );
+
+    // Advance time until active phase
+    for (let i = 0; i < 25; i++) {
+      sim.step(null, null, 0.016);
+    }
+
+    expect(hitEvent).not.toBeNull();
+    if (hitEvent) {
+      expect((hitEvent as HitResult).isDecapitation).toBe(true);
+      expect(sim.p2.health).toBe(0);
+      expect(sim.p2.isDecapitated).toBe(true);
+      expect(sim.p2.toSnapshot().isDecapitated).toBe(true);
+    }
+  });
 });

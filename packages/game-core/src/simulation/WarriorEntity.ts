@@ -26,6 +26,7 @@ export class WarriorEntity {
   public health: number;
   public stamina: number;
   public roundsWon: number = 0;
+  public isDecapitated: boolean = false;
 
   public readonly movement: MovementController;
   public readonly stateMachine: WarriorStateMachine;
@@ -52,6 +53,7 @@ export class WarriorEntity {
   public resetRound(spawnPosition: Vector2, facing: Direction): void {
     this.health = this.preset.attributes.maxHealth;
     this.stamina = this.preset.attributes.maxStamina;
+    this.isDecapitated = false;
     this.movement.setPosition(spawnPosition);
     this.movement.setVelocity({ x: 0, y: 0 });
     this.movement.setFacing(facing);
@@ -133,6 +135,32 @@ export class WarriorEntity {
           );
         }
       }
+      return;
+    }
+
+    // Tactical Dash requested (agile evasive footwork)
+    if (
+      input.dash &&
+      this.movement.isGrounded &&
+      this.combat.attackPhase === 'none' &&
+      this.combat.hitstunRemainingMs === 0 &&
+      this.stamina >= BALANCE_CONFIG.combat.dashStaminaCost &&
+      !this.combat.isExhausted &&
+      this.stateMachine.state !== 'blocking' &&
+      this.stateMachine.state !== 'parrying'
+    ) {
+      const dashDir =
+        input.moveX !== 0
+          ? Math.sign(input.moveX)
+          : this.movement.facing === 'right'
+            ? 1
+            : -1;
+      this.movement.setVelocity({
+        x: dashDir * BALANCE_CONFIG.combat.dashSpeed,
+        y: this.movement.velocity.y,
+      });
+      this.stamina = Math.max(0, this.stamina - BALANCE_CONFIG.combat.dashStaminaCost);
+      return;
     }
   }
 
@@ -245,6 +273,7 @@ export class WarriorEntity {
       hurtbox: this.getHurtbox(),
       roundsWon: this.roundsWon,
       isExhausted: this.combat.isExhausted,
+      isDecapitated: this.isDecapitated,
     };
   }
 }

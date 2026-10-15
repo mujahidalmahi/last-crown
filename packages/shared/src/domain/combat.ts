@@ -33,6 +33,7 @@ export interface HitResult {
   knockback: Vector2;
   hitstunMs: number;
   isCritical: boolean;
+  isDecapitation?: boolean;
 }
 
 export interface HitboxInstance {

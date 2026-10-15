@@ -18,6 +18,7 @@ export interface PlayerInputMessage {
   attackType?: 'light' | 'heavy' | 'thrust';
   block: boolean;
   parry: boolean;
+  dash?: boolean;
   facing?: Direction;
 }
 

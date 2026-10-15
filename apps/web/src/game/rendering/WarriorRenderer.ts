@@ -77,24 +77,28 @@ export class WarriorRenderer {
     this.shadowGraphics.fillStyle(0x000000, shadowAlpha);
     this.shadowGraphics.fillEllipse(0, 0, 56 * shadowScale, 14 * shadowScale);
 
+    const isDecapitated = !!snapshot.isDecapitated;
+
     // 2. Aura Rendering (Gold Parry window, Red Hitstun, Pulsing Blue Exhaustion)
     this.auraGraphics.clear();
-    if (snapshot.parryWindowRemainingMs > 0) {
-      // Golden divine parry barrier
-      const pulse = Math.sin(this.animTimer * 8) * 3;
-      this.auraGraphics.lineStyle(3, 0xffd700, 0.9);
-      this.auraGraphics.strokeCircle(0, -48, 42 + pulse);
-      this.auraGraphics.fillStyle(0xffd700, 0.15);
-      this.auraGraphics.fillCircle(0, -48, 42 + pulse);
-    } else if (snapshot.hitstunRemainingMs > 0) {
-      // Crimson impact shock
-      this.auraGraphics.lineStyle(3, 0xff3838, 0.85);
-      this.auraGraphics.strokeCircle(0, -48, 38);
-    } else if (snapshot.isExhausted) {
-      // Posture broken exhaustion haze
-      const alpha = 0.3 + Math.sin(this.animTimer * 5) * 0.2;
-      this.auraGraphics.lineStyle(2, 0xe74c3c, alpha);
-      this.auraGraphics.strokeCircle(0, -48, 36);
+    if (!isDecapitated) {
+      if (snapshot.parryWindowRemainingMs > 0) {
+        // Golden divine parry barrier
+        const pulse = Math.sin(this.animTimer * 8) * 3;
+        this.auraGraphics.lineStyle(3, 0xffd700, 0.9);
+        this.auraGraphics.strokeCircle(0, -48, 42 + pulse);
+        this.auraGraphics.fillStyle(0xffd700, 0.15);
+        this.auraGraphics.fillCircle(0, -48, 42 + pulse);
+      } else if (snapshot.hitstunRemainingMs > 0) {
+        // Crimson impact shock
+        this.auraGraphics.lineStyle(3, 0xff3838, 0.85);
+        this.auraGraphics.strokeCircle(0, -48, 38);
+      } else if (snapshot.isExhausted) {
+        // Posture broken exhaustion haze
+        const alpha = 0.3 + Math.sin(this.animTimer * 5) * 0.2;
+        this.auraGraphics.lineStyle(2, 0xe74c3c, alpha);
+        this.auraGraphics.strokeCircle(0, -48, 36);
+      }
     }
 
     // 3. Flowing Royal Cape Simulation
@@ -102,26 +106,34 @@ export class WarriorRenderer {
     const capeBaseColor = this.isPlayer ? 0x224488 : 0x881122;
     const capeTrimColor = this.isPlayer ? 0x3366cc : 0xaa2233;
 
-    // Simulate wind / velocity sway
-    const wind = Math.sin(this.animTimer * 3) * 6 - snapshot.velocity.x * 0.04;
-    const capePath = new Phaser.Curves.Path(-14, -68);
-    capePath.splineTo([
-      new Phaser.Math.Vector2(-22 + wind * 0.5, -50),
-      new Phaser.Math.Vector2(-26 + wind * 1.0, -32),
-      new Phaser.Math.Vector2(-24 + wind * 1.4, -14),
-      new Phaser.Math.Vector2(-12 + wind * 0.8, -12),
-    ]);
-    this.capeGraphics.fillStyle(capeBaseColor, 0.95);
-    this.capeGraphics.lineStyle(2, capeTrimColor, 1);
-    this.capeGraphics.beginPath();
-    this.capeGraphics.moveTo(-12, -70);
-    this.capeGraphics.lineTo(-24 + wind * 0.6, -48);
-    this.capeGraphics.lineTo(-28 + wind * 1.2, -26);
-    this.capeGraphics.lineTo(-24 + wind * 1.5, -8);
-    this.capeGraphics.lineTo(-8, -12);
-    this.capeGraphics.closePath();
-    this.capeGraphics.fillPath();
-    this.capeGraphics.strokePath();
+    if (isDecapitated) {
+      // Cape draped limply behind collapsed kneeling warrior
+      this.capeGraphics.fillStyle(capeBaseColor, 0.9);
+      this.capeGraphics.lineStyle(2, capeTrimColor, 0.9);
+      this.capeGraphics.beginPath();
+      this.capeGraphics.moveTo(-10, -40);
+      this.capeGraphics.lineTo(-26, -20);
+      this.capeGraphics.lineTo(-30, -4);
+      this.capeGraphics.lineTo(-12, -2);
+      this.capeGraphics.lineTo(-6, -22);
+      this.capeGraphics.closePath();
+      this.capeGraphics.fillPath();
+      this.capeGraphics.strokePath();
+    } else {
+      // Simulate wind / velocity sway
+      const wind = Math.sin(this.animTimer * 3) * 6 - snapshot.velocity.x * 0.04;
+      this.capeGraphics.fillStyle(capeBaseColor, 0.95);
+      this.capeGraphics.lineStyle(2, capeTrimColor, 1);
+      this.capeGraphics.beginPath();
+      this.capeGraphics.moveTo(-12, -70);
+      this.capeGraphics.lineTo(-24 + wind * 0.6, -48);
+      this.capeGraphics.lineTo(-28 + wind * 1.2, -26);
+      this.capeGraphics.lineTo(-24 + wind * 1.5, -8);
+      this.capeGraphics.lineTo(-8, -12);
+      this.capeGraphics.closePath();
+      this.capeGraphics.fillPath();
+      this.capeGraphics.strokePath();
+    }
 
     // 4. Character Body & Armor Shading
     this.bodyGraphics.clear();
@@ -134,110 +146,180 @@ export class WarriorRenderer {
     const goldTrim = isFlashing ? 0xffffff : 0xf1c40f;
     const shadowColor = 0x181e28;
 
-    // Subtle breathing / step oscillation
-    const isMoving = Math.abs(snapshot.velocity.x) > 15 && snapshot.isGrounded;
     const breathBob = Math.sin(this.animTimer * 2) * 1.5;
-    const walkCycle = isMoving ? Math.sin(this.animTimer * 10) : 0;
+    const torsoY = isDecapitated ? -42 : -68 + breathBob;
 
-    // --- LEGS & GREAVES ---
-    const leftLegAngle = walkCycle * 8;
-    const rightLegAngle = -walkCycle * 8;
+    if (isDecapitated) {
+      // --- COLLAPSED KNEELING BODY & LEGS ---
+      // Kneeling legs folded on stone
+      this.bodyGraphics.fillStyle(shadowColor, 1);
+      this.bodyGraphics.fillRoundedRect(-18, -16, 26, 16, 3);
+      this.bodyGraphics.fillStyle(steelDark, 1);
+      this.bodyGraphics.fillRoundedRect(-16, -14, 22, 14, 2);
 
-    // Left Greave (Back leg)
-    this.bodyGraphics.fillStyle(shadowColor, 1);
-    this.bodyGraphics.fillRect(-15 + leftLegAngle * 0.4, -30, 11, 30);
-    this.bodyGraphics.fillStyle(steelDark, 1);
-    this.bodyGraphics.fillRoundedRect(-14 + leftLegAngle * 0.4, -28, 9, 28, 2);
+      this.bodyGraphics.fillStyle(shadowColor, 1);
+      this.bodyGraphics.fillRoundedRect(-2, -16, 22, 16, 3);
+      this.bodyGraphics.fillStyle(steelHighlight, 1);
+      this.bodyGraphics.fillRoundedRect(0, -14, 18, 14, 2);
 
-    // Right Greave (Front leg)
-    this.bodyGraphics.fillStyle(shadowColor, 1);
-    this.bodyGraphics.fillRect(2 + rightLegAngle * 0.4, -30, 11, 30);
-    this.bodyGraphics.fillStyle(steelHighlight, 1);
-    this.bodyGraphics.fillRoundedRect(3 + rightLegAngle * 0.4, -28, 9, 28, 2);
+      // Slumped Torso
+      this.bodyGraphics.fillStyle(armorSecondary, 1);
+      this.bodyGraphics.fillRoundedRect(-18, torsoY + 22, 36, 12, 3);
+      this.bodyGraphics.lineStyle(1.5, goldTrim, 0.9);
+      this.bodyGraphics.strokeRoundedRect(-18, torsoY + 22, 36, 12, 3);
 
-    // Sabatons (Iron armored boots)
-    this.bodyGraphics.fillStyle(shadowColor, 1);
-    this.bodyGraphics.fillRoundedRect(-14 + leftLegAngle * 0.4, -4, 14, 6, 2);
-    this.bodyGraphics.fillRoundedRect(3 + rightLegAngle * 0.4, -4, 15, 6, 2);
-
-    // --- TORSO & BREASTPLATE ---
-    const torsoY = -68 + breathBob;
-
-    // Armored Faulds / Tassets (waist guards)
-    this.bodyGraphics.fillStyle(armorSecondary, 1);
-    this.bodyGraphics.fillRoundedRect(-18, torsoY + 28, 36, 12, 3);
-    this.bodyGraphics.lineStyle(1.5, goldTrim, 0.9);
-    this.bodyGraphics.strokeRoundedRect(-18, torsoY + 28, 36, 12, 3);
-
-    // Curat / Breastplate (chiseled royal steel plate)
-    this.bodyGraphics.fillStyle(armorPrimary, 1);
-    this.bodyGraphics.fillRoundedRect(-20, torsoY, 40, 32, 5);
-    this.bodyGraphics.lineStyle(2, goldTrim, 1);
-    this.bodyGraphics.strokeRoundedRect(-20, torsoY, 40, 32, 5);
-
-    // Breastplate Royal Crest (golden cross heraldry)
-    this.bodyGraphics.fillStyle(goldTrim, 1);
-    this.bodyGraphics.fillRect(-2, torsoY + 6, 4, 18);
-    this.bodyGraphics.fillRect(-8, torsoY + 11, 16, 4);
-
-    // Pauldrons (Flanged shoulder armor plates)
-    this.bodyGraphics.fillStyle(steelHighlight, 1);
-    this.bodyGraphics.fillRoundedRect(-24, torsoY - 2, 12, 16, 4); // Rear pauldron
-    this.bodyGraphics.fillRoundedRect(12, torsoY - 2, 14, 18, 4); // Front pauldron
-    this.bodyGraphics.lineStyle(1.5, goldTrim, 1);
-    this.bodyGraphics.strokeRoundedRect(12, torsoY - 2, 14, 18, 4);
-
-    // --- GREATHELM (KNIGHT HELMET) ---
-    const helmY = torsoY - 22;
-
-    // Helm Dome
-    this.bodyGraphics.fillStyle(steelHighlight, 1);
-    this.bodyGraphics.fillRoundedRect(-15, helmY, 30, 24, 4);
-    this.bodyGraphics.lineStyle(1.5, goldTrim, 0.8);
-    this.bodyGraphics.strokeRoundedRect(-15, helmY, 30, 24, 4);
-
-    // T-Slit Visor (Gothic crusader cross visor)
-    this.bodyGraphics.fillStyle(0x0c1017, 1);
-    this.bodyGraphics.fillRect(-4, helmY + 9, 18, 4); // Horizontal ocular slit
-    this.bodyGraphics.fillRect(3, helmY + 7, 4, 13); // Vertical ventilation slit
-
-    // Visor ocular glow
-    const glowColor = this.isPlayer ? 0x38ef7d : 0xe74c3c;
-    this.bodyGraphics.fillStyle(glowColor, 0.9);
-    this.bodyGraphics.fillRect(-1, helmY + 10, 5, 2);
-
-    // Royal Plume / Feathers atop helmet
-    const plumeColor = this.isPlayer ? 0xf1c40f : 0xe74c3c;
-    this.bodyGraphics.fillStyle(plumeColor, 1);
-    const plumeSway = Math.sin(this.animTimer * 4) * 3 - snapshot.velocity.x * 0.02;
-    this.bodyGraphics.fillTriangle(-4, helmY, 4, helmY, -8 + plumeSway, helmY - 14);
-
-    // --- HEATER SHIELD (in blocking stance) ---
-    if (snapshot.state === 'blocking') {
-      const shieldX = 14;
-      const shieldY = torsoY + 2;
-      // Shield wood/steel base
       this.bodyGraphics.fillStyle(armorPrimary, 1);
-      this.bodyGraphics.beginPath();
-      this.bodyGraphics.moveTo(shieldX - 8, shieldY - 20);
-      this.bodyGraphics.lineTo(shieldX + 16, shieldY - 20);
-      this.bodyGraphics.lineTo(shieldX + 16, shieldY + 8);
-      this.bodyGraphics.lineTo(shieldX + 4, shieldY + 24);
-      this.bodyGraphics.lineTo(shieldX - 8, shieldY + 8);
-      this.bodyGraphics.closePath();
-      this.bodyGraphics.fillPath();
+      this.bodyGraphics.fillRoundedRect(-19, torsoY, 38, 26, 4);
+      this.bodyGraphics.lineStyle(2, goldTrim, 1);
+      this.bodyGraphics.strokeRoundedRect(-19, torsoY, 38, 26, 4);
 
-      // Shield gold rim & boss
-      this.bodyGraphics.lineStyle(2.5, goldTrim, 1);
-      this.bodyGraphics.strokePath();
+      // Pauldrons drooping forward
+      this.bodyGraphics.fillStyle(steelHighlight, 1);
+      this.bodyGraphics.fillRoundedRect(-22, torsoY + 2, 12, 14, 4);
+      this.bodyGraphics.fillRoundedRect(10, torsoY + 2, 12, 14, 4);
 
-      // Golden shield boss center rivet
+      // --- VISCERAL SEVERED NECK STUMP ---
+      const stumpY = torsoY - 2;
+      // Ragged severed flesh contour
+      this.bodyGraphics.fillStyle(0x5a0000, 1);
+      this.bodyGraphics.fillEllipse(0, stumpY, 20, 9);
+
+      // Raw arterial inner muscle ring
+      this.bodyGraphics.fillStyle(0x8a0303, 1);
+      this.bodyGraphics.fillEllipse(0, stumpY, 14, 6);
+
+      // Severed cervical spine bone core
+      this.bodyGraphics.fillStyle(0xf0eee4, 1);
+      this.bodyGraphics.fillCircle(0, stumpY, 3);
+      this.bodyGraphics.fillStyle(0x3a0000, 1);
+      this.bodyGraphics.fillCircle(0, stumpY, 1.2); // Spinal canal
+
+      // Severed carotid artery spurts / drips
+      const spurtPulse = Math.sin(this.animTimer * 12);
+      this.bodyGraphics.fillStyle(0xaa0000, 0.95);
+      this.bodyGraphics.fillCircle(-4, stumpY - 1 + spurtPulse, 2.5);
+      this.bodyGraphics.fillCircle(4, stumpY - 2 - spurtPulse, 2.2);
+
+      // Drips rolling down breastplate
+      this.bodyGraphics.fillStyle(0x700000, 0.9);
+      this.bodyGraphics.fillRect(-6, torsoY + 4, 2.5, 8);
+      this.bodyGraphics.fillRect(2, torsoY + 4, 3, 12);
+    } else {
+      // Subtle breathing / step oscillation
+      const isMoving = Math.abs(snapshot.velocity.x) > 15 && snapshot.isGrounded;
+      const walkCycle = isMoving ? Math.sin(this.animTimer * 10) : 0;
+
+      // --- LEGS & GREAVES ---
+      const leftLegAngle = walkCycle * 8;
+      const rightLegAngle = -walkCycle * 8;
+
+      // Left Greave (Back leg)
+      this.bodyGraphics.fillStyle(shadowColor, 1);
+      this.bodyGraphics.fillRect(-15 + leftLegAngle * 0.4, -30, 11, 30);
+      this.bodyGraphics.fillStyle(steelDark, 1);
+      this.bodyGraphics.fillRoundedRect(-14 + leftLegAngle * 0.4, -28, 9, 28, 2);
+
+      // Right Greave (Front leg)
+      this.bodyGraphics.fillStyle(shadowColor, 1);
+      this.bodyGraphics.fillRect(2 + rightLegAngle * 0.4, -30, 11, 30);
+      this.bodyGraphics.fillStyle(steelHighlight, 1);
+      this.bodyGraphics.fillRoundedRect(3 + rightLegAngle * 0.4, -28, 9, 28, 2);
+
+      // Sabatons (Iron armored boots)
+      this.bodyGraphics.fillStyle(shadowColor, 1);
+      this.bodyGraphics.fillRoundedRect(-14 + leftLegAngle * 0.4, -4, 14, 6, 2);
+      this.bodyGraphics.fillRoundedRect(3 + rightLegAngle * 0.4, -4, 15, 6, 2);
+
+      // --- TORSO & BREASTPLATE ---
+      // Armored Faulds / Tassets (waist guards)
+      this.bodyGraphics.fillStyle(armorSecondary, 1);
+      this.bodyGraphics.fillRoundedRect(-18, torsoY + 28, 36, 12, 3);
+      this.bodyGraphics.lineStyle(1.5, goldTrim, 0.9);
+      this.bodyGraphics.strokeRoundedRect(-18, torsoY + 28, 36, 12, 3);
+
+      // Curat / Breastplate (chiseled royal steel plate)
+      this.bodyGraphics.fillStyle(armorPrimary, 1);
+      this.bodyGraphics.fillRoundedRect(-20, torsoY, 40, 32, 5);
+      this.bodyGraphics.lineStyle(2, goldTrim, 1);
+      this.bodyGraphics.strokeRoundedRect(-20, torsoY, 40, 32, 5);
+
+      // Breastplate Royal Crest (golden cross heraldry)
       this.bodyGraphics.fillStyle(goldTrim, 1);
-      this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 5);
+      this.bodyGraphics.fillRect(-2, torsoY + 6, 4, 18);
+      this.bodyGraphics.fillRect(-8, torsoY + 11, 16, 4);
+
+      // Pauldrons (Flanged shoulder armor plates)
+      this.bodyGraphics.fillStyle(steelHighlight, 1);
+      this.bodyGraphics.fillRoundedRect(-24, torsoY - 2, 12, 16, 4); // Rear pauldron
+      this.bodyGraphics.fillRoundedRect(12, torsoY - 2, 14, 18, 4); // Front pauldron
+      this.bodyGraphics.lineStyle(1.5, goldTrim, 1);
+      this.bodyGraphics.strokeRoundedRect(12, torsoY - 2, 14, 18, 4);
+
+      // --- GREATHELM (KNIGHT HELMET) ---
+      const helmY = torsoY - 22;
+
+      // Helm Dome
+      this.bodyGraphics.fillStyle(steelHighlight, 1);
+      this.bodyGraphics.fillRoundedRect(-15, helmY, 30, 24, 4);
+      this.bodyGraphics.lineStyle(1.5, goldTrim, 0.8);
+      this.bodyGraphics.strokeRoundedRect(-15, helmY, 30, 24, 4);
+
+      // T-Slit Visor (Gothic crusader cross visor)
+      this.bodyGraphics.fillStyle(0x0c1017, 1);
+      this.bodyGraphics.fillRect(-4, helmY + 9, 18, 4); // Horizontal ocular slit
+      this.bodyGraphics.fillRect(3, helmY + 7, 4, 13); // Vertical ventilation slit
+
+      // Visor ocular glow
+      const glowColor = this.isPlayer ? 0x38ef7d : 0xe74c3c;
+      this.bodyGraphics.fillStyle(glowColor, 0.9);
+      this.bodyGraphics.fillRect(-1, helmY + 10, 5, 2);
+
+      // Royal Plume / Feathers atop helmet
+      const plumeColor = this.isPlayer ? 0xf1c40f : 0xe74c3c;
+      this.bodyGraphics.fillStyle(plumeColor, 1);
+      const plumeSway = Math.sin(this.animTimer * 4) * 3 - snapshot.velocity.x * 0.02;
+      this.bodyGraphics.fillTriangle(-4, helmY, 4, helmY, -8 + plumeSway, helmY - 14);
+
+      // --- HEATER SHIELD (in blocking stance) ---
+      if (snapshot.state === 'blocking') {
+        const shieldX = 14;
+        const shieldY = torsoY + 2;
+        // Shield wood/steel base
+        this.bodyGraphics.fillStyle(armorPrimary, 1);
+        this.bodyGraphics.beginPath();
+        this.bodyGraphics.moveTo(shieldX - 8, shieldY - 20);
+        this.bodyGraphics.lineTo(shieldX + 16, shieldY - 20);
+        this.bodyGraphics.lineTo(shieldX + 16, shieldY + 8);
+        this.bodyGraphics.lineTo(shieldX + 4, shieldY + 24);
+        this.bodyGraphics.lineTo(shieldX - 8, shieldY + 8);
+        this.bodyGraphics.closePath();
+        this.bodyGraphics.fillPath();
+
+        // Shield gold rim & boss
+        this.bodyGraphics.lineStyle(2.5, goldTrim, 1);
+        this.bodyGraphics.strokePath();
+
+        // Golden shield boss center rivet
+        this.bodyGraphics.fillStyle(goldTrim, 1);
+        this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 5);
+      }
     }
 
     // 5. WEAPON RENDERING & DYNAMIC SWORD ARCS
     this.weaponGraphics.clear();
+
+    if (isDecapitated) {
+      // Fallen weapon dropped flat on the flagstone floor
+      const droppedX = 16;
+      const droppedY = -3;
+      this.weaponGraphics.lineStyle(4, steelHighlight, 1);
+      this.weaponGraphics.lineBetween(droppedX, droppedY, droppedX + 46, droppedY + 2);
+      this.weaponGraphics.lineStyle(2.5, goldTrim, 1);
+      this.weaponGraphics.lineBetween(droppedX, droppedY - 6, droppedX, droppedY + 6);
+      this.weaponGraphics.fillStyle(goldTrim, 1);
+      this.weaponGraphics.fillCircle(droppedX - 3, droppedY, 3);
+      return;
+    }
 
     const attackType = snapshot.currentAttackId?.includes('heavy')
       ? 'heavy'

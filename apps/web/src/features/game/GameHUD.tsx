@@ -573,7 +573,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({ snapshot, mode = 'singleplayer
               textShadow: '0 4px 16px rgba(0, 0, 0, 0.9)',
             }}
           >
-            {winnerId === p1.id ? 'VICTORY' : winnerId === 'draw' ? 'STALEMATE' : 'DEFEATED'}
+            {winnerId === p1.id
+              ? p2.isDecapitated
+                ? 'DECAPITATION VICTORY'
+                : 'VICTORY'
+              : winnerId === 'draw'
+                ? 'STALEMATE'
+                : p1.isDecapitated
+                  ? 'DECAPITATED'
+                  : 'DEFEATED'}
           </h2>
           <p
             style={{
@@ -585,10 +593,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({ snapshot, mode = 'singleplayer
             }}
           >
             {winnerId === p1.id
-              ? 'The Crown Belongs To You!'
+              ? p2.isDecapitated
+                ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
+                : 'The Crown Belongs To You!'
               : winnerId === 'draw'
                 ? 'Both Champions Stood Equal In Blood & Steel.'
-                : 'Only One Shall Reign.'}
+                : p1.isDecapitated
+                  ? 'Your Head Fell To The Arena Floor. Only One Shall Reign.'
+                  : 'Only One Shall Reign.'}
           </p>
 
           <div
@@ -641,6 +653,61 @@ export const GameHUD: React.FC<GameHUDProps> = ({ snapshot, mode = 'singleplayer
               </button>
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* Realistic Combat Controls Ribbon */}
+      {matchState !== 'match_over' && (
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            display: 'flex',
+            gap: '14px',
+            backgroundColor: 'rgba(5, 8, 16, 0.85)',
+            border: '1px solid rgba(212, 175, 55, 0.3)',
+            borderRadius: '20px',
+            padding: '6px 18px',
+            fontSize: '0.78rem',
+            color: '#a0aec0',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
+          }}
+        >
+          <span>
+            <strong style={{ color: '#f1c40f' }}>A/D</strong> Move & Skid
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>W</strong> Jump (Tap = Hop)
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>C / Double-Tap</strong> Dash
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>J / Space</strong> Slash
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>S + J</strong> Heavy
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>U / I</strong> Thrust
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>K / Shift</strong> Block
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>L / Alt</strong> Parry
+          </span>
         </div>
       )}
     </div>

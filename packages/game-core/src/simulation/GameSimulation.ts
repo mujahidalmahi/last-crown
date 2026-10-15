@@ -168,6 +168,13 @@ export class GameSimulation {
       const counterSign = defender.movement.facing === 'right' ? 1 : -1;
       attacker.movement.applyImpulse({ x: -counterSign * 180, y: -60 }, this._physics);
     } else {
+      // Check for lethal finishing blow
+      const willKill = defender.health <= result.damage;
+      if (willKill) {
+        defender.isDecapitated = true;
+        result.isDecapitation = true;
+      }
+
       // Damage applied to defender
       defender.applyDamage(result.damage);
       const isGuardBroken = defender.applyStaminaDamage(result.staminaDamage);

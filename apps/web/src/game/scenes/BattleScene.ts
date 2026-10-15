@@ -331,6 +331,10 @@ export class BattleScene extends Phaser.Scene {
       }
       this.wasP1Attacking = !!p1Input.attack;
 
+      if (p1Input.dash && this.soundManager) {
+        this.soundManager.playDashWhoosh();
+      }
+
       // Compute Bot AI input
       const p1Snap = this.simulation.p1.toSnapshot();
       const p2Snap = this.simulation.p2.toSnapshot();
@@ -379,7 +383,16 @@ export class BattleScene extends Phaser.Scene {
       }
       this.wasP1Attacking = !!localInput.attack;
 
+      if (localInput.dash && this.soundManager) {
+        this.soundManager.playDashWhoosh();
+      }
+
       this.config.colyseusRoom.send(ClientMessageType.PLAYER_INPUT, localInput);
+    }
+
+    // 5. Update Visual Combat Effects (severed heads, arterial blood geysers, expanding pools)
+    if (this.effects) {
+      this.effects.update(deltaSec);
     }
   }
 
@@ -403,6 +416,7 @@ export class BattleScene extends Phaser.Scene {
       hurtbox: { x: nw.x - 20, y: nw.y - 70, width: 40, height: 70 },
       roundsWon: nw.roundsWon,
       isExhausted: nw.isExhausted || false,
+      isDecapitated: nw.isDecapitated || false,
     };
   }
 
@@ -514,13 +528,50 @@ export class BattleScene extends Phaser.Scene {
       this.soundManager.playBlockClang();
       this.hitStopRemainingMs = 30; // 30ms block hit-stop
     } else if (result.resolution === 'hit') {
-      this.effects.triggerHitImpact({ x: impactX, y: impactY }, result.isCritical, result.damage);
-      this.soundManager.playHitFlesh();
-      this.hitStopRemainingMs = result.isCritical ? 80 : 45; // Satisfying impact weight
+      if (result.isDecapitation) {
+        let attackerFacing: Direction = 'right';
+        let isVictimPlayer = false;
+
+        if (this.simulation) {
+          const attacker = result.attackerId === 'p1' ? this.simulation.p1 : this.simulation.p2;
+          attackerFacing = attacker.movement.facing;
+          isVictimPlayer = result.defenderId === 'p1';
+        } else if (this.lastRemoteSnapshot) {
+          const attacker =
+            result.attackerId === this.lastRemoteSnapshot.p1.id
+              ? this.lastRemoteSnapshot.p1
+              : this.lastRemoteSnapshot.p2;
+          attackerFacing = attacker.facing;
+          isVictimPlayer = result.defenderId === this.lastRemoteSnapshot.p1.id;
+        }
+
+        this.effects.triggerDecapitation(
+          { x: impactX, y: impactY },
+          attackerFacing,
+          isVictimPlayer,
+          () => this.soundManager?.playHeadThud()
+        );
+        this.soundManager.playDecapitationSlash();
+        this.hitStopRemainingMs = 150; // Dramatic mortal decapitation hit-stop freeze
+
+        // Cinematic slow-motion camera zoom punch
+        this.cameras.main.zoomTo(1.08, 220, 'Quad.easeOut');
+        this.time.delayedCall(800, () => {
+          this.cameras.main.zoomTo(1.0, 400, 'Quad.easeIn');
+        });
+      } else {
+        this.effects.triggerHitImpact({ x: impactX, y: impactY }, result.isCritical, result.damage);
+        this.soundManager.playHitFlesh();
+        this.hitStopRemainingMs = result.isCritical ? 80 : 45; // Satisfying impact weight
+      }
     }
   }
 
   private cleanUp(): void {
+    if (this.effects) {
+      this.effects.destroy();
+      this.effects = null;
+    }
     if (this.soundManager) {
       this.soundManager.destroy();
       this.soundManager = null;

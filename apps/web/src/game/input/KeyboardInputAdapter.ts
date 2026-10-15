@@ -6,6 +6,9 @@ export class KeyboardInputAdapter {
   private attackBuffer: boolean = false;
   private thrustTriggered: boolean = false;
   private parryBuffer: boolean = false;
+  private dashBuffer: boolean = false;
+  private lastTapKey: string = '';
+  private lastTapTime: number = 0;
   private onKeyDownHandler: (e: KeyboardEvent) => void;
   private onKeyUpHandler: (e: KeyboardEvent) => void;
   private onBlurHandler: () => void;
@@ -27,6 +30,25 @@ export class KeyboardInputAdapter {
         e.preventDefault();
       }
       this.keysPressed.add(e.code);
+
+      const now = Date.now();
+
+      // Double-tap direction detection for tactical evasive dash
+      if (
+        ['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code) &&
+        !e.repeat
+      ) {
+        if (this.lastTapKey === e.code && now - this.lastTapTime < 250) {
+          this.dashBuffer = true;
+        }
+        this.lastTapKey = e.code;
+        this.lastTapTime = now;
+      }
+
+      // Dedicated Dash key (KeyC or KeyE)
+      if (e.code === 'KeyC' || e.code === 'KeyE') {
+        this.dashBuffer = true;
+      }
 
       if (e.code === 'KeyJ' || e.code === 'Space') {
         this.attackBuffer = true;
@@ -58,6 +80,7 @@ export class KeyboardInputAdapter {
       this.attackBuffer = false;
       this.thrustTriggered = false;
       this.parryBuffer = false;
+      this.dashBuffer = false;
     };
 
     if (typeof window !== 'undefined') {
@@ -99,6 +122,9 @@ export class KeyboardInputAdapter {
     const parry = this.parryBuffer;
     this.parryBuffer = false;
 
+    const dash = this.dashBuffer;
+    this.dashBuffer = false;
+
     return {
       sequence: this.sequence,
       timestamp: Date.now(),
@@ -108,6 +134,7 @@ export class KeyboardInputAdapter {
       attackType,
       block,
       parry,
+      dash,
     };
   }
 
