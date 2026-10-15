@@ -56,9 +56,9 @@ describe('Combat Simulation', () => {
 
   it('resolves damage and knockback when attack hits opponent', () => {
     // Position warriors adjacent in melee range
-    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
     sim.p1.movement.setFacing('right');
-    sim.p2.movement.setPosition({ x: 540, y: 560 });
+    sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
     sim.p2.movement.setFacing('left');
 
     let hitEvent: HitResult | null = null;
@@ -97,9 +97,9 @@ describe('Combat Simulation', () => {
   });
 
   it('absorbs 75% damage when defender is blocking', () => {
-    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
     sim.p1.movement.setFacing('right');
-    sim.p2.movement.setPosition({ x: 540, y: 560 });
+    sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
     sim.p2.movement.setFacing('left');
 
     let hitEvent: HitResult | null = null;
@@ -157,9 +157,9 @@ describe('Combat Simulation', () => {
   });
 
   it('deflects attack with zero damage and stuns attacker when defender parries', () => {
-    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
     sim.p1.movement.setFacing('right');
-    sim.p2.movement.setPosition({ x: 540, y: 560 });
+    sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
     sim.p2.movement.setFacing('left');
 
     let hitEvent: HitResult | null = null;
@@ -220,9 +220,9 @@ describe('Combat Simulation', () => {
   });
 
   it('triggers guard break and exhaustion stun when incoming hit depletes stamina while blocking', () => {
-    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
     sim.p1.movement.setFacing('right');
-    sim.p2.movement.setPosition({ x: 540, y: 560 });
+    sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
     sim.p2.movement.setFacing('left');
 
     // Reduce P2 stamina to 5 (heavy attack does 28 * 0.8 = 22.4 stamina damage)

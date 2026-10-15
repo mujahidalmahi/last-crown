@@ -8,6 +8,7 @@ import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Badge } from '../../components/ui/Badge';
 import { useMultiplayerRoom } from '../../features/multiplayer/useMultiplayerRoom';
+import { requestBrowserFullscreen } from '../../utils/fullscreen';
 
 const PhaserGameContainer = dynamic(
   () => import('../../features/game/PhaserGameContainer').then(mod => mod.PhaserGameContainer),
@@ -16,22 +17,29 @@ const PhaserGameContainer = dynamic(
     loading: () => (
       <div
         style={{
-          width: '100%',
-          maxWidth: '1280px',
-          aspectRatio: '16 / 9',
-          margin: '0 auto',
+          position: 'fixed',
+          inset: 0,
+          width: '100vw',
+          height: '100vh',
           backgroundColor: '#070b12',
-          borderRadius: '8px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '12px',
-          border: '1px solid var(--border-gold)',
+          gap: '16px',
+          zIndex: 9999,
         }}
       >
-        <span style={{ fontSize: '2rem' }}>⚔️</span>
-        <p style={{ color: 'var(--text-gold)', fontWeight: 700, letterSpacing: '0.1em' }}>
+        <span style={{ fontSize: '3rem', filter: 'drop-shadow(0 0 12px #f1c40f)' }}>⚔️</span>
+        <p
+          style={{
+            color: 'var(--text-gold)',
+            fontWeight: 800,
+            fontSize: '1.2rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+          }}
+        >
           ENTERING MULTIPLAYER ARENA...
         </p>
       </div>
@@ -70,12 +78,18 @@ export default function RoomPage() {
   }, []);
 
   const handleCreate = async () => {
+    try {
+      await requestBrowserFullscreen();
+    } catch {}
     await createPrivateRoom(playerName, 'knight');
   };
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputCode.trim()) return;
+    try {
+      await requestBrowserFullscreen();
+    } catch {}
     await joinPrivateRoom(inputCode.trim(), playerName, 'knight');
   };
 
@@ -191,7 +205,12 @@ export default function RoomPage() {
         isMatchReady ? (
           // Active 2-Player Match View
           <div>
-            <PhaserGameContainer mode="multiplayer" colyseusRoom={room} playerPreset="knight" />
+            <PhaserGameContainer
+              mode="multiplayer"
+              colyseusRoom={room}
+              playerPreset="knight"
+              onExit={leaveRoom}
+            />
           </div>
         ) : (
           // Waiting Lobby View

@@ -9,13 +9,26 @@ export interface GameHUDProps {
   snapshot: GameSimulationSnapshot | null;
   mode?: 'singleplayer' | 'multiplayer';
   onRematch?: () => void;
+  onExit?: () => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
-export const GameHUD: React.FC<GameHUDProps> = ({ snapshot, mode = 'singleplayer', onRematch }) => {
+export const GameHUD: React.FC<GameHUDProps> = ({
+  snapshot,
+  mode = 'singleplayer',
+  onRematch,
+  onExit,
+  isFullscreen,
+  onToggleFullscreen,
+}) => {
   const currentMatchIdRef = useRef<string>(
     `match_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
   );
   const hasRecordedRef = useRef<boolean>(false);
+
+  // In-game controls guide modal state
+  const [showControls, setShowControls] = useState<boolean>(false);
 
   // Ghost health trailing states (arcade fighting game damage delay)
   const [p1GhostHealth, setP1GhostHealth] = useState<number>(100);
@@ -94,6 +107,19 @@ export const GameHUD: React.FC<GameHUDProps> = ({ snapshot, mode = 'singleplayer
     }
   }, [snapshot?.matchState, p1HealthPercent, p2HealthPercent]);
 
+  // Keyboard shortcut listener for Controls modal (H key and Escape)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'KeyH') {
+        setShowControls(prev => !prev);
+      } else if (e.code === 'Escape' && showControls) {
+        setShowControls(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showControls]);
+
   // Record match statistics once upon match_over
   useEffect(() => {
     if (snapshot?.matchState === 'match_over' && !hasRecordedRef.current) {
@@ -107,7 +133,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ snapshot, mode = 'singleplayer
         statsMgr.recordMatchResult(
           currentMatchIdRef.current,
           outcome,
-          mode,
+          mode === 'multiplayer' ? 'multiplayer' : 'singleplayer',
           isWin ? 150 : isDraw ? 50 : 25
         );
       } catch (err) {
@@ -640,6 +666,223 @@ export const GameHUD: React.FC<GameHUDProps> = ({ snapshot, mode = 'singleplayer
                 🏰 Castle Hall
               </button>
             </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Floating Utility Controls */}
+      <div
+        style={{
+          marginTop: 'auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          pointerEvents: 'none',
+          paddingBottom: '2px',
+        }}
+      >
+        {/* Bottom Left: Navigation & Controls Guide */}
+        <div style={{ display: 'flex', gap: '10px', pointerEvents: 'auto' }}>
+          <button
+            type="button"
+            onClick={onExit ? onExit : () => (window.location.href = '/')}
+            title="Return to Main Hall"
+            style={{
+              backgroundColor: 'rgba(10, 14, 22, 0.78)',
+              color: '#cbd5e1',
+              border: '1px solid rgba(212, 175, 55, 0.4)',
+              borderRadius: '6px',
+              padding: '7px 13px',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backdropFilter: 'blur(4px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            ← {mode === 'multiplayer' ? 'Leave Chamber' : 'Main Hall'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowControls(prev => !prev)}
+            title="Toggle Controls Guide (H)"
+            style={{
+              backgroundColor: 'rgba(10, 14, 22, 0.78)',
+              color: showControls ? '#f1c40f' : '#cbd5e1',
+              border: showControls
+                ? '1px solid #f1c40f'
+                : '1px solid rgba(212, 175, 55, 0.4)',
+              borderRadius: '6px',
+              padding: '7px 13px',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backdropFilter: 'blur(4px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
+          </button>
+        </div>
+
+        {/* Bottom Right: Fullscreen Toggle */}
+        <div style={{ pointerEvents: 'auto' }}>
+          {onToggleFullscreen && (
+            <button
+              type="button"
+              onClick={onToggleFullscreen}
+              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+              style={{
+                backgroundColor: 'rgba(10, 14, 22, 0.78)',
+                color: '#cbd5e1',
+                border: '1px solid rgba(212, 175, 55, 0.4)',
+                borderRadius: '6px',
+                padding: '7px 13px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backdropFilter: 'blur(4px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              {isFullscreen ? '⛶ Windowed' : '⛶ Fullscreen'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Gothic Combat Controls Guide Modal */}
+      {showControls && (
+        <div
+          role="dialog"
+          aria-label="Combat Controls Reference"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(5, 8, 16, 0.88)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 300,
+            pointerEvents: 'auto',
+          }}
+          onClick={() => setShowControls(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#0a0e18',
+              border: '2px solid var(--border-gold)',
+              borderRadius: '10px',
+              padding: '24px 32px',
+              maxWidth: '660px',
+              width: '92%',
+              boxShadow: '0 12px 48px rgba(0,0,0,0.9), 0 0 24px rgba(212, 175, 55, 0.2)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '20px',
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  color: 'var(--text-gold)',
+                  fontSize: '1.25rem',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                ⚔️ Combat Controls Reference
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowControls(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                gap: '14px',
+                fontSize: '0.9rem',
+              }}
+            >
+              <div>
+                <strong style={{ color: 'var(--text-gold)' }}>A / D / Arrows:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Move Left / Right</p>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--text-gold)' }}>W / Up Arrow:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Jump</p>
+              </div>
+              <div>
+                <strong style={{ color: '#f39c12' }}>J / Space:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Light Slash (Fast)</p>
+              </div>
+              <div>
+                <strong style={{ color: '#e74c3c' }}>S + J / ↓ + Space:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Heavy Strike (High Stun)</p>
+              </div>
+              <div>
+                <strong style={{ color: '#9b59b6' }}>U / I:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Forward Thrust (Reach)</p>
+              </div>
+              <div>
+                <strong style={{ color: '#3498db' }}>K / Shift:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Block (Absorbs 75%)</p>
+              </div>
+              <div>
+                <strong style={{ color: '#f1c40f' }}>L / Alt:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>Parry (150ms Counter-Stun)</p>
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', marginTop: '24px' }}>
+              <button
+                type="button"
+                onClick={() => setShowControls(false)}
+                style={{
+                  backgroundColor: 'var(--border-gold)',
+                  color: '#070b12',
+                  border: 'none',
+                  borderRadius: '4px',
+                  padding: '8px 24px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                Back To Duel [Esc]
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -13,6 +13,7 @@ import {
   MatchState,
 } from '@last-crown/shared';
 import { GameSimulation, WarriorBotAI, GameSimulationSnapshot } from '@last-crown/game-core';
+import { getArenaConfig } from '@last-crown/game-config';
 import { WarriorRenderer } from '../rendering/WarriorRenderer';
 import { CombatEffects } from '../effects/CombatEffects';
 import { SoundManager } from '../audio/SoundManager';
@@ -61,6 +62,12 @@ export class BattleScene extends Phaser.Scene {
     super({ key: 'BattleScene' });
   }
 
+  public preload(): void {
+    if (!this.textures.exists('playground')) {
+      this.load.image('playground', '/assets/backgrounds/playground.jpg');
+    }
+  }
+
   public init(data: BattleSceneConfig): void {
     if (data && data.mode) {
       this.config = { ...this.config, ...data };
@@ -74,8 +81,11 @@ export class BattleScene extends Phaser.Scene {
     this.effects = new CombatEffects(this);
     this.inputAdapter = new KeyboardInputAdapter();
 
-    // Render medieval castle arena backdrop with full gothic atmosphere
+    // Render playground colosseum arena backdrop
     this.drawArena(width, height);
+
+    // Camera cinematic fade-in from pitch black
+    this.cameras.main.fadeIn(700, 5, 8, 16);
 
     // Initialize atmospheric floating dust/ember particles
     this.emberParticles = this.add.graphics();
@@ -91,9 +101,11 @@ export class BattleScene extends Phaser.Scene {
       });
     }
 
-    // Instantiate warrior renderers
-    this.p1Renderer = new WarriorRenderer(this, true);
-    this.p2Renderer = new WarriorRenderer(this, false);
+    // Instantiate warrior renderers using arena floor height
+    const arenaConfig = getArenaConfig(this.config.arenaId || 'bastion_courtyard');
+    const arenaFloorY = arenaConfig.floorY;
+    this.p1Renderer = new WarriorRenderer(this, true, arenaFloorY);
+    this.p2Renderer = new WarriorRenderer(this, false, arenaFloorY);
 
     // If in singleplayer mode, initialize local offline GameSimulation + AI
     if (this.config.mode === 'singleplayer') {
@@ -130,6 +142,14 @@ export class BattleScene extends Phaser.Scene {
           this.config.onCombatEvent(result);
         }
       });
+
+      // Render initial warrior poses immediately so both warriors are ready for fight on frame 1
+      const initialSnap = this.simulation.getSnapshot();
+      if (this.p1Renderer) this.p1Renderer.render(initialSnap.p1);
+      if (this.p2Renderer) this.p2Renderer.render(initialSnap.p2);
+      if (this.config.onSnapshot) {
+        this.config.onSnapshot(initialSnap);
+      }
     } else if (this.config.mode === 'multiplayer' && this.config.colyseusRoom) {
       const room = this.config.colyseusRoom;
 
@@ -152,136 +172,25 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawArena(width: number, height: number): void {
-    this.arenaGraphics = this.add.graphics();
-
-    // 1. Deep Midnight Twilight Sky Gradient
-    this.arenaGraphics.fillGradientStyle(0x050810, 0x050810, 0x141a29, 0x141a29, 1);
-    this.arenaGraphics.fillRect(0, 0, width, height);
-
-    // 2. Starry Sky (scattered stars)
-    this.arenaGraphics.fillStyle(0xffffff, 0.6);
-    const starSeeds: [number, number][] = [
-      [80, 50],
-      [140, 80],
-      [220, 35],
-      [310, 65],
-      [450, 40],
-      [580, 75],
-      [720, 45],
-      [860, 60],
-      [980, 35],
-      [1120, 80],
-      [1200, 40],
-    ];
-    for (const [sx, sy] of starSeeds) {
-      this.arenaGraphics.fillRect(sx, sy, 2, 2);
+    // 1. Render playground colosseum arena backdrop from playground.jpg
+    if (this.textures.exists('playground')) {
+      const playgroundBg = this.add.image(width / 2, height / 2, 'playground');
+      playgroundBg.setDisplaySize(width, height);
+      playgroundBg.setDepth(-20);
+    } else {
+      this.arenaGraphics = this.add.graphics();
+      this.arenaGraphics.fillGradientStyle(0x050810, 0x050810, 0x141a29, 0x141a29, 1);
+      this.arenaGraphics.fillRect(0, 0, width, height);
     }
 
-    // 3. Gothic Full Moon with luminous radial bloom
-    const moonX = width - 240;
-    const moonY = 120;
-    this.arenaGraphics.fillStyle(0xfff9e6, 0.04);
-    this.arenaGraphics.fillCircle(moonX, moonY, 140);
-    this.arenaGraphics.fillStyle(0xfff9e6, 0.08);
-    this.arenaGraphics.fillCircle(moonX, moonY, 90);
-    this.arenaGraphics.fillStyle(0xfff9e6, 0.18);
-    this.arenaGraphics.fillCircle(moonX, moonY, 52);
-    this.arenaGraphics.fillStyle(0xfffdf2, 0.95);
-    this.arenaGraphics.fillCircle(moonX, moonY, 34);
+    // 2. Colosseum pillar torches ambient flickering glow
+    // In playground.jpg: prominent iron torches are situated on the left & right stone columns
+    this.torchGlowLeft = this.add.circle(150, 390, 110, 0xffa502, 0.2);
+    this.torchGlowRight = this.add.circle(width - 150, 390, 110, 0xffa502, 0.2);
 
-    // Moon craters
-    this.arenaGraphics.fillStyle(0xd5dbdb, 0.35);
-    this.arenaGraphics.fillCircle(moonX - 8, moonY - 6, 7);
-    this.arenaGraphics.fillCircle(moonX + 10, moonY + 8, 9);
-    this.arenaGraphics.fillCircle(moonX - 12, moonY + 10, 5);
-
-    // 4. Distant Mountain Silhouettes
-    this.arenaGraphics.fillStyle(0x0e1320, 1);
-    this.arenaGraphics.beginPath();
-    this.arenaGraphics.moveTo(0, 320);
-    this.arenaGraphics.lineTo(160, 210);
-    this.arenaGraphics.lineTo(340, 290);
-    this.arenaGraphics.lineTo(520, 180);
-    this.arenaGraphics.lineTo(760, 280);
-    this.arenaGraphics.lineTo(960, 195);
-    this.arenaGraphics.lineTo(1140, 260);
-    this.arenaGraphics.lineTo(width, 220);
-    this.arenaGraphics.lineTo(width, height);
-    this.arenaGraphics.lineTo(0, height);
-    this.arenaGraphics.closePath();
-    this.arenaGraphics.fillPath();
-
-    // 5. Majestic Castle Fortress Ramparts
-    this.arenaGraphics.fillStyle(0x181f2c, 1);
-    this.arenaGraphics.fillRect(60, 240, width - 120, 320);
-
-    // Castle Cathedral Spires (Left & Right towers)
-    this.arenaGraphics.fillStyle(0x131a26, 1);
-    // Left Tower
-    this.arenaGraphics.fillRect(40, 160, 110, 400);
-    this.arenaGraphics.fillTriangle(40, 160, 150, 160, 95, 70); // Spire peak
-    // Right Tower
-    this.arenaGraphics.fillRect(width - 150, 160, 110, 400);
-    this.arenaGraphics.fillTriangle(width - 150, 160, width - 40, 160, width - 95, 70);
-
-    // Stone Crenellations / Battlements
-    this.arenaGraphics.fillStyle(0x181f2c, 1);
-    for (let x = 70; x < width - 70; x += 55) {
-      this.arenaGraphics.fillRect(x, 215, 34, 28);
-    }
-
-    // Glowing Lancet Stained-Glass Windows
-    const windowColor = 0xf39c12;
-    const windowPositions = [
-      95,
-      width / 2 - 280,
-      width / 2 - 100,
-      width / 2 + 100,
-      width / 2 + 280,
-      width - 95,
-    ];
-    for (const wx of windowPositions) {
-      this.arenaGraphics.fillStyle(windowColor, 0.7);
-      this.arenaGraphics.fillRoundedRect(wx - 8, 290, 16, 42, 6);
-      this.arenaGraphics.fillStyle(0xffffff, 0.4);
-      this.arenaGraphics.fillRect(wx - 6, 292, 4, 38);
-    }
-
-    // 6. Courtyard Stone Flag Floor
-    const floorY = 560;
-    this.arenaGraphics.fillStyle(0x1f2735, 1);
-    this.arenaGraphics.fillRect(0, floorY, width, height - floorY);
-
-    // Weathered flagstone tile joints
-    this.arenaGraphics.lineStyle(1.5, 0x121720, 0.7);
-    for (let x = 0; x < width; x += 75) {
-      this.arenaGraphics.lineBetween(x, floorY, x, height);
-    }
-    for (let y = floorY + 30; y < height; y += 35) {
-      this.arenaGraphics.lineBetween(0, y, width, y);
-    }
-
-    // Gilded Floor Border
-    this.arenaGraphics.fillStyle(0xd4af37, 0.85);
-    this.arenaGraphics.fillRect(0, floorY, width, 5);
-
-    // 7. Iron Torch Wall Sconces with flickering glow
-    const torchY = 330;
-    // Left Sconce
-    this.arenaGraphics.fillStyle(0x0b0e14, 1);
-    this.arenaGraphics.fillRect(176, torchY, 8, 28);
-    this.arenaGraphics.fillCircle(180, torchY, 8);
-    // Right Sconce
-    this.arenaGraphics.fillRect(width - 184, torchY, 8, 28);
-    this.arenaGraphics.fillCircle(width - 180, torchY, 8);
-
-    // Torch ambient glow circles
-    this.torchGlowLeft = this.add.circle(180, torchY - 6, 140, 0xf39c12, 0.16);
-    this.torchGlowRight = this.add.circle(width - 180, torchY - 6, 140, 0xf39c12, 0.16);
-
-    // 8. Soft Radial Screen Vignette
+    // 3. Soft Radial Screen Vignette for dramatic colosseum depth
     const vignette = this.add.graphics();
-    vignette.lineStyle(60, 0x000000, 0.4);
+    vignette.lineStyle(40, 0x000000, 0.35);
     vignette.strokeRect(0, 0, width, height);
   }
 
