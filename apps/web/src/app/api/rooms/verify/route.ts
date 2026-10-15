@@ -1,8 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
+  const isVercel = Boolean(process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL_ENV);
   const serverUrl =
-    process.env.SERVER_URL || process.env.NEXT_PUBLIC_SERVER_HTTP_URL || 'http://localhost:2567';
+    process.env.SERVER_URL ||
+    process.env.NEXT_PUBLIC_SERVER_HTTP_URL ||
+    (isVercel ? null : 'http://localhost:2567');
+
+  if (!serverUrl) {
+    return NextResponse.json(
+      {
+        error:
+          'Multiplayer server is not configured on this Vercel deployment. Real-time duels require a persistent WebSocket server (e.g. Render, Railway, or Fly.io). Configure SERVER_URL in Vercel settings, or enjoy the game in Offline Mode.',
+      },
+      { status: 503 }
+    );
+  }
 
   try {
     const body = await req.json();

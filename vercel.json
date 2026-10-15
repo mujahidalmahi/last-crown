@@ -1,43 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "server": {
-      "root": "apps/server",
-      "framework": "express",
-      "buildCommand": "npm run build:packages --prefix ../.. && npm run build"
-    },
-    "web": {
-      "root": "apps/web",
-      "framework": "nextjs",
-      "buildCommand": "npm run build:packages --prefix ../.. && npm run build",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "server",
-          "format": "url",
-          "env": "SERVER_URL"
-        }
-      ]
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/health",
-      "destination": {
-        "service": "server"
-      }
-    },
-    {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "server"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "web"
-      }
-    }
-  ]
+  "buildCommand": "npm run build:packages && npm run build --workspace=@last-crown/web",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs"
 }
