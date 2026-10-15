@@ -57,7 +57,7 @@ Render provides free persistent Web Services with native WebSocket and SSL suppo
 - **Region**: Oregon (or nearest to your players)
 - **Branch**: `master` (or `main`)
 - **Runtime**: `Node`
-- **Build Command**: `npm ci && npm run build:packages && npm run build --workspace=@last-crown/server`
+- **Build Command**: `npm ci --include=dev && npm run build:packages && npm run build --workspace=@last-crown/server`
 - **Start Command**: `npm run start --workspace=@last-crown/server`
 - **Plan**: `Free`
 - **Environment Variables**:

@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: free
     region: oregon
-    buildCommand: npm ci && npm run build:packages && npm run build --workspace=@last-crown/server
+    buildCommand: npm ci --include=dev && npm run build:packages && npm run build --workspace=@last-crown/server
     startCommand: npm run start --workspace=@last-crown/server
     envVars:
       - key: NODE_ENV

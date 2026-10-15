@@ -18,7 +18,10 @@ app.use(express.json());
 const allowedOrigins = serverEnv.SERVER_CORS_ORIGIN.split(',').map(o => o.trim());
 app.use(
   cors({
-    origin: (origin, callback) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void
+    ) => {
       const isLocalhost =
         !origin ||
         /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
