@@ -32,14 +32,50 @@ export function useMultiplayerRoom() {
 
   const getClient = useCallback((): Client => {
     if (!clientRef.current) {
-      const serverWsUrl = process.env.NEXT_PUBLIC_SERVER_WS_URL || 'ws://localhost:2567';
-      clientRef.current = new Client(serverWsUrl);
+      if (process.env.NEXT_PUBLIC_SERVER_WS_URL) {
+        clientRef.current = new Client(process.env.NEXT_PUBLIC_SERVER_WS_URL);
+      } else if (typeof window !== 'undefined') {
+        if (
+          (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+          window.location.port === '3000'
+        ) {
+          clientRef.current = new Client('ws://localhost:2567');
+        } else {
+          const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+          clientRef.current = new Client(`${wsProtocol}//${window.location.host}`);
+        }
+      } else {
+        clientRef.current = new Client('ws://localhost:2567');
+      }
     }
     return clientRef.current;
   }, []);
 
   const getServerHttpUrl = (): string => {
-    return process.env.NEXT_PUBLIC_SERVER_HTTP_URL || 'http://localhost:2567';
+    // 1. Server-side runtime (uses Vercel internal service binding)
+    if (typeof window === 'undefined') {
+      return (
+        process.env.SERVER_URL ||
+        process.env.NEXT_PUBLIC_SERVER_HTTP_URL ||
+        'http://localhost:2567'
+      );
+    }
+
+    // 2. Explicit client override
+    if (process.env.NEXT_PUBLIC_SERVER_HTTP_URL) {
+      return process.env.NEXT_PUBLIC_SERVER_HTTP_URL;
+    }
+
+    // 3. Local standalone development fallback (web on 3000, server on 2567)
+    if (
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') &&
+      window.location.port === '3000'
+    ) {
+      return 'http://localhost:2567';
+    }
+
+    // 4. Same-origin deployment URL (Vercel rewrites /api/* to the server service)
+    return window.location.origin;
   };
 
   const createPrivateRoom = useCallback(
@@ -47,7 +83,8 @@ export function useMultiplayerRoom() {
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
       try {
         const httpUrl = getServerHttpUrl();
-        const res = await fetch(`${httpUrl}/api/rooms/create`, {
+        const targetUrl = new URL('/api/rooms/create', httpUrl).toString();
+        const res = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ isPrivate: true, playerName, warriorPreset }),
@@ -115,7 +152,8 @@ export function useMultiplayerRoom() {
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
       try {
         const httpUrl = getServerHttpUrl();
-        const verifyRes = await fetch(`${httpUrl}/api/rooms/verify`, {
+        const targetUrl = new URL('/api/rooms/verify', httpUrl).toString();
+        const verifyRes = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ inviteCode, playerName, warriorPreset }),

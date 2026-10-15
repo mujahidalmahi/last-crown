@@ -19,7 +19,11 @@ const allowedOrigins = serverEnv.SERVER_CORS_ORIGIN.split(',').map(o => o.trim()
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      const isVercelDomain =
+        origin &&
+        (origin.endsWith('.vercel.app') ||
+          (process.env.VERCEL_URL && origin.includes(process.env.VERCEL_URL)));
+      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin) || isVercelDomain) {
         callback(null, true);
       } else {
         callback(null, false);
@@ -175,3 +179,4 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 export { app, server, gameServer };
+export default app;
