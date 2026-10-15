@@ -214,6 +214,205 @@ export class CombatEffects {
   }
 
   /**
+   * Massive steel clash cross-burst, radiating shockwaves, sparks & screen rattle
+   */
+  public triggerClashSparks(pos: Vector2): void {
+    // 1. Cross-blade X flash lines
+    const cross = this.scene.add.graphics();
+    cross.lineStyle(6, 0xffffff, 1);
+    cross.lineBetween(pos.x - 45, pos.y - 45, pos.x + 45, pos.y + 45);
+    cross.lineBetween(pos.x - 45, pos.y + 45, pos.x + 45, pos.y - 45);
+    cross.lineStyle(10, 0xf1c40f, 0.7);
+    cross.lineBetween(pos.x - 45, pos.y - 45, pos.x + 45, pos.y + 45);
+    cross.lineBetween(pos.x - 45, pos.y + 45, pos.x + 45, pos.y - 45);
+
+    this.scene.tweens.add({
+      targets: cross,
+      scaleX: 1.8,
+      scaleY: 1.8,
+      alpha: 0,
+      duration: 260,
+      ease: 'Quad.easeOut',
+      onComplete: () => cross.destroy(),
+    });
+
+    // 2. Dual expanding concentric clash shockwave rings
+    const ring1 = this.scene.add.graphics();
+    ring1.lineStyle(5, 0xffd700, 1);
+    ring1.strokeCircle(pos.x, pos.y, 20);
+
+    this.scene.tweens.add({
+      targets: ring1,
+      scaleX: 4.8,
+      scaleY: 4.8,
+      alpha: 0,
+      duration: 350,
+      ease: 'Cubic.easeOut',
+      onComplete: () => ring1.destroy(),
+    });
+
+    const ring2 = this.scene.add.graphics();
+    ring2.lineStyle(3, 0xffffff, 0.9);
+    ring2.strokeCircle(pos.x, pos.y, 12);
+
+    this.scene.tweens.add({
+      targets: ring2,
+      scaleX: 6.0,
+      scaleY: 6.0,
+      alpha: 0,
+      duration: 420,
+      ease: 'Quad.easeOut',
+      onComplete: () => ring2.destroy(),
+    });
+
+    // 3. Dense 360-degree spark spray
+    for (let i = 0; i < 24; i++) {
+      const spark = this.scene.add.rectangle(
+        pos.x,
+        pos.y,
+        Math.random() * 5 + 3,
+        Math.random() * 3 + 1.5,
+        Math.random() > 0.4 ? 0xfffa65 : 0xffffff
+      );
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 220 + 80;
+      const destX = pos.x + Math.cos(angle) * (speed * 0.3);
+      const destY = pos.y + Math.sin(angle) * (speed * 0.3);
+
+      this.scene.tweens.add({
+        targets: spark,
+        x: destX,
+        y: destY,
+        angle: Math.random() * 360,
+        alpha: 0,
+        scale: 0.2,
+        duration: Math.random() * 240 + 120,
+        ease: 'Quad.easeOut',
+        onComplete: () => spark.destroy(),
+      });
+    }
+
+    this.showFloatingText(pos, '⚔️ CLASH!', '#f1c40f', '26px', true);
+    this.scene.cameras.main.shake(200, 0.016);
+  }
+
+  /**
+   * Wall impact shockwave and stone fragment spray when bounced off the boundary
+   */
+  public triggerWallBounceImpact(pos: Vector2, isLeftWall: boolean): void {
+    const dir = isLeftWall ? 1 : -1;
+
+    // 1. Vertical impact fracture ring on the boundary
+    const impactGfx = this.scene.add.graphics();
+    impactGfx.lineStyle(4, 0xecf0f1, 0.9);
+    impactGfx.strokeEllipse(pos.x, pos.y - 30, 16, 55);
+
+    this.scene.tweens.add({
+      targets: impactGfx,
+      scaleX: 2.2,
+      scaleY: 1.6,
+      alpha: 0,
+      duration: 250,
+      ease: 'Quad.easeOut',
+      onComplete: () => impactGfx.destroy(),
+    });
+
+    // 2. Flying masonry stone fragments into the arena
+    for (let i = 0; i < 14; i++) {
+      const stone = this.scene.add.rectangle(
+        pos.x,
+        pos.y - 30 + (Math.random() - 0.5) * 40,
+        Math.random() * 5 + 3,
+        Math.random() * 5 + 3,
+        0x7f8c8d
+      );
+      const angle = (dir > 0 ? 0 : Math.PI) + (Math.random() - 0.5) * 1.4;
+      const speed = Math.random() * 180 + 70;
+
+      this.scene.tweens.add({
+        targets: stone,
+        x: pos.x + Math.cos(angle) * speed,
+        y: pos.y - 20 + Math.sin(angle) * speed + 30,
+        angle: Math.random() * 360,
+        alpha: 0,
+        duration: 360,
+        ease: 'Cubic.easeOut',
+        onComplete: () => stone.destroy(),
+      });
+    }
+
+    this.showFloatingText(pos, '💥 WALL BOUNCE!', '#e74c3c', '20px', true);
+    this.scene.cameras.main.shake(160, 0.012);
+  }
+
+  /**
+   * Ground slam dust wave and floor impact ripple for Helm Splitter
+   */
+  public triggerGroundSlam(pos: Vector2): void {
+    const floorY = 560;
+
+    // 1. Dual expanding ground dust waves left and right
+    const wave = this.scene.add.graphics();
+    wave.fillStyle(0xdfe6e9, 0.6);
+    wave.fillEllipse(pos.x, floorY, 40, 12);
+
+    this.scene.tweens.add({
+      targets: wave,
+      scaleX: 3.5,
+      alpha: 0,
+      duration: 320,
+      ease: 'Quad.easeOut',
+      onComplete: () => wave.destroy(),
+    });
+
+    // 2. Stone shockwave ring
+    const ring = this.scene.add.graphics();
+    ring.lineStyle(3, 0xf1c40f, 0.9);
+    ring.strokeEllipse(pos.x, floorY, 28, 10);
+
+    this.scene.tweens.add({
+      targets: ring,
+      scaleX: 3.8,
+      scaleY: 3.8,
+      alpha: 0,
+      duration: 380,
+      ease: 'Cubic.easeOut',
+      onComplete: () => ring.destroy(),
+    });
+
+    this.scene.cameras.main.shake(200, 0.014);
+  }
+
+  /**
+   * Skid and dash dust puffs behind feet
+   */
+  public triggerDashDust(pos: Vector2, facing: Direction): void {
+    const dir = facing === 'right' ? -1 : 1;
+    const footY = 556;
+
+    for (let i = 0; i < 6; i++) {
+      const puff = this.scene.add.circle(
+        pos.x + dir * (12 + Math.random() * 16),
+        footY - Math.random() * 8,
+        Math.random() * 4 + 2,
+        0x95a5a6,
+        0.5
+      );
+
+      this.scene.tweens.add({
+        targets: puff,
+        x: puff.x + dir * (Math.random() * 25 + 10),
+        y: puff.y - Math.random() * 12,
+        scale: 1.8,
+        alpha: 0,
+        duration: 300 + Math.random() * 150,
+        ease: 'Quad.easeOut',
+        onComplete: () => puff.destroy(),
+      });
+    }
+  }
+
+  /**
    * Dynamic slash slice line, blood/impact particles, and camera impact
    */
   public triggerHitImpact(pos: Vector2, isCritical: boolean, damageAmount?: number): void {
@@ -680,13 +879,7 @@ export class CombatEffects {
     }
   }
 
-  private spawnBloodParticle(
-    x: number,
-    y: number,
-    vx: number,
-    vy: number,
-    size: number
-  ): void {
+  private spawnBloodParticle(x: number, y: number, vx: number, vy: number, size: number): void {
     const gfx = this.scene.add.graphics();
     this.bloodParticles.push({
       graphics: gfx,

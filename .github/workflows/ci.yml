@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, master, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main, master, develop]
 
 jobs:
   validate:
@@ -34,11 +34,14 @@ jobs:
       - name: Run linter
         run: npm run lint
 
+      - name: Build shared packages
+        run: npm run build:packages
+
       - name: Run typecheck
         run: npm run typecheck
 
       - name: Run unit and integration tests
         run: npm run test
 
-      - name: Build packages and applications
-        run: npm run build
+      - name: Build applications
+        run: npm run build:apps

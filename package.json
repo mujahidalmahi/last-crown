@@ -18,7 +18,7 @@
     "build": "npm run build:packages && npm run build:apps",
     "build:packages": "npm run build --workspace=@last-crown/shared && npm run build --workspace=@last-crown/game-config && npm run build --workspace=@last-crown/game-core",
     "build:apps": "npm run build --workspace=@last-crown/server && npm run build --workspace=@last-crown/web",
-    "typecheck": "npm run typecheck --workspaces --if-present",
+    "typecheck": "npm run build:packages && npm run typecheck --workspaces --if-present",
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",

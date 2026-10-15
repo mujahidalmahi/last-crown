@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { Client, Room } from 'colyseus.js';
-import { BattleRoomState } from '@last-crown/shared';
+import { BattleRoomState, ClientMessageType, ServerMessageType } from '@last-crown/shared';
 
 export interface MultiplayerState {
   isConnected: boolean;
@@ -29,6 +29,7 @@ export function useMultiplayerRoom() {
 
   const clientRef = useRef<Client | null>(null);
   const roomRef = useRef<Room<BattleRoomState> | null>(null);
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const getClient = useCallback((): Client => {
     if (!clientRef.current) {
@@ -55,9 +56,7 @@ export function useMultiplayerRoom() {
     // 1. Server-side runtime (uses Vercel internal service binding)
     if (typeof window === 'undefined') {
       return (
-        process.env.SERVER_URL ||
-        process.env.NEXT_PUBLIC_SERVER_HTTP_URL ||
-        'http://localhost:2567'
+        process.env.SERVER_URL || process.env.NEXT_PUBLIC_SERVER_HTTP_URL || 'http://localhost:2567'
       );
     }
 
@@ -77,6 +76,43 @@ export function useMultiplayerRoom() {
     // 4. Same-origin deployment URL (Vercel rewrites /api/* to the server service)
     return window.location.origin;
   };
+
+  const setupRoomListeners = useCallback((room: Room<BattleRoomState>) => {
+    room.onStateChange(newState => {
+      setState(prev => ({ ...prev, roomState: newState }));
+    });
+
+    room.onError((code, message) => {
+      setState(prev => ({ ...prev, error: `Room error [${code}]: ${message}` }));
+    });
+
+    room.onLeave(() => {
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current);
+        pingIntervalRef.current = null;
+      }
+      setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null, latencyMs: 0 }));
+    });
+
+    // PONG ping/latency measurement
+    room.onMessage(ServerMessageType.PONG, (data: { clientTimestamp?: number }) => {
+      if (data && data.clientTimestamp) {
+        const rtt = Math.max(1, Date.now() - data.clientTimestamp);
+        setState(prev => ({ ...prev, latencyMs: rtt }));
+      }
+    });
+
+    // Periodic ping loop
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+    }
+    room.send(ClientMessageType.PING, { timestamp: Date.now() });
+    pingIntervalRef.current = setInterval(() => {
+      if (roomRef.current && roomRef.current.sessionId) {
+        roomRef.current.send(ClientMessageType.PING, { timestamp: Date.now() });
+      }
+    }, 2000);
+  }, []);
 
   const createPrivateRoom = useCallback(
     async (playerName: string = 'Host Warrior', warriorPreset: string = 'knight') => {
@@ -103,18 +139,7 @@ export function useMultiplayerRoom() {
         });
 
         roomRef.current = room;
-
-        room.onStateChange(newState => {
-          setState(prev => ({ ...prev, roomState: newState }));
-        });
-
-        room.onError((code, message) => {
-          setState(prev => ({ ...prev, error: `Room error [${code}]: ${message}` }));
-        });
-
-        room.onLeave(() => {
-          setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null }));
-        });
+        setupRoomListeners(room);
 
         setState({
           isConnected: true,
@@ -140,7 +165,7 @@ export function useMultiplayerRoom() {
         return null;
       }
     },
-    [getClient]
+    [getClient, setupRoomListeners]
   );
 
   const joinPrivateRoom = useCallback(
@@ -172,18 +197,7 @@ export function useMultiplayerRoom() {
         });
 
         roomRef.current = room;
-
-        room.onStateChange(newState => {
-          setState(prev => ({ ...prev, roomState: newState }));
-        });
-
-        room.onError((code, message) => {
-          setState(prev => ({ ...prev, error: `Room error [${code}]: ${message}` }));
-        });
-
-        room.onLeave(() => {
-          setState(prev => ({ ...prev, isConnected: false, roomId: null, room: null }));
-        });
+        setupRoomListeners(room);
 
         setState({
           isConnected: true,
@@ -211,10 +225,14 @@ export function useMultiplayerRoom() {
         return null;
       }
     },
-    [getClient]
+    [getClient, setupRoomListeners]
   );
 
   const leaveRoom = useCallback(() => {
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current);
+      pingIntervalRef.current = null;
+    }
     if (roomRef.current) {
       roomRef.current.leave();
       roomRef.current = null;
@@ -225,12 +243,17 @@ export function useMultiplayerRoom() {
       roomId: null,
       inviteCode: null,
       roomState: null,
+      latencyMs: 0,
       room: null,
     }));
   }, []);
 
   useEffect(() => {
     return () => {
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current);
+        pingIntervalRef.current = null;
+      }
       if (roomRef.current) {
         roomRef.current.leave();
         roomRef.current = null;

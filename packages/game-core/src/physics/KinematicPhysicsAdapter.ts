@@ -88,19 +88,36 @@ export class KinematicPhysicsAdapter implements IPhysicsAdapter {
       if (vy < 0) vy = 0;
     }
 
-    // Left and right arena boundary clamps
+    let wallBounced = false;
+    let bounceDirection: 'left' | 'right' | undefined;
+
+    // Left and right arena boundary clamps with kinetic wall bounce
     if (newX < arena.leftBoundX) {
       newX = arena.leftBoundX;
-      if (vx < 0) vx = 0;
+      if (vx < -BALANCE_CONFIG.movement.wallBounceVelocityThreshold) {
+        vx = -vx * BALANCE_CONFIG.movement.wallBounceRestitution;
+        wallBounced = true;
+        bounceDirection = 'left';
+      } else if (vx < 0) {
+        vx = 0;
+      }
     } else if (newX > arena.rightBoundX) {
       newX = arena.rightBoundX;
-      if (vx > 0) vx = 0;
+      if (vx > BALANCE_CONFIG.movement.wallBounceVelocityThreshold) {
+        vx = -vx * BALANCE_CONFIG.movement.wallBounceRestitution;
+        wallBounced = true;
+        bounceDirection = 'right';
+      } else if (vx > 0) {
+        vx = 0;
+      }
     }
 
     return {
       position: { x: newX, y: newY },
       velocity: { x: vx, y: vy },
       isGrounded: grounded,
+      wallBounced,
+      bounceDirection,
     };
   }
 

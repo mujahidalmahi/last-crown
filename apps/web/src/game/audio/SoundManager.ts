@@ -3,8 +3,15 @@ export class SoundManager {
   private isMuted: boolean = false;
   private volume: number = 0.5;
 
+  private boundSettingsListener: (() => void) | null = null;
+
   constructor() {
     this.loadSettings();
+    if (typeof window !== 'undefined') {
+      this.boundSettingsListener = () => this.loadSettings();
+      window.addEventListener('storage', this.boundSettingsListener);
+      window.addEventListener('last_crown_settings_changed', this.boundSettingsListener);
+    }
   }
 
   public loadSettings(): void {
@@ -317,7 +324,126 @@ export class SoundManager {
     }
   }
 
+  public playSwordClash(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // High-frequency dual metal harmonic clash
+      [980, 1420, 1850].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.005);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.85, now + 0.28);
+
+        gain.gain.setValueAtTime(0.45 * this.volume, now + idx * 0.005);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now + idx * 0.005);
+        osc.stop(now + 0.34);
+      });
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playWallBounce(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // Low heavy masonry impact thud
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(160, now);
+      osc.frequency.exponentialRampToValueAtTime(45, now + 0.2);
+
+      gain.gain.setValueAtTime(0.5 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.22);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playGroundSlam(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // Deep sub-bass floor slam
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.28);
+
+      gain.gain.setValueAtTime(0.55 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.3);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playComboWhack(comboCount: number): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const baseFreq = 160 + Math.min(8, comboCount) * 25;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(baseFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(baseFreq * 0.4, now + 0.16);
+
+      gain.gain.setValueAtTime(0.4 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.18);
+    } catch {
+      // Audio error handling
+    }
+  }
+
   public destroy(): void {
+    if (typeof window !== 'undefined' && this.boundSettingsListener) {
+      window.removeEventListener('storage', this.boundSettingsListener);
+      window.removeEventListener('last_crown_settings_changed', this.boundSettingsListener);
+      this.boundSettingsListener = null;
+    }
     if (this.ctx) {
       this.ctx.close().catch(() => {});
       this.ctx = null;

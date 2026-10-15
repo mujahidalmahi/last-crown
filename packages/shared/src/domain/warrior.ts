@@ -42,4 +42,5 @@ export interface WarriorSnapshot {
   roundsWon: number;
   isExhausted: boolean;
   isDecapitated?: boolean;
+  comboCount?: number;
 }

@@ -20,4 +20,5 @@ export class WarriorNetworkState extends Schema {
   @type('boolean') isConnected: boolean = true;
   @type('boolean') isExhausted: boolean = false;
   @type('boolean') isDecapitated: boolean = false;
+  @type('number') comboCount: number = 0;
 }

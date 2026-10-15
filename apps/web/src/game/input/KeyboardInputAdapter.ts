@@ -1,4 +1,4 @@
-import { PlayerInputMessage } from '@last-crown/shared';
+import { PlayerInputMessage, AttackType } from '@last-crown/shared';
 
 export class KeyboardInputAdapter {
   private keysPressed = new Set<string>();
@@ -18,9 +18,7 @@ export class KeyboardInputAdapter {
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable)
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       ) {
         return;
       }
@@ -34,10 +32,7 @@ export class KeyboardInputAdapter {
       const now = Date.now();
 
       // Double-tap direction detection for tactical evasive dash
-      if (
-        ['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code) &&
-        !e.repeat
-      ) {
+      if (['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code) && !e.repeat) {
         if (this.lastTapKey === e.code && now - this.lastTapTime < 250) {
           this.dashBuffer = true;
         }
@@ -66,9 +61,7 @@ export class KeyboardInputAdapter {
       const target = e.target as HTMLElement | null;
       if (
         target &&
-        (target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.isContentEditable)
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
       ) {
         return;
       }
@@ -111,8 +104,17 @@ export class KeyboardInputAdapter {
     const attack = this.attackBuffer;
     this.attackBuffer = false;
 
-    let attackType: 'light' | 'heavy' | 'thrust' = 'light';
-    if (this.thrustTriggered || this.keysPressed.has('KeyU') || this.keysPressed.has('KeyI')) {
+    const dash = this.dashBuffer;
+    this.dashBuffer = false;
+
+    let attackType: AttackType = 'light';
+    if (dash && attack) {
+      attackType = 'dash';
+    } else if (
+      this.thrustTriggered ||
+      this.keysPressed.has('KeyU') ||
+      this.keysPressed.has('KeyI')
+    ) {
       attackType = 'thrust';
     } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown')) {
       attackType = 'heavy';
@@ -121,9 +123,6 @@ export class KeyboardInputAdapter {
 
     const parry = this.parryBuffer;
     this.parryBuffer = false;
-
-    const dash = this.dashBuffer;
-    this.dashBuffer = false;
 
     return {
       sequence: this.sequence,

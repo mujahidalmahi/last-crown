@@ -321,37 +321,111 @@ export class WarriorRenderer {
       return;
     }
 
-    const attackType = snapshot.currentAttackId?.includes('heavy')
-      ? 'heavy'
-      : snapshot.currentAttackId?.includes('thrust')
-        ? 'thrust'
-        : 'light';
+    const attackId = snapshot.currentAttackId || '';
+    const isHeavy = attackId.includes('heavy');
+    const isThrust = attackId.includes('thrust');
+    const isCombo2 = attackId.includes('slash_combo_2');
+    const isFinisher = attackId.includes('spinning_finisher');
+    const isAerial = attackId.includes('aerial');
+    const isDashLunge = attackId.includes('dash_lunge');
 
     let swordAngle = 0.35;
     let swordBaseX = 12;
     let swordBaseY = torsoY + 12;
-    const swordBladeLength = attackType === 'heavy' ? 56 : 48;
+    const swordBladeLength = isHeavy || isFinisher ? 56 : isAerial ? 52 : 48;
 
     if (snapshot.attackPhase === 'windup') {
-      swordAngle = attackType === 'thrust' ? 0.05 : -1.35;
-      swordBaseX = attackType === 'thrust' ? -18 : -14;
-      swordBaseY = attackType === 'thrust' ? torsoY + 8 : torsoY - 8;
+      if (isThrust || isDashLunge) {
+        swordAngle = 0.05;
+        swordBaseX = -18;
+        swordBaseY = torsoY + 8;
+      } else if (isCombo2) {
+        swordAngle = 1.6;
+        swordBaseX = 14;
+        swordBaseY = torsoY + 22;
+      } else if (isFinisher) {
+        swordAngle = -2.2;
+        swordBaseX = -16;
+        swordBaseY = torsoY - 4;
+      } else if (isAerial) {
+        swordAngle = -1.55;
+        swordBaseX = 8;
+        swordBaseY = torsoY - 24;
+      } else {
+        swordAngle = isHeavy ? -1.5 : -1.35;
+        swordBaseX = -14;
+        swordBaseY = torsoY - 8;
+      }
     } else if (snapshot.attackPhase === 'active') {
-      if (attackType === 'thrust') {
+      if (isThrust || isDashLunge) {
         swordAngle = 0.0;
-        swordBaseX = 26;
+        swordBaseX = isDashLunge ? 32 : 26;
         swordBaseY = torsoY + 8;
 
-        // Thrust Aerodynamic Pierce Streak
-        this.weaponGraphics.lineStyle(5, 0xffffff, 0.85);
+        // Aerodynamic Pierce Streak
+        this.weaponGraphics.lineStyle(isDashLunge ? 7 : 5, 0xffffff, 0.9);
         this.weaponGraphics.lineBetween(
-          swordBaseX - 30,
+          swordBaseX - 35,
           swordBaseY,
-          swordBaseX + swordBladeLength + 10,
+          swordBaseX + swordBladeLength + 16,
           swordBaseY
         );
-        this.weaponGraphics.lineStyle(2, goldTrim, 0.6);
-        this.weaponGraphics.strokeCircle(swordBaseX + swordBladeLength, swordBaseY, 8);
+        this.weaponGraphics.lineStyle(2.5, isDashLunge ? 0x00cec9 : goldTrim, 0.7);
+        this.weaponGraphics.strokeCircle(swordBaseX + swordBladeLength, swordBaseY, 10);
+      } else if (isCombo2) {
+        // Rising Upward Slash Arc
+        swordAngle = -0.85;
+        swordBaseX = 18;
+        swordBaseY = torsoY + 4;
+
+        const arcCenter = { x: swordBaseX, y: swordBaseY };
+        this.weaponGraphics.lineStyle(8, 0x00cec9, 0.75);
+        this.weaponGraphics.beginPath();
+        this.weaponGraphics.arc(arcCenter.x, arcCenter.y, swordBladeLength, 1.6, -0.85, true);
+        this.weaponGraphics.strokePath();
+
+        this.weaponGraphics.lineStyle(3, 0xffffff, 0.95);
+        this.weaponGraphics.beginPath();
+        this.weaponGraphics.arc(arcCenter.x, arcCenter.y, swordBladeLength, 1.4, -0.85, true);
+        this.weaponGraphics.strokePath();
+      } else if (isFinisher) {
+        // Full 360-Degree Whirling Spin
+        swordAngle = 1.35;
+        swordBaseX = 16;
+        swordBaseY = torsoY + 14;
+
+        const arcCenter = { x: 0, y: torsoY + 10 };
+        this.weaponGraphics.lineStyle(10, 0xf1c40f, 0.85);
+        this.weaponGraphics.strokeCircle(arcCenter.x, arcCenter.y, swordBladeLength + 4);
+        this.weaponGraphics.lineStyle(3.5, 0xffffff, 0.95);
+        this.weaponGraphics.strokeCircle(arcCenter.x, arcCenter.y, swordBladeLength);
+      } else if (isAerial) {
+        // Downward Vertical Plunge
+        swordAngle = 1.57; // Straight down
+        swordBaseX = 14;
+        swordBaseY = torsoY + 18;
+
+        // Vertical Speed Trail Lines
+        this.weaponGraphics.lineStyle(6, 0xfffa65, 0.85);
+        this.weaponGraphics.lineBetween(
+          swordBaseX,
+          swordBaseY - 40,
+          swordBaseX,
+          swordBaseY + swordBladeLength + 10
+        );
+        this.weaponGraphics.lineStyle(2, 0xffffff, 1);
+        this.weaponGraphics.lineBetween(
+          swordBaseX - 6,
+          swordBaseY - 20,
+          swordBaseX - 6,
+          swordBaseY + swordBladeLength
+        );
+        this.weaponGraphics.lineBetween(
+          swordBaseX + 6,
+          swordBaseY - 20,
+          swordBaseX + 6,
+          swordBaseY + swordBladeLength
+        );
       } else {
         swordAngle = 1.45;
         swordBaseX = 18;
@@ -359,8 +433,8 @@ export class WarriorRenderer {
 
         // Dynamic Curved Slash Arc Trail
         const arcCenter = { x: swordBaseX - 10, y: swordBaseY - 10 };
-        const arcColor = attackType === 'heavy' ? 0xe74c3c : 0xffffff;
-        this.weaponGraphics.lineStyle(attackType === 'heavy' ? 10 : 7, arcColor, 0.7);
+        const arcColor = isHeavy ? 0xe74c3c : 0xffffff;
+        this.weaponGraphics.lineStyle(isHeavy ? 10 : 7, arcColor, 0.7);
         this.weaponGraphics.beginPath();
         this.weaponGraphics.arc(arcCenter.x, arcCenter.y, swordBladeLength, -0.6, 1.45, false);
         this.weaponGraphics.strokePath();
@@ -372,7 +446,7 @@ export class WarriorRenderer {
         this.weaponGraphics.strokePath();
       }
     } else if (snapshot.attackPhase === 'recovery') {
-      swordAngle = 0.9;
+      swordAngle = isCombo2 ? -0.4 : isFinisher ? 0.6 : isAerial ? 1.4 : 0.9;
       swordBaseX = 16;
       swordBaseY = torsoY + 14;
     }
@@ -382,7 +456,7 @@ export class WarriorRenderer {
     const swordTipY = swordBaseY + Math.sin(swordAngle) * swordBladeLength;
 
     // Glowing Fuller / Edge
-    this.weaponGraphics.lineStyle(attackType === 'heavy' ? 5 : 4, steelHighlight, 1);
+    this.weaponGraphics.lineStyle(isHeavy ? 5 : 4, steelHighlight, 1);
     this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
 
     // Crossguard

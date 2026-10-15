@@ -18,6 +18,8 @@ export class CombatController {
   private _staminaRegenDelayTimerMs: number = 0;
   private _exhaustionTimerMs: number = 0;
   private _hasHitInCurrentAttack: boolean = false;
+  private _comboHits: number = 0;
+  private _comboResetTimerMs: number = 0;
 
   get attackPhase(): AttackPhase {
     return this._attackPhase;
@@ -47,6 +49,21 @@ export class CombatController {
     return this._parryTimerMs > 0;
   }
 
+  get comboHits(): number {
+    return this._comboHits;
+  }
+
+  public registerHitLanded(): number {
+    this._comboHits++;
+    this._comboResetTimerMs = 1600;
+    return this._comboHits;
+  }
+
+  public resetCombo(): void {
+    this._comboHits = 0;
+    this._comboResetTimerMs = 0;
+  }
+
   public startAttack(
     attackId: string,
     stamina: number,
@@ -55,14 +72,35 @@ export class CombatController {
     if (this._hitstunTimerMs > 0 || this._exhaustionTimerMs > 0) {
       return { success: false, staminaConsumed: 0 };
     }
-    if (this._attackPhase !== 'none') return { success: false, staminaConsumed: 0 };
 
-    const attack = getAttackDefinition(attackId);
+    // Determine target attack ID, resolving combo chains if attacking during active/recovery
+    let targetAttackId = attackId;
+    const canChainCombo = this._attackPhase === 'active' || this._attackPhase === 'recovery';
+
+    if (canChainCombo && this._currentAttack) {
+      if (
+        this._currentAttack.id === 'light_slash' &&
+        (attackId === 'light_slash' || attackId === 'slash_combo_2')
+      ) {
+        targetAttackId = 'slash_combo_2';
+      } else if (
+        this._currentAttack.id === 'slash_combo_2' &&
+        (attackId === 'light_slash' || attackId === 'spinning_finisher')
+      ) {
+        targetAttackId = 'spinning_finisher';
+      } else {
+        return { success: false, staminaConsumed: 0 };
+      }
+    } else if (this._attackPhase !== 'none') {
+      return { success: false, staminaConsumed: 0 };
+    }
+
+    const attack = getAttackDefinition(targetAttackId);
     if (stamina < attack.staminaCost) {
       return { success: false, staminaConsumed: 0 };
     }
 
-    if (!stateMachine.transitionTo('attacking')) {
+    if (!stateMachine.transitionTo('attacking') && stateMachine.state !== 'attacking') {
       return { success: false, staminaConsumed: 0 };
     }
 
@@ -106,6 +144,15 @@ export class CombatController {
       this._exhaustionTimerMs -= deltaMs;
       if (this._exhaustionTimerMs <= 0) {
         this._exhaustionTimerMs = 0;
+      }
+    }
+
+    // Combo timer decay
+    if (this._comboResetTimerMs > 0) {
+      this._comboResetTimerMs -= deltaMs;
+      if (this._comboResetTimerMs <= 0) {
+        this._comboHits = 0;
+        this._comboResetTimerMs = 0;
       }
     }
 
@@ -243,6 +290,7 @@ export class CombatController {
       if (isCritical) {
         finalDamage = Math.floor(finalDamage * 1.3);
       }
+      this.resetCombo();
       this.interruptAttack();
       stateMachine.forceState('hitstun');
       this._hitstunTimerMs = stunMs;
@@ -266,6 +314,12 @@ export class CombatController {
       hitstunMs: stunMs,
       isCritical,
     };
+  }
+
+  public applyClashStagger(durationMs: number, stateMachine: WarriorStateMachine): void {
+    this.interruptAttack();
+    stateMachine.forceState('hitstun');
+    this._hitstunTimerMs = durationMs;
   }
 
   public applyCounterStun(stunDurationMs: number, stateMachine: WarriorStateMachine): void {

@@ -9,6 +9,9 @@ export const BALANCE_CONFIG = {
     staminaRegenDelayMs: 600, // Delay after action before stamina starts recovering
     dashSpeed: 420, // Tactical dodge slide impulse (px / sec)
     dashStaminaCost: 18, // Stamina consumed on combat dash
+    clashRecoilImpulse: 240, // Horizontal pushback impulse on weapon clash (px / sec)
+    clashRecoilStunMs: 220, // Brief recoil stagger on weapon clash
+    comboChainWindowMs: 140, // Buffer window to chain into next combo attack
   },
   movement: {
     groundAcceleration: 1800, // Horizontal acceleration on ground (px / sec^2)
@@ -19,6 +22,11 @@ export const BALANCE_CONFIG = {
     gravity: 1800, // Vertical gravitational acceleration (pixels / sec^2)
     maxFallSpeed: 950,
     jumpReleaseGravityScale: 2.2, // Extra gravity applied when jump is released early (variable jump)
+    wallBounceVelocityThreshold: 140, // Minimum horizontal speed to trigger a wall bounce
+    wallBounceRestitution: 0.4, // Velocity bounce ratio when crashing into arena boundary
+    fighterSeparationDistance: 44, // Minimum horizontal distance between fighters to prevent overlap
+    fighterPushSpeed: 140, // Speed at which fighters push apart when overlapping
+    aerialStrikeDownwardSpeed: 620, // Downward dive velocity for Helm Splitter
   },
   rules: {
     roundsToWin: 2,

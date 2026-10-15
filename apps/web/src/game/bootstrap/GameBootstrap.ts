@@ -36,6 +36,18 @@ export class GameBootstrap {
     }
   }
 
+  public setPaused(paused: boolean): void {
+    const battleScene = this.getBattleScene();
+    if (battleScene) {
+      battleScene.setPaused(paused);
+    }
+  }
+
+  public isPaused(): boolean {
+    const battleScene = this.getBattleScene();
+    return battleScene ? battleScene.getIsPaused() : false;
+  }
+
   public getGame(): Phaser.Game | null {
     return this.game;
   }

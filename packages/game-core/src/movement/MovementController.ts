@@ -7,6 +7,8 @@ export class MovementController {
   private _velocity: Vector2 = { x: 0, y: 0 };
   private _facing: Direction = 'right';
   private _isGrounded: boolean = true;
+  private _lastWallBounced: boolean = false;
+  private _lastBounceDirection?: 'left' | 'right';
 
   constructor(initialPosition: Vector2, initialFacing: Direction = 'right') {
     this._position = { ...initialPosition };
@@ -27,6 +29,19 @@ export class MovementController {
 
   get isGrounded(): boolean {
     return this._isGrounded;
+  }
+
+  get lastWallBounced(): boolean {
+    return this._lastWallBounced;
+  }
+
+  get lastBounceDirection(): 'left' | 'right' | undefined {
+    return this._lastBounceDirection;
+  }
+
+  public clearWallBounce(): void {
+    this._lastWallBounced = false;
+    this._lastBounceDirection = undefined;
   }
 
   public setPosition(pos: Vector2): void {
@@ -79,5 +94,7 @@ export class MovementController {
     this._position = sim.position;
     this._velocity = sim.velocity;
     this._isGrounded = sim.isGrounded;
+    this._lastWallBounced = !!sim.wallBounced;
+    this._lastBounceDirection = sim.bounceDirection;
   }
 }

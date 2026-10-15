@@ -5,6 +5,8 @@ export interface PhysicsSimulationResult {
   position: Vector2;
   velocity: Vector2;
   isGrounded: boolean;
+  wallBounced?: boolean;
+  bounceDirection?: 'left' | 'right';
 }
 
 export interface IPhysicsAdapter {

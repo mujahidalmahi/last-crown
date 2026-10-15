@@ -481,4 +481,184 @@ describe('Combat Simulation', () => {
       expect(sim.p2.toSnapshot().isDecapitated).toBe(true);
     }
   });
+
+  it('triggers weapon clash when both warriors attack simultaneously', () => {
+    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p1.movement.setFacing('right');
+    sim.p2.movement.setPosition({ x: 550, y: 560 });
+    sim.p2.movement.setFacing('left');
+
+    let clashEvent: HitResult | null = null;
+    sim.onCombatEvent(result => {
+      if (result.resolution === 'clash') {
+        clashEvent = result;
+      }
+    });
+
+    // Both initiate light slash at the same tick
+    sim.step(
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'light',
+        block: false,
+        parry: false,
+      },
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'light',
+        block: false,
+        parry: false,
+      },
+      0.016
+    );
+
+    // Step forward until hitboxes become active (~160ms)
+    for (let i = 0; i < 12; i++) {
+      sim.step(null, null, 0.016);
+    }
+
+    expect(clashEvent).not.toBeNull();
+    if (clashEvent) {
+      expect((clashEvent as HitResult).resolution).toBe('clash');
+      expect((clashEvent as HitResult).isClash).toBe(true);
+      expect((clashEvent as HitResult).damage).toBe(0);
+      // Both warriors pushed back in opposite directions
+      expect(sim.p1.movement.velocity.x).toBeLessThan(0);
+      expect(sim.p2.movement.velocity.x).toBeGreaterThan(0);
+    }
+  });
+
+  it('chains light slash into multi-hit combo string', () => {
+    const warrior = sim.p1;
+    // Attack 1: Light slash
+    warrior.processInput({
+      sequence: 1,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      attackType: 'light',
+      block: false,
+      parry: false,
+    });
+    expect(warrior.combat.currentAttack?.id).toBe('light_slash');
+
+    // Advance to active phase (180ms)
+    warrior.update(null, 0.18, sim.arena, sim.physics);
+    expect(warrior.combat.attackPhase).toBe('active');
+
+    // Input light attack again during active phase -> chains to slash_combo_2
+    warrior.processInput({
+      sequence: 2,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      attackType: 'light',
+      block: false,
+      parry: false,
+    });
+    expect(warrior.combat.currentAttack?.id).toBe('slash_combo_2');
+
+    // Advance to active phase of combo 2 (140ms)
+    warrior.update(null, 0.14, sim.arena, sim.physics);
+    expect(warrior.combat.attackPhase).toBe('active');
+
+    // Input light attack again -> chains to spinning_finisher
+    warrior.processInput({
+      sequence: 3,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      attackType: 'light',
+      block: false,
+      parry: false,
+    });
+    expect(warrior.combat.currentAttack?.id).toBe('spinning_finisher');
+  });
+
+  it('executes aerial strike (Helm Splitter) when attacking airborne with downward plunge', () => {
+    // Put P1 in air
+    sim.p1.movement.setPosition({ x: 500, y: 350 });
+    sim.p1.movement.setVelocity({ x: 0, y: -100 });
+    // Update movement to establish airborne
+    sim.p1.update(null, 0.016, sim.arena, sim.physics);
+    expect(sim.p1.movement.isGrounded).toBe(false);
+
+    // Request attack while airborne
+    sim.p1.processInput({
+      sequence: 1,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      attackType: 'light',
+      block: false,
+      parry: false,
+    });
+
+    expect(sim.p1.combat.currentAttack?.id).toBe('aerial_strike');
+    // Should have applied strong downward velocity plunge
+    expect(sim.p1.movement.velocity.y).toBeGreaterThan(400);
+  });
+
+  it('executes dash lunge attack when attacking while dashing', () => {
+    // Initiate tactical dash
+    sim.p1.processInput({
+      sequence: 1,
+      timestamp: Date.now(),
+      moveX: 1,
+      jump: false,
+      attack: false,
+      block: false,
+      parry: false,
+      dash: true,
+    });
+    expect(sim.p1.movement.velocity.x).toBeGreaterThan(350);
+
+    // Attack while at dash velocity
+    sim.p1.processInput({
+      sequence: 2,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      block: false,
+      parry: false,
+    });
+
+    expect(sim.p1.combat.currentAttack?.id).toBe('dash_lunge');
+  });
+
+  it('bounces warrior off arena boundary with wall bounce physics when propelled at high velocity', () => {
+    // Position P1 right next to left wall (leftBoundX is 80) and launch into wall
+    sim.p1.movement.setPosition({ x: 82, y: 560 });
+    sim.p1.movement.setVelocity({ x: -400, y: 0 });
+
+    sim.step(null, null, 0.016);
+
+    // P1 hit the left wall and bounced back with positive X velocity
+    expect(sim.p1.movement.position.x).toBe(sim.arena.leftBoundX);
+    expect(sim.p1.movement.velocity.x).toBeGreaterThan(0);
+  });
+
+  it('pushes overlapping fighters apart with soft-body separation', () => {
+    // Position warriors overlapping on X coordinate
+    sim.p1.movement.setPosition({ x: 500, y: 560 });
+    sim.p2.movement.setPosition({ x: 505, y: 560 });
+
+    sim.step(null, null, 0.016);
+
+    const distanceAfter = sim.p2.movement.position.x - sim.p1.movement.position.x;
+    expect(distanceAfter).toBeGreaterThan(5);
+  });
 });

@@ -28,15 +28,51 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   const bootstrapRef = useRef<GameBootstrap | null>(null);
   const [snapshot, setSnapshot] = useState<GameSimulationSnapshot | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const handleTogglePause = useCallback(() => {
+    if (mode !== 'singleplayer') return;
+    setIsPaused(prev => {
+      const next = !prev;
+      if (bootstrapRef.current) {
+        bootstrapRef.current.setPaused(next);
+      }
+      return next;
+    });
+  }, [mode]);
 
   const handleRematch = useCallback(() => {
+    setIsPaused(false);
     if (bootstrapRef.current) {
+      bootstrapRef.current.setPaused(false);
       bootstrapRef.current.rematch();
     }
     if (onRematch) {
       onRematch();
     }
   }, [onRematch]);
+
+  useEffect(() => {
+    if (mode !== 'singleplayer') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.code === 'Escape' || e.code === 'KeyP') {
+        e.preventDefault();
+        handleTogglePause();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, handleTogglePause]);
 
   useEffect(() => {
     // Client-side guard: do not run in Node/SSR environment
@@ -83,7 +119,13 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         ref={containerRef}
         style={{ width: '100%', height: '100%' }}
       />
-      <GameHUD snapshot={snapshot} mode={mode} onRematch={handleRematch} />
+      <GameHUD
+        snapshot={snapshot}
+        mode={mode}
+        onRematch={handleRematch}
+        isPaused={isPaused}
+        onTogglePause={handleTogglePause}
+      />
     </div>
   );
 };

@@ -23,7 +23,12 @@ app.use(
         origin &&
         (origin.endsWith('.vercel.app') ||
           (process.env.VERCEL_URL && origin.includes(process.env.VERCEL_URL)));
-      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin) || isVercelDomain) {
+      if (
+        !origin ||
+        allowedOrigins.includes('*') ||
+        allowedOrigins.includes(origin) ||
+        isVercelDomain
+      ) {
         callback(null, true);
       } else {
         callback(null, false);

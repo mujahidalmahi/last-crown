@@ -47,6 +47,7 @@ export default function RoomPage() {
     inviteCode,
     error,
     roomState,
+    latencyMs,
     room,
     createPrivateRoom,
     joinPrivateRoom,
@@ -133,6 +134,11 @@ export default function RoomPage() {
                 ? '⚔️ Duel In Progress'
                 : '⏳ Waiting for Rival'}
           </Badge>
+          {isConnected && latencyMs > 0 && (
+            <Badge variant={latencyMs < 65 ? 'green' : latencyMs < 120 ? 'gold' : 'crimson'}>
+              📶 {latencyMs}ms
+            </Badge>
+          )}
         </div>
 
         {isConnected && (

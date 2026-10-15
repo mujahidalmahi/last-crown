@@ -59,6 +59,7 @@ export class WarriorEntity {
     this.movement.setFacing(facing);
     this.stateMachine.forceState('idle');
     this.combat.interruptAttack();
+    this.combat.resetCombo();
   }
 
   public getHurtbox(): AABB {
@@ -101,17 +102,28 @@ export class WarriorEntity {
     if (this.health <= 0) return;
 
     // Attack requested
-    if (input.attack && this.combat.attackPhase === 'none') {
-      const attackType = input.attackType || 'light';
-      const attackId =
-        attackType === 'heavy'
-          ? 'heavy_strike'
-          : attackType === 'thrust'
-            ? 'thrust'
-            : 'light_slash';
+    if (input.attack) {
+      let attackId = 'light_slash';
+      if (!this.movement.isGrounded) {
+        attackId = 'aerial_strike';
+      } else if (input.attackType === 'dash' || Math.abs(this.movement.velocity.x) > 350) {
+        attackId = 'dash_lunge';
+      } else if (input.attackType === 'heavy') {
+        attackId = 'heavy_strike';
+      } else if (input.attackType === 'thrust') {
+        attackId = 'thrust';
+      } else if (input.attackType === 'aerial') {
+        attackId = 'aerial_strike';
+      }
 
       const result = this.combat.startAttack(attackId, this.stamina, this.stateMachine);
       if (result.success) {
+        if (attackId === 'aerial_strike') {
+          this.movement.setVelocity({
+            x: this.movement.velocity.x * 0.5,
+            y: BALANCE_CONFIG.movement.aerialStrikeDownwardSpeed,
+          });
+        }
         this.stamina = Math.max(0, this.stamina - result.staminaConsumed);
         if (this.stamina === 0) {
           this.combat.applyExhaustion(
@@ -150,11 +162,7 @@ export class WarriorEntity {
       this.stateMachine.state !== 'parrying'
     ) {
       const dashDir =
-        input.moveX !== 0
-          ? Math.sign(input.moveX)
-          : this.movement.facing === 'right'
-            ? 1
-            : -1;
+        input.moveX !== 0 ? Math.sign(input.moveX) : this.movement.facing === 'right' ? 1 : -1;
       this.movement.setVelocity({
         x: dashDir * BALANCE_CONFIG.combat.dashSpeed,
         y: this.movement.velocity.y,
@@ -274,6 +282,7 @@ export class WarriorEntity {
       roundsWon: this.roundsWon,
       isExhausted: this.combat.isExhausted,
       isDecapitated: this.isDecapitated,
+      comboCount: this.combat.comboHits,
     };
   }
 }

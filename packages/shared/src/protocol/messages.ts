@@ -15,7 +15,7 @@ export interface PlayerInputMessage {
   moveX: number; // -1, 0, 1
   jump: boolean;
   attack: boolean;
-  attackType?: 'light' | 'heavy' | 'thrust';
+  attackType?: 'light' | 'heavy' | 'thrust' | 'aerial' | 'dash';
   block: boolean;
   parry: boolean;
   dash?: boolean;
