@@ -12,6 +12,16 @@ export class KeyboardInputAdapter {
 
   constructor() {
     this.onKeyDownHandler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
       // Prevent scrolling on Space and Arrow keys
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
         e.preventDefault();
@@ -31,6 +41,15 @@ export class KeyboardInputAdapter {
     };
 
     this.onKeyUpHandler = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
       this.keysPressed.delete(e.code);
     };
 

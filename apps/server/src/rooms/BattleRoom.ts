@@ -200,7 +200,7 @@ export class BattleRoom extends Room<BattleRoomState> {
     this.clientMetadata.delete(sessionId);
     this.clientInputs.delete(sessionId);
     this.state.warriors.delete(sessionId);
-    RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clients.length);
+    RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clientMetadata.size);
 
     if (
       this.clientMetadata.size < 2 &&

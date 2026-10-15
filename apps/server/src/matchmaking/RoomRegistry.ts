@@ -21,6 +21,11 @@ export class RoomRegistry {
   }
 
   public registerRoom(roomId: string): string {
+    // Return existing invite code if already registered for this room
+    if (this.roomToCode.has(roomId)) {
+      return this.roomToCode.get(roomId)!;
+    }
+
     // Generate unique code that is not currently assigned
     let code = '';
     let attempts = 0;
@@ -43,6 +48,10 @@ export class RoomRegistry {
     this.roomToCode.set(roomId, code);
 
     return code;
+  }
+
+  public getCodeByRoomId(roomId: string): string | undefined {
+    return this.roomToCode.get(roomId);
   }
 
   public getRoomByCode(code: string): RoomRegistration | undefined {
