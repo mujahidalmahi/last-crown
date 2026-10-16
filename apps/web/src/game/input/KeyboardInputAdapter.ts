@@ -29,8 +29,8 @@ export class KeyboardInputAdapter {
         return;
       }
 
-      // Prevent scrolling on Space, Arrow keys, etc.
-      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+      // Prevent scrolling on Space, Slash, and Arrow keys
+      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Slash'].includes(e.code)) {
         e.preventDefault();
       }
       this.keysPressed.add(e.code);

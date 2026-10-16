@@ -76,6 +76,35 @@ export class RoomRegistry {
     }
   }
 
+  public getActiveRoomCount(): number {
+    return this.codeToRoom.size;
+  }
+
+  public getTotalPlayerCount(): number {
+    let total = 0;
+    for (const reg of this.codeToRoom.values()) {
+      total += reg.playerCount;
+    }
+    return total;
+  }
+
+  public getAllRegistrations(): RoomRegistration[] {
+    return Array.from(this.codeToRoom.values());
+  }
+
+  public pruneStaleRooms(maxAgeMs: number = 3600000): number {
+    const now = Date.now();
+    let prunedCount = 0;
+    for (const [code, reg] of Array.from(this.codeToRoom.entries())) {
+      if (now - reg.createdAt > maxAgeMs) {
+        this.codeToRoom.delete(code);
+        this.roomToCode.delete(reg.roomId);
+        prunedCount++;
+      }
+    }
+    return prunedCount;
+  }
+
   public clear(): void {
     this.codeToRoom.clear();
     this.roomToCode.clear();

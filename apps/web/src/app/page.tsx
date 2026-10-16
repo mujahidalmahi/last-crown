@@ -1,14 +1,18 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { PixelButton } from '../components/ui/PixelButton';
 import { SettingsIcon } from '../components/ui/SettingsIcon';
+import { requestBrowserFullscreen, isBrowserFullscreen } from '../utils/fullscreen';
 import styles from './page.module.css';
 
 type Screen = 'cover1' | 'transition' | 'cover2';
 
 export default function HomePage() {
+  const router = useRouter();
   const [screen, setScreen] = useState<Screen>('cover1');
+  const [isFadingToGame, setIsFadingToGame] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'reverse'>('forward');
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -20,7 +24,28 @@ export default function HomePage() {
     return () => mediaQuery.removeEventListener?.('change', handler);
   }, []);
 
-  const handlePlayClick = useCallback(() => {
+  useEffect(() => {
+    const handleInitialGesture = async () => {
+      try {
+        if (!isBrowserFullscreen()) {
+          await requestBrowserFullscreen();
+        }
+      } catch {
+        // Handled gracefully
+      }
+    };
+    window.addEventListener('pointerdown', handleInitialGesture, { once: true });
+    return () => {
+      window.removeEventListener('pointerdown', handleInitialGesture);
+    };
+  }, []);
+
+  const handlePlayClick = useCallback(async () => {
+    try {
+      await requestBrowserFullscreen();
+    } catch {
+      // Handled gracefully
+    }
     if (reducedMotion) {
       setScreen('cover2');
       return;
@@ -30,9 +55,17 @@ export default function HomePage() {
     setTimeout(() => setScreen('cover2'), 800);
   }, [reducedMotion]);
 
-  const handleSettingsClick = useCallback(() => {
-    window.location.href = '/settings';
-  }, []);
+  const handleSettingsClick = useCallback(async () => {
+    try {
+      await requestBrowserFullscreen();
+    } catch {
+      // Handled gracefully
+    }
+    setIsFadingToGame(true);
+    setTimeout(() => {
+      router.push('/settings');
+    }, 450);
+  }, [router]);
 
   const handleBackToCover1 = useCallback(() => {
     if (reducedMotion) {
@@ -57,20 +90,35 @@ export default function HomePage() {
     </div>
   );
 
+  const handleModeClick = useCallback(
+    async (destination: string) => {
+      try {
+        await requestBrowserFullscreen();
+      } catch {
+        // Handled gracefully
+      }
+      setIsFadingToGame(true);
+      setTimeout(() => {
+        router.push(destination);
+      }, 500);
+    },
+    [router]
+  );
+
   const renderCover2 = () => (
     <div className={styles.coverContainer} role="region" aria-label="Game modes">
       <SettingsIcon onClick={handleSettingsClick} className={styles.settingsIconTopRight} />
       <div className={styles.buttonGroup}>
         <PixelButton
           size="lg"
-          onClick={() => (window.location.href = '/play')}
+          onClick={() => handleModeClick('/play')}
           className={styles.modeButton}
         >
           BATTLE AI WARRIOR
         </PixelButton>
         <PixelButton
           size="lg"
-          onClick={() => (window.location.href = '/room')}
+          onClick={() => handleModeClick('/room')}
           className={styles.modeButton}
         >
           Private 2 Player Room
@@ -124,6 +172,12 @@ export default function HomePage() {
       {screen === 'cover1' && renderCover1()}
       {screen === 'cover2' && renderCover2()}
       {screen === 'transition' && renderTransition()}
+
+      {/* Fade Out Curtain for Mode Selection */}
+      <div
+        className={`${styles.fadeOverlay} ${isFadingToGame ? styles.fadeOverlayActive : ''}`}
+        aria-hidden="true"
+      />
 
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');

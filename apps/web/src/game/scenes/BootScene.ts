@@ -6,7 +6,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   public preload(): void {
-    // Generate loading indicator or pre-warm assets
+    this.load.image('playground', '/assets/backgrounds/playground.jpg');
   }
 
   public create(): void {

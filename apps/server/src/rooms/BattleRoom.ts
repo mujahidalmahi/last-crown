@@ -38,6 +38,9 @@ export class BattleRoom extends Room<BattleRoomState> {
   private clientInputs = new Map<string, PlayerInputMessage>();
   private rematchReadyClients = new Set<string>();
   private inviteCode: string = '';
+  private creationTimeoutTimer: NodeJS.Timeout | null = null;
+  private matchOverTimeoutTimer: NodeJS.Timeout | null = null;
+  private tickErrorCount = 0;
 
   public onCreate(options: {
     isPrivate?: boolean;
@@ -50,6 +53,13 @@ export class BattleRoom extends Room<BattleRoomState> {
       this.inviteCode = RoomRegistry.getInstance().registerRoom(this.roomId);
       this.state.inviteCode = this.inviteCode;
     }
+
+    // Auto-dispose abandoned unjoined rooms to prevent memory leaks across multiple matches
+    this.creationTimeoutTimer = setTimeout(() => {
+      if (this.clients.length === 0) {
+        this.disconnect();
+      }
+    }, serverEnv.SERVER_ROOM_EMPTY_TIMEOUT_SEC * 1000);
 
     // Fixed timestep authoritative 60Hz tick simulation interval
     this.setSimulationInterval(
@@ -120,6 +130,10 @@ export class BattleRoom extends Room<BattleRoomState> {
         // Start rematch when all connected clients in the room signal ready
         if (this.rematchReadyClients.size >= this.clients.length) {
           this.rematchReadyClients.clear();
+          if (this.matchOverTimeoutTimer) {
+            clearTimeout(this.matchOverTimeoutTimer);
+            this.matchOverTimeoutTimer = null;
+          }
           for (const meta of this.clientMetadata.values()) {
             meta.lastInputSequence = 0;
             meta.inputMessageCount = 0;
@@ -137,6 +151,11 @@ export class BattleRoom extends Room<BattleRoomState> {
   }
 
   public onJoin(client: Client, options: { playerName?: string; warriorPreset?: string }): void {
+    if (this.creationTimeoutTimer) {
+      clearTimeout(this.creationTimeoutTimer);
+      this.creationTimeoutTimer = null;
+    }
+
     const isHost = this.clients.length === 1;
     const name = options?.playerName || `Warrior ${this.clients.length}`;
     const preset = options?.warriorPreset || 'knight';
@@ -243,6 +262,12 @@ export class BattleRoom extends Room<BattleRoomState> {
       this.p2SessionId = null;
     }
 
+    // Auto-dispose room immediately if all clients have left
+    if (this.clientMetadata.size === 0) {
+      this.disconnect();
+      return;
+    }
+
     if (
       this.clientMetadata.size < 2 &&
       (this.state.matchState === 'in_progress' || this.state.matchState === 'round_over')
@@ -255,6 +280,13 @@ export class BattleRoom extends Room<BattleRoomState> {
       this.broadcast(ServerMessageType.MATCH_END, {
         winnerId: this.state.winnerId,
       });
+
+      // Start match-over inactivity cleanup timer
+      if (!this.matchOverTimeoutTimer) {
+        this.matchOverTimeoutTimer = setTimeout(() => {
+          this.disconnect();
+        }, serverEnv.SERVER_ROOM_MATCH_OVER_TIMEOUT_SEC * 1000);
+      }
     }
   }
 
@@ -266,68 +298,90 @@ export class BattleRoom extends Room<BattleRoomState> {
       return;
     }
 
-    const deltaSec = deltaTimeMs / 1000;
-    const p1Id = this.p1SessionId;
-    const p2Id = this.p2SessionId;
+    try {
+      const deltaSec = deltaTimeMs / 1000;
+      const p1Id = this.p1SessionId;
+      const p2Id = this.p2SessionId;
 
-    const p1Input = p1Id ? this.clientInputs.get(p1Id) || null : null;
-    const p2Input = p2Id ? this.clientInputs.get(p2Id) || null : null;
+      const p1Input = p1Id ? this.clientInputs.get(p1Id) || null : null;
+      const p2Input = p2Id ? this.clientInputs.get(p2Id) || null : null;
 
-    const previousState = this.state.matchState;
+      const previousState = this.state.matchState;
 
-    // Step authoritative simulation
-    this.simulation.step(p1Input, p2Input, deltaSec);
+      // Step authoritative simulation
+      this.simulation.step(p1Input, p2Input, deltaSec);
 
-    // Clear one-shot action impulses so they aren't repeatedly processed on subsequent ticks
-    if (p1Input) {
-      p1Input.attack = false;
-      p1Input.dash = false;
-      p1Input.parry = false;
-    }
-    if (p2Input) {
-      p2Input.attack = false;
-      p2Input.dash = false;
-      p2Input.parry = false;
-    }
+      // Clear one-shot action impulses so they aren't repeatedly processed on subsequent ticks
+      if (p1Input) {
+        p1Input.attack = false;
+        p1Input.dash = false;
+        p1Input.parry = false;
+      }
+      if (p2Input) {
+        p2Input.attack = false;
+        p2Input.dash = false;
+        p2Input.parry = false;
+      }
 
-    // Synchronize simulation output with Colyseus state schema
-    const snap = this.simulation.getSnapshot();
-    this.state.matchState = snap.matchState;
-    this.state.roundNumber = snap.roundNumber;
-    this.state.timerSeconds = snap.timerSeconds;
-    this.state.winnerId = snap.winnerId || '';
+      // Synchronize simulation output with Colyseus state schema
+      const snap = this.simulation.getSnapshot();
+      this.state.matchState = snap.matchState;
+      this.state.roundNumber = snap.roundNumber;
+      this.state.timerSeconds = snap.timerSeconds;
+      this.state.winnerId = snap.winnerId || '';
 
-    // Broadcast round transitions
-    if (snap.matchState === 'round_over' && previousState === 'in_progress') {
-      this.broadcast(ServerMessageType.ROUND_END, {
-        roundNumber: snap.roundNumber,
-        winnerId: snap.winnerId,
-      });
-    } else if (snap.matchState === 'match_over') {
-      this.broadcast(ServerMessageType.MATCH_END, {
-        winnerId: snap.winnerId,
-      });
-    }
+      // Broadcast round transitions
+      if (snap.matchState === 'round_over' && previousState === 'in_progress') {
+        this.broadcast(ServerMessageType.ROUND_END, {
+          roundNumber: snap.roundNumber,
+          winnerId: snap.winnerId,
+        });
+      } else if (snap.matchState === 'match_over' && previousState !== 'match_over') {
+        this.broadcast(ServerMessageType.MATCH_END, {
+          winnerId: snap.winnerId,
+        });
 
-    if (p1Id) {
-      this.syncWarriorState(p1Id, snap.p1);
-    }
-    if (p2Id) {
-      this.syncWarriorState(p2Id, snap.p2);
-    }
+        // Set idle timeout for completed match
+        if (!this.matchOverTimeoutTimer) {
+          this.matchOverTimeoutTimer = setTimeout(() => {
+            this.disconnect();
+          }, serverEnv.SERVER_ROOM_MATCH_OVER_TIMEOUT_SEC * 1000);
+        }
+      }
 
-    // Sync active hitboxes
-    this.state.activeHitboxes.clear();
-    for (const hb of snap.activeHitboxes) {
-      const hbState = new HitboxNetworkState();
-      hbState.id = hb.id;
-      hbState.ownerId = hb.ownerId;
-      hbState.x = hb.bounds.x;
-      hbState.y = hb.bounds.y;
-      hbState.width = hb.bounds.width;
-      hbState.height = hb.bounds.height;
-      hbState.isActive = hb.isActive;
-      this.state.activeHitboxes.push(hbState);
+      if (p1Id) {
+        this.syncWarriorState(p1Id, snap.p1);
+      }
+      if (p2Id) {
+        this.syncWarriorState(p2Id, snap.p2);
+      }
+
+      // Sync active hitboxes
+      this.state.activeHitboxes.clear();
+      for (const hb of snap.activeHitboxes) {
+        const hbState = new HitboxNetworkState();
+        hbState.id = hb.id;
+        hbState.ownerId = hb.ownerId;
+        hbState.x = hb.bounds.x;
+        hbState.y = hb.bounds.y;
+        hbState.width = hb.bounds.width;
+        hbState.height = hb.bounds.height;
+        hbState.isActive = hb.isActive;
+        this.state.activeHitboxes.push(hbState);
+      }
+    } catch (err) {
+      this.tickErrorCount++;
+      console.error(
+        `[BattleRoom ${this.roomId}] Simulation tick error (${this.tickErrorCount}):`,
+        err
+      );
+      if (this.tickErrorCount >= 10) {
+        this.broadcast(ServerMessageType.ERROR, {
+          code: 'SIMULATION_FATAL',
+          message: 'Authoritative simulation encountered a fatal exception. Room terminating.',
+        });
+        this.disconnect();
+      }
     }
   }
 
@@ -335,10 +389,10 @@ export class BattleRoom extends Room<BattleRoomState> {
     const warrior = this.state.warriors.get(sessionId);
     if (!warrior) return;
 
-    warrior.x = snap.position.x;
-    warrior.y = snap.position.y;
-    warrior.vx = snap.velocity.x;
-    warrior.vy = snap.velocity.y;
+    if (Number.isFinite(snap.position.x)) warrior.x = snap.position.x;
+    if (Number.isFinite(snap.position.y)) warrior.y = snap.position.y;
+    if (Number.isFinite(snap.velocity.x)) warrior.vx = snap.velocity.x;
+    if (Number.isFinite(snap.velocity.y)) warrior.vy = snap.velocity.y;
     warrior.facing = snap.facing;
     warrior.isGrounded = snap.isGrounded;
     warrior.health = snap.health;
@@ -355,6 +409,14 @@ export class BattleRoom extends Room<BattleRoomState> {
   }
 
   public onDispose(): void {
+    if (this.creationTimeoutTimer) {
+      clearTimeout(this.creationTimeoutTimer);
+      this.creationTimeoutTimer = null;
+    }
+    if (this.matchOverTimeoutTimer) {
+      clearTimeout(this.matchOverTimeoutTimer);
+      this.matchOverTimeoutTimer = null;
+    }
     if (this.inviteCode) {
       RoomRegistry.getInstance().unregisterRoom(this.roomId);
     }

@@ -280,10 +280,54 @@ export function useMultiplayerRoom() {
     };
   }, []);
 
+  const findQuickMatch = useCallback(
+    async (playerName: string = 'Crown Challenger', warriorPreset: string = 'knight') => {
+      setState(prev => ({ ...prev, isConnecting: true, error: null }));
+      try {
+        const client = getClient();
+        const room = await client.joinOrCreate<BattleRoomState>('battle', {
+          isPrivate: false,
+          playerName,
+          warriorPreset,
+        });
+
+        roomRef.current = room;
+        setupRoomListeners(room);
+
+        setState({
+          isConnected: true,
+          isConnecting: false,
+          roomId: room.id,
+          inviteCode: null,
+          error: null,
+          roomState: room.state,
+          latencyMs: 0,
+          room,
+        });
+
+        return { roomId: room.id };
+      } catch (err: unknown) {
+        let message = 'Unable to find an open match.';
+        if (err instanceof Error) {
+          message = err.message;
+        }
+        setState(prev => ({
+          ...prev,
+          isConnecting: false,
+          error: message,
+          room: null,
+        }));
+        return null;
+      }
+    },
+    [getClient, setupRoomListeners]
+  );
+
   return {
     ...state,
     createPrivateRoom,
     joinPrivateRoom,
+    findQuickMatch,
     leaveRoom,
   };
 }

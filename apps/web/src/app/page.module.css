@@ -55,27 +55,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: clamp(12px, 2.5vh, 20px);
   width: 100%;
   max-width: 480px;
 }
 
 .mainButton {
-  width: 100%;
-  max-width: 360px;
-  min-width: 280px;
+  width: min(320px, 84vw, calc(25vh * (804 / 454)));
 }
 
 .modeButton {
-  width: 100%;
-  max-width: 420px;
-  min-width: 300px;
-  text-align: center;
+  width: min(320px, 84vw, calc(25vh * (804 / 454)));
 }
 
 .backButton {
-  margin-top: 8px;
-  max-width: 200px;
+  width: min(220px, 65vw, calc(16vh * (804 / 454)));
+  margin-top: 6px;
   align-self: center;
 }
 
@@ -177,4 +172,19 @@
     width: 20px;
     height: 20px;
   }
+}
+
+.fadeOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: #050810;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fadeOverlayActive {
+  opacity: 1;
+  pointer-events: auto;
 }

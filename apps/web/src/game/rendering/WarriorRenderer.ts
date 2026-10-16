@@ -11,14 +11,16 @@ export class WarriorRenderer {
   private auraGraphics: Phaser.GameObjects.Graphics;
   private nameText: Phaser.GameObjects.Text;
   private isPlayer: boolean;
+  private floorY: number;
 
   // Animation clocks
   private animTimer: number = 0;
   private capePoints: { x: number; y: number }[] = [];
 
-  constructor(scene: Phaser.Scene, isPlayer: boolean) {
+  constructor(scene: Phaser.Scene, isPlayer: boolean, floorY: number = 625) {
     this.scene = scene;
     this.isPlayer = isPlayer;
+    this.floorY = floorY;
 
     this.container = this.scene.add.container(0, 0);
 
@@ -71,7 +73,7 @@ export class WarriorRenderer {
 
     // 1. Shadow Rendering (scales with ground distance)
     this.shadowGraphics.clear();
-    const groundDist = Math.max(0, 560 - snapshot.position.y);
+    const groundDist = Math.max(0, this.floorY - snapshot.position.y);
     const shadowScale = Math.max(0.4, 1 - groundDist / 200);
     const shadowAlpha = Math.max(0.2, 0.5 - groundDist / 300);
     this.shadowGraphics.fillStyle(0x000000, shadowAlpha);

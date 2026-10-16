@@ -16,11 +16,14 @@ export const PixelButton: React.FC<PixelButtonProps> = ({
   variant = 'default',
   ...props
 }) => {
-  const buttonClass = `${styles.pixelButton} ${styles[size]} ${styles[variant]} ${className}`;
+  const isLong = typeof children === 'string' && children.length > 10;
+  const buttonClass =
+    `${styles.pixelButton} ${styles[size]} ${styles[variant]} ${className}`.trim();
+  const contentClass = `${styles.buttonContent} ${isLong ? styles.longText : ''}`.trim();
+
   return (
     <button className={buttonClass} {...props}>
-      <span className={styles.buttonContent}>{children}</span>
-      <span className={styles.sparkle} aria-hidden="true" />
+      <span className={contentClass}>{children}</span>
     </button>
   );
 };

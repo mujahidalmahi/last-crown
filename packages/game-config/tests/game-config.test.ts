@@ -34,7 +34,7 @@ describe('Game Config', () => {
     expect(bastion.spawnPointP1.x).toBeLessThan(bastion.rightBoundX);
     expect(bastion.spawnPointP2.x).toBeGreaterThan(bastion.leftBoundX);
     expect(bastion.spawnPointP2.x).toBeLessThan(bastion.rightBoundX);
-    expect(bastion.floorY).toBe(560);
+    expect(bastion.floorY).toBe(625);
   });
 
   it('defines valid balance timing and damage reduction values', () => {

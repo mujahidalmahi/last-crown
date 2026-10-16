@@ -52,12 +52,56 @@ const joinRateLimiter = new InMemoryRateLimiter({
   windowMs: serverEnv.SERVER_RATE_LIMIT_JOIN_WINDOW_MS,
 });
 
-// Health check endpoint
+// Rate limiter for room creation to defend server resources
+const createRateLimiter = new InMemoryRateLimiter({
+  maxRequests: serverEnv.SERVER_RATE_LIMIT_CREATE_MAX,
+  windowMs: serverEnv.SERVER_RATE_LIMIT_CREATE_WINDOW_MS,
+});
+
+// Periodic background cleanup of stale registrations
+const stalePruneInterval = setInterval(
+  () => {
+    const pruned = RoomRegistry.getInstance().pruneStaleRooms(60 * 60 * 1000);
+    if (pruned > 0) {
+      console.info(`[RoomRegistry] Pruned ${pruned} stale room records.`);
+    }
+  },
+  5 * 60 * 1000
+);
+stalePruneInterval.unref();
+
+// Health check endpoint with real-time operational telemetry
 app.get('/health', (_req: Request, res: Response) => {
+  const registry = RoomRegistry.getInstance();
+  const mem = process.memoryUsage();
   res.json({
     status: 'ok',
     service: 'last-crown-server',
     protocolVersion: PROTOCOL_VERSION,
+    uptimeSec: Math.floor(process.uptime()),
+    activeMatches: registry.getActiveRoomCount(),
+    totalConnectedPlayers: registry.getTotalPlayerCount(),
+    maxCapacity: serverEnv.SERVER_MAX_CONCURRENT_ROOMS,
+    memory: {
+      heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
+      rssMb: Math.round(mem.rss / 1024 / 1024),
+    },
+    timestamp: Date.now(),
+  });
+});
+
+// Server telemetry & metrics endpoint
+app.get('/api/stats', (_req: Request, res: Response) => {
+  const registry = RoomRegistry.getInstance();
+  const mem = process.memoryUsage();
+  res.json({
+    activeMatches: registry.getActiveRoomCount(),
+    totalConnectedPlayers: registry.getTotalPlayerCount(),
+    maxCapacity: serverEnv.SERVER_MAX_CONCURRENT_ROOMS,
+    memory: {
+      heapUsedMb: Math.round(mem.heapUsed / 1024 / 1024),
+      rssMb: Math.round(mem.rss / 1024 / 1024),
+    },
     uptimeSec: Math.floor(process.uptime()),
     timestamp: Date.now(),
   });
@@ -66,6 +110,24 @@ app.get('/health', (_req: Request, res: Response) => {
 // Private room creation endpoint
 app.post('/api/rooms/create', async (req: Request, res: Response) => {
   try {
+    const clientIp =
+      (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const rateLimitResult = createRateLimiter.isAllowed(clientIp);
+    if (!rateLimitResult.allowed) {
+      res.status(429).json({
+        error: 'Too many room creation requests. Please wait before creating another duel.',
+        retryAfterMs: rateLimitResult.resetMs,
+      });
+      return;
+    }
+
+    if (RoomRegistry.getInstance().getActiveRoomCount() >= serverEnv.SERVER_MAX_CONCURRENT_ROOMS) {
+      res.status(503).json({
+        error: 'Server is currently at maximum battle room capacity. Please try again shortly.',
+      });
+      return;
+    }
+
     const parseResult = CreateRoomSchema.safeParse(req.body);
     if (!parseResult.success) {
       res
@@ -93,6 +155,46 @@ app.post('/api/rooms/create', async (req: Request, res: Response) => {
   } catch (err) {
     console.error('Error creating room:', err);
     res.status(500).json({ error: 'Failed to create room' });
+  }
+});
+
+// Quick Match (Public Matchmaking) endpoint
+app.post('/api/rooms/quickmatch', async (req: Request, res: Response) => {
+  try {
+    const clientIp =
+      (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const rateLimitResult = createRateLimiter.isAllowed(clientIp);
+    if (!rateLimitResult.allowed) {
+      res.status(429).json({
+        error: 'Too many match requests. Please wait a moment before queueing again.',
+        retryAfterMs: rateLimitResult.resetMs,
+      });
+      return;
+    }
+
+    if (RoomRegistry.getInstance().getActiveRoomCount() >= serverEnv.SERVER_MAX_CONCURRENT_ROOMS) {
+      res.status(503).json({
+        error: 'Server is currently at maximum battle capacity. Please try again shortly.',
+      });
+      return;
+    }
+
+    const playerName = req.body?.playerName || 'Challenger';
+    const warriorPreset = req.body?.warriorPreset || 'knight';
+
+    const room = await matchMaker.joinOrCreate('battle', {
+      isPrivate: false,
+      warriorPreset,
+      playerName,
+    });
+
+    res.json({
+      roomId: room.roomId,
+      protocolVersion: PROTOCOL_VERSION,
+    });
+  } catch (err) {
+    console.error('Error during quickmatch matchmaking:', err);
+    res.status(500).json({ error: 'Failed to find quick match' });
   }
 });
 
@@ -147,8 +249,8 @@ const gameServer = new Server({
   }),
 });
 
-// Register BattleRoom definition
-gameServer.define('battle', BattleRoom);
+// Register BattleRoom definition with isolation filtering
+gameServer.define('battle', BattleRoom).filterBy(['isPrivate', 'arenaId']);
 
 // Server startup
 export function startServer(): Promise<http.Server> {

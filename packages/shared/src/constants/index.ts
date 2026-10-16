@@ -23,5 +23,5 @@ export const DEFAULT_PARRY_COUNTER_STUN_MS = 600;
 
 export const DEFAULT_ARENA_WIDTH = 1280;
 export const DEFAULT_ARENA_HEIGHT = 720;
-export const DEFAULT_FLOOR_Y = 560;
+export const DEFAULT_FLOOR_Y = 625;
 export const DEFAULT_GRAVITY = 1800;

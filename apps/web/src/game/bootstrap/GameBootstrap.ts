@@ -22,6 +22,7 @@ export class GameBootstrap {
 
     // Pass runtime scene configuration when BattleScene starts
     this.game.events.once('ready', () => {
+      this.game?.scale.refresh();
       const battleScene = this.game?.scene.getScene('BattleScene') as BattleScene | undefined;
       if (battleScene) {
         battleScene.scene.restart(sceneConfig);
@@ -29,6 +30,12 @@ export class GameBootstrap {
     });
 
     return this.game;
+  }
+
+  public refreshScale(): void {
+    if (this.game) {
+      this.game.scale.refresh();
+    }
   }
 
   public getBattleScene(): BattleScene | null {

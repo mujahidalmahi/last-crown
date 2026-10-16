@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { Badge } from '../../components/ui/Badge';
 import {
   StatisticsManager,
   PlayerStatistics,
@@ -12,23 +9,33 @@ import {
   calculateWinRate,
   formatWinRate,
 } from '@last-crown/shared';
+import { requestBrowserFullscreen, isBrowserFullscreen } from '../../utils/fullscreen';
+import styles from './settings.module.css';
 
 const STORAGE_KEY_SETTINGS = 'last_crown_player_settings_v1';
 
 export default function SettingsPage() {
-  const [volume, setVolume] = useState(80);
-  const [sfxMuted, setSfxMuted] = useState(false);
-  const [highContrast, setHighContrast] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const [volume, setVolume] = useState<number>(80);
+  const [sfxMuted, setSfxMuted] = useState<boolean>(false);
+  const [highContrast, setHighContrast] = useState<boolean>(false);
+  const [reducedMotion, setReducedMotion] = useState<boolean>(false);
   const [botDifficulty, setBotDifficulty] = useState<'novice' | 'adept' | 'master'>('adept');
   const [controlPreset, setControlPreset] = useState<'modern' | 'classic'>('modern');
 
   const [stats, setStats] = useState<PlayerStatistics>(DEFAULT_PLAYER_STATISTICS);
-  const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmReset, setConfirmReset] = useState<boolean>(false);
 
-  // Load persisted settings & stats on mount
+  // Load persisted settings & statistics on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    try {
+      if (!isBrowserFullscreen()) {
+        requestBrowserFullscreen();
+      }
+    } catch {
+      // Handled gracefully
+    }
 
     try {
       const rawSettings = window.localStorage.getItem(STORAGE_KEY_SETTINGS);
@@ -52,18 +59,17 @@ export default function SettingsPage() {
         }
       }
     } catch {
-      // localStorage error fallback
+      // Fallback
     }
 
     try {
       const currentStats = StatisticsManager.getInstance().getStats();
       setStats(currentStats);
     } catch {
-      // ignore
+      // Fallback
     }
   }, []);
 
-  // Save settings on update
   const persistSettings = (
     updates: Partial<{
       volume: number;
@@ -92,7 +98,7 @@ export default function SettingsPage() {
         window.dispatchEvent(new Event('last_crown_settings_changed'));
       }
     } catch {
-      // ignore
+      // Fallback
     }
   };
 
@@ -122,9 +128,9 @@ export default function SettingsPage() {
     persistSettings({ reducedMotion: checked });
   };
 
-  const handleDifficultyChange = (difficulty: 'novice' | 'adept' | 'master') => {
-    setBotDifficulty(difficulty);
-    persistSettings({ botDifficulty: difficulty });
+  const handleDifficultyChange = (diff: 'novice' | 'adept' | 'master') => {
+    setBotDifficulty(diff);
+    persistSettings({ botDifficulty: diff });
   };
 
   const handlePresetChange = (preset: 'modern' | 'classic') => {
@@ -145,490 +151,267 @@ export default function SettingsPage() {
   const winRate = calculateWinRate(stats);
 
   return (
-    <div style={{ maxWidth: '840px', margin: '0 auto', padding: '48px 24px', width: '100%' }}>
-      <div
-        style={{
-          marginBottom: '24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Link href="/">
-          <Button variant="secondary" size="sm">
-            ← Main Hall
-          </Button>
+    <div className={styles.viewport}>
+      {/* Subtle CRT Scanline Filter */}
+      <div className={styles.scanlineOverlay} aria-hidden="true" />
+
+      {/* Top Floating Bar: MAIN HALL on left, PREFERENCES on right */}
+      <header className={styles.topNav} aria-label="Settings navigation">
+        <Link href="/" className={styles.mainHallBtn}>
+          <span>←</span> MAIN HALL
         </Link>
-        <Badge variant="steel">Preferences & Records</Badge>
-      </div>
+        <div className={styles.prefBadge}>PREFERENCES &amp; RECORDS</div>
+      </header>
 
-      <h1
-        style={{
-          fontSize: '2rem',
-          fontWeight: 900,
-          color: 'var(--text-gold)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.08em',
-          marginBottom: '8px',
-        }}
-      >
-        Settings & Controls
-      </h1>
-      <p style={{ color: 'var(--text-secondary)', marginBottom: '32px' }}>
-        Configure procedural audio synthesis, display accessibility, bot AI difficulty, and review
-        lifetime combat statistics.
-      </p>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {/* Career Combat Statistics Card */}
-        <Card
-          header={<h2 style={{ fontSize: '1.2rem', color: '#f1c40f' }}>Lifetime Combat Record</h2>}
-        >
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-              gap: '16px',
-              textAlign: 'center',
-              marginBottom: '20px',
-            }}
-          >
-            <div
-              style={{
-                padding: '12px',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: '6px',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Matches
-              </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>
-                {stats.matchesPlayed}
-              </div>
-            </div>
-            <div
-              style={{
-                padding: '12px',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: '6px',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Victories
-              </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#2ecc71' }}>
-                {stats.wins}
-              </div>
-            </div>
-            <div
-              style={{
-                padding: '12px',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: '6px',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Defeats
-              </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#e74c3c' }}>
-                {stats.losses}
-              </div>
-            </div>
-            <div
-              style={{
-                padding: '12px',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: '6px',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Win Rate
-              </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#f1c40f' }}>
-                {formatWinRate(winRate)}
-              </div>
-            </div>
-            <div
-              style={{
-                padding: '12px',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: '6px',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div
-                style={{
-                  fontSize: '0.75rem',
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Best Streak
-              </div>
-              <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#3498db' }}>
-                {stats.bestStreak} 🔥
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-            {confirmReset ? (
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.85rem', color: '#e74c3c' }}>
-                  Permanently clear career records?
+      {/* Center 16:9 Stage containing the requested Stone Card */}
+      <main className={styles.stageWrapper} role="main" aria-label="Settings and Controls">
+        <div className={styles.stoneCard}>
+          {/* COMPARTMENT 1: Lifetime Combat Record */}
+          <section className={styles.boxCombatRecord} aria-label="Lifetime Combat Record stats">
+            <div className={styles.statsRow}>
+              <div className={styles.miniStat}>
+                <span className={styles.miniStatLabel}>MATCH</span>
+                <span className={`${styles.miniStatValue} ${styles.valMatches}`}>
+                  {stats.matchesPlayed}
                 </span>
-                <Button variant="danger" size="sm" onClick={handleResetStats}>
-                  Yes, Reset
-                </Button>
-                <Button variant="secondary" size="sm" onClick={() => setConfirmReset(false)}>
-                  Cancel
-                </Button>
               </div>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => setConfirmReset(true)}>
-                🗑️ Reset Combat Statistics
-              </Button>
-            )}
-          </div>
-        </Card>
-
-        {/* Bot AI Difficulty */}
-        <Card
-          header={<h2 style={{ fontSize: '1.2rem', color: '#e67e22' }}>Bot AI Sparring Partner</h2>}
-        >
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '16px',
-            }}
-          >
-            <div>
-              <strong>Bot Combat Difficulty</strong>
-              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                Controls opponent reaction latency, parry precision, and tactical retreat behaviors
-              </p>
+              <div className={styles.miniStat}>
+                <span className={styles.miniStatLabel}>WIN</span>
+                <span className={`${styles.miniStatValue} ${styles.valWins}`}>{stats.wins}</span>
+              </div>
+              <div className={styles.miniStat}>
+                <span className={styles.miniStatLabel}>LOSS</span>
+                <span className={`${styles.miniStatValue} ${styles.valLosses}`}>
+                  {stats.losses}
+                </span>
+              </div>
+              <div className={styles.miniStat}>
+                <span className={styles.miniStatLabel}>WIN%</span>
+                <span className={`${styles.miniStatValue} ${styles.valRate}`}>
+                  {formatWinRate(winRate)}
+                </span>
+              </div>
+              <div className={styles.miniStat}>
+                <span className={styles.miniStatLabel}>STREAK</span>
+                <span className={`${styles.miniStatValue} ${styles.valStreak}`}>
+                  {stats.bestStreak}🔥
+                </span>
+              </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {(['novice', 'adept', 'master'] as const).map(diff => (
+
+            <div className={styles.resetRow}>
+              {confirmReset ? (
+                <div className={styles.resetConfirmRow}>
+                  <button
+                    type="button"
+                    onClick={handleResetStats}
+                    className={styles.resetConfirmBtn}
+                  >
+                    CONFIRM?
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmReset(false)}
+                    className={styles.resetCancelBtn}
+                  >
+                    NO
+                  </button>
+                </div>
+              ) : (
                 <button
-                  key={diff}
                   type="button"
-                  onClick={() => handleDifficultyChange(diff)}
-                  style={{
-                    backgroundColor: botDifficulty === diff ? '#f1c40f' : '#1e272e',
-                    color: botDifficulty === diff ? '#070b12' : '#dcdde1',
-                    border: '1px solid #485460',
-                    borderRadius: '4px',
-                    padding: '8px 16px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                  }}
+                  onClick={() => setConfirmReset(true)}
+                  className={styles.miniResetBtn}
+                  title="Reset career combat record"
                 >
-                  {diff}
+                  RESET
                 </button>
-              ))}
+              )}
             </div>
-          </div>
-        </Card>
+          </section>
 
-        {/* Audio Settings */}
-        <Card header={<h2 style={{ fontSize: '1.2rem', color: '#f1c40f' }}>Sound & Acoustics</h2>}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong>Master Volume</strong>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Controls Web Audio synthesis volume for sword strikes and parries
-                </p>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* COMPARTMENT 2: Bot AI Sparring Partner */}
+          <section className={styles.boxBotAI} aria-label="Bot AI Sparring Partner options">
+            <div className={styles.diffGroup}>
+              {(['novice', 'adept', 'master'] as const).map(diff => {
+                const isActive = botDifficulty === diff;
+                return (
+                  <button
+                    key={diff}
+                    type="button"
+                    onClick={() => handleDifficultyChange(diff)}
+                    className={`${styles.diffToggleBtn} ${isActive ? styles.diffToggleActive : ''}`}
+                  >
+                    {diff}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* COMPARTMENT 3: Sound & Acoustics */}
+          <section className={styles.boxSound} aria-label="Sound & Acoustics options">
+            <div>
+              <div className={styles.itemLabel}>MASTER VOLUME</div>
+              <div className={styles.sliderRow}>
                 <input
                   type="range"
                   min="0"
                   max="100"
                   value={volume}
                   onChange={e => handleVolumeChange(Number(e.target.value))}
-                  style={{ accentColor: 'var(--accent-gold)' }}
+                  className={styles.pixelSlider}
+                  aria-label="Master volume"
                 />
-                <span style={{ minWidth: '40px', fontSize: '0.9rem', color: 'var(--text-gold)' }}>
-                  {volume}%
-                </span>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong>Mute Combat Audio</strong>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Silence all synthesized sounds
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={sfxMuted}
-                onChange={e => handleMuteToggle(e.target.checked)}
-                style={{ width: '20px', height: '20px', accentColor: 'var(--accent-gold)' }}
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Display & Accessibility */}
-        <Card
-          header={<h2 style={{ fontSize: '1.2rem', color: '#3498db' }}>Display & Accessibility</h2>}
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong>High Contrast Mode</strong>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Elevates UI borders and HUD contrast for enhanced visibility
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={highContrast}
-                onChange={e => handleContrastToggle(e.target.checked)}
-                style={{ width: '20px', height: '20px', accentColor: 'var(--accent-gold)' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <strong>Reduced Motion</strong>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Suppresses pulsating screen effects and rapid UI transitions
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={reducedMotion}
-                onChange={e => handleMotionToggle(e.target.checked)}
-                style={{ width: '20px', height: '20px', accentColor: 'var(--accent-gold)' }}
-              />
-            </div>
-          </div>
-        </Card>
-
-        {/* Control Scheme Preset */}
-        <Card
-          header={
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.2rem', color: '#f1c40f' }}>Control Scheme Preset</h2>
-              <Badge variant={controlPreset === 'modern' ? 'gold' : 'steel'}>
-                {controlPreset === 'modern' ? '⚡ Modern Fighting Standard' : '🕹️ Classic Arcade'}
-              </Badge>
-            </div>
-          }
-        >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: '16px',
-              }}
-            >
-              <div>
-                <strong>Execution & Key Layout</strong>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  Standard PC fighting layout uses Space for Jump and dedicated Heavy/Execution
-                  keys.
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => handlePresetChange('modern')}
-                  style={{
-                    backgroundColor: controlPreset === 'modern' ? '#f1c40f' : '#1e272e',
-                    color: controlPreset === 'modern' ? '#070b12' : '#dcdde1',
-                    border: '1px solid #485460',
-                    borderRadius: '4px',
-                    padding: '8px 16px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  ⚡ Modern (Recommended)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handlePresetChange('classic')}
-                  style={{
-                    backgroundColor: controlPreset === 'classic' ? '#f1c40f' : '#1e272e',
-                    color: controlPreset === 'classic' ? '#070b12' : '#dcdde1',
-                    border: '1px solid #485460',
-                    borderRadius: '4px',
-                    padding: '8px 16px',
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  🕹️ Classic Brawler
-                </button>
+                <span className={styles.sliderValText}>{volume}%</span>
               </div>
             </div>
 
             <div
-              style={{
-                padding: '12px 16px',
-                backgroundColor: 'rgba(241, 196, 15, 0.08)',
-                border: '1px solid rgba(241, 196, 15, 0.3)',
-                borderRadius: '6px',
-                fontSize: '0.84rem',
-                color: '#f1c40f',
-                lineHeight: 1.5,
+              className={styles.checkboxRow}
+              onClick={() => handleMuteToggle(!sfxMuted)}
+              role="checkbox"
+              aria-checked={sfxMuted}
+              tabIndex={0}
+              onKeyDown={e => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  handleMuteToggle(!sfxMuted);
+                }
               }}
             >
-              <strong>⚔️ Finishing Executions:</strong> In both presets, decapitating executions
-              require an intentional finishing blow: <strong>Heavy Strike (K)</strong>,{' '}
-              <strong>3-Hit Combo Finisher</strong>, <strong>Aerial Helm Splitter</strong>, or
-              striking a <strong>Guard-Broken/Exhausted</strong> opponent. Light slashes deliver an
-              honorable knockout.
-            </div>
-          </div>
-        </Card>
-
-        {/* Controls Table */}
-        <Card
-          header={
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ fontSize: '1.2rem', color: '#2ecc71' }}>Combat Keybindings</h2>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                Active: {controlPreset === 'modern' ? 'Modern Fighting' : 'Classic Brawler'}
+              <div className={`${styles.pixelBox} ${sfxMuted ? styles.pixelBoxChecked : ''}`}>
+                {sfxMuted && <span className={styles.pixelCheckTick}>■</span>}
+              </div>
+              <span className={styles.itemLabel} style={{ margin: 0 }}>
+                MUTE COMBAT AUDIO
               </span>
             </div>
-          }
-        >
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
-                <th style={{ padding: '8px 0', color: 'var(--text-muted)' }}>Action</th>
-                <th style={{ padding: '8px 0', color: 'var(--text-muted)' }}>Primary Key</th>
-                <th style={{ padding: '8px 0', color: 'var(--text-muted)' }}>Alternative Key</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Move Left / Right</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-gold)', fontWeight: 600 }}>
-                  A / D
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  Left / Right Arrow
-                </td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Jump</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-gold)', fontWeight: 600 }}>
-                  Space
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>W / Up Arrow</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Tactical Dash</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-gold)', fontWeight: 600 }}>
-                  C / E
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  Double-tap A / D
-                </td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Light Slash (3-Hit Combo)</td>
-                <td style={{ padding: '10px 0', color: '#f39c12', fontWeight: 600 }}>J</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>Z</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Heavy Strike & Execution Finisher</td>
-                <td style={{ padding: '10px 0', color: '#e74c3c', fontWeight: 600 }}>
-                  {controlPreset === 'modern' ? 'K' : 'S + J'}
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  {controlPreset === 'modern' ? 'X or S + J' : 'Down Arrow + J'}
-                </td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Forward Thrust (Armor Pierce)</td>
-                <td style={{ padding: '10px 0', color: '#9b59b6', fontWeight: 600 }}>
-                  {controlPreset === 'modern' ? 'L' : 'U / I'}
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  {controlPreset === 'modern' ? 'U' : 'Forward + J'}
-                </td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Guard / Block (75% Absorption)</td>
-                <td style={{ padding: '10px 0', color: '#3498db', fontWeight: 600 }}>
-                  {controlPreset === 'modern' ? 'Shift / I' : 'K / Shift'}
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  Left or Right Shift
-                </td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Parry (Counter-Stun)</td>
-                <td style={{ padding: '10px 0', color: '#f1c40f', fontWeight: 600 }}>
-                  {controlPreset === 'modern' ? 'Alt / O' : 'L / Alt'}
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  {controlPreset === 'modern' ? 'Key F' : 'Alt'}
-                </td>
-              </tr>
-              <tr>
-                <td style={{ padding: '10px 0' }}>Aerial Helm Splitter</td>
-                <td style={{ padding: '10px 0', color: '#e67e22', fontWeight: 600 }}>
-                  Air + J / K
-                </td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  Space then J in air
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </Card>
-      </div>
+          </section>
+
+          {/* COMPARTMENT 4: Display & Accessibility */}
+          <section className={styles.boxDisplay} aria-label="Display & Accessibility options">
+            <div
+              className={styles.checkboxRow}
+              onClick={() => handleContrastToggle(!highContrast)}
+              role="checkbox"
+              aria-checked={highContrast}
+              tabIndex={0}
+              onKeyDown={e => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  handleContrastToggle(!highContrast);
+                }
+              }}
+            >
+              <div className={`${styles.pixelBox} ${highContrast ? styles.pixelBoxChecked : ''}`}>
+                {highContrast && <span className={styles.pixelCheckTick}>■</span>}
+              </div>
+              <span className={styles.itemLabel} style={{ margin: 0 }}>
+                HIGH CONTRAST
+              </span>
+            </div>
+
+            <div
+              className={styles.checkboxRow}
+              onClick={() => handleMotionToggle(!reducedMotion)}
+              role="checkbox"
+              aria-checked={reducedMotion}
+              tabIndex={0}
+              onKeyDown={e => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  handleMotionToggle(!reducedMotion);
+                }
+              }}
+            >
+              <div className={`${styles.pixelBox} ${reducedMotion ? styles.pixelBoxChecked : ''}`}>
+                {reducedMotion && <span className={styles.pixelCheckTick}>■</span>}
+              </div>
+              <span className={styles.itemLabel} style={{ margin: 0 }}>
+                REDUCED MOTION
+              </span>
+            </div>
+
+            <div
+              className={styles.checkboxRow}
+              onClick={() => handlePresetChange(controlPreset === 'modern' ? 'classic' : 'modern')}
+              role="button"
+              tabIndex={0}
+              title="Toggle between Modern Fighting (Space Jump, dedicated execution strikes) and Classic Arcade"
+              onKeyDown={e => {
+                if (e.key === ' ' || e.key === 'Enter') {
+                  e.preventDefault();
+                  handlePresetChange(controlPreset === 'modern' ? 'classic' : 'modern');
+                }
+              }}
+            >
+              <div
+                className={`${styles.pixelBox} ${
+                  controlPreset === 'modern' ? styles.pixelBoxChecked : ''
+                }`}
+              >
+                {controlPreset === 'modern' && <span className={styles.pixelCheckTick}>■</span>}
+              </div>
+              <span className={styles.itemLabel} style={{ margin: 0 }}>
+                {controlPreset === 'modern' ? 'MODERN CONTROLS' : 'CLASSIC CONTROLS'}
+              </span>
+            </div>
+          </section>
+
+          {/* COMPARTMENT 5: Combat Keybindings */}
+          <section className={styles.boxKeybindings} aria-label="Combat Keybindings list">
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Move</span>
+              <div>
+                <span className={`${styles.keyTag} ${styles.tagOrange}`}>A</span>
+                <span className={`${styles.keyTag} ${styles.tagOrange}`}>D</span>
+              </div>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Jump</span>
+              <span className={`${styles.keyTag} ${styles.tagYellow}`}>SPACE / W</span>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Dash</span>
+              <span className={`${styles.keyTag} ${styles.tagOrange}`}>C / E</span>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Slash</span>
+              <span className={`${styles.keyTag} ${styles.tagOrange}`}>J</span>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Heavy/Exec</span>
+              <span className={`${styles.keyTag} ${styles.tagRed}`}>
+                {controlPreset === 'modern' ? 'K' : 'S+J'}
+              </span>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Thrust</span>
+              <span className={`${styles.keyTag} ${styles.tagPurple}`}>
+                {controlPreset === 'modern' ? 'L / U' : 'U / I'}
+              </span>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Guard</span>
+              <span className={`${styles.keyTag} ${styles.tagBlue}`}>
+                {controlPreset === 'modern' ? 'SHIFT / I' : 'K'}
+              </span>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Parry</span>
+              <span className={`${styles.keyTag} ${styles.tagYellow}`}>
+                {controlPreset === 'modern' ? 'ALT / O' : 'L'}
+              </span>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      {/* Tiny Footer */}
+      <footer className={styles.footerText}>
+        LAST CROWN v1.0.0 • 2D RETRO DUEL SIMULATION • © 2026 LAST CROWN
+      </footer>
     </div>
   );
 }
