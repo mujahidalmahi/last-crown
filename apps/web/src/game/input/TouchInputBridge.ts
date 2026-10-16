@@ -27,7 +27,12 @@ class TouchInputBridgeClass {
     parryTrigger: false,
   };
 
-  public setDirection(direction: { left?: boolean; right?: boolean; up?: boolean; down?: boolean }): void {
+  public setDirection(direction: {
+    left?: boolean;
+    right?: boolean;
+    up?: boolean;
+    down?: boolean;
+  }): void {
     if (direction.left !== undefined) this.state.moveLeft = direction.left;
     if (direction.right !== undefined) this.state.moveRight = direction.right;
     if (direction.up !== undefined) {

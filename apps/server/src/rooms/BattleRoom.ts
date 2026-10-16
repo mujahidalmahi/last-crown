@@ -440,7 +440,11 @@ export class BattleRoom extends Room<BattleRoomState> {
     const humanMeta = Array.from(this.clientMetadata.values())[0];
     if (!humanMeta) return;
 
-    const botProfiles: { name: string; preset: string; difficulty: 'novice' | 'adept' | 'master' }[] = [
+    const botProfiles: {
+      name: string;
+      preset: string;
+      difficulty: 'novice' | 'adept' | 'master';
+    }[] = [
       { name: 'Sir Roderick the Unyielding (AI)', preset: 'knight', difficulty: 'adept' },
       { name: 'Valeria the Crimson Shadow (AI)', preset: 'duelist', difficulty: 'master' },
       { name: 'Gorgoroth the Skullcrusher (AI)', preset: 'marauder', difficulty: 'master' },
@@ -448,7 +452,8 @@ export class BattleRoom extends Room<BattleRoomState> {
       { name: 'Sylvia the Swift (AI)', preset: 'duelist', difficulty: 'adept' },
       { name: 'Brutus the Berserker (AI)', preset: 'marauder', difficulty: 'novice' },
     ];
-    const profile = (botProfiles[Math.floor(Math.random() * botProfiles.length)] || botProfiles[0])!;
+    const profile = (botProfiles[Math.floor(Math.random() * botProfiles.length)] ||
+      botProfiles[0])!;
     const botPreset = profile.preset;
     const botName = profile.name;
 

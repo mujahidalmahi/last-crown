@@ -193,7 +193,11 @@ export class KeyboardInputAdapter {
       attack = true;
       if (dash) {
         attackType = 'dash';
-      } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown') || touch.moveDown) {
+      } else if (
+        this.keysPressed.has('KeyS') ||
+        this.keysPressed.has('ArrowDown') ||
+        touch.moveDown
+      ) {
         attackType = this.controlPreset === 'modern' ? 'sweep' : 'heavy';
       } else {
         attackType = 'light';

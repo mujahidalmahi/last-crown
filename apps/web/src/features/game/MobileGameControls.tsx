@@ -66,28 +66,34 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
   }, []);
 
   // Update directional input bridge
-  const updateDirectionState = useCallback((up: boolean, down: boolean, left: boolean, right: boolean) => {
-    setActiveDirections({ up, down, left, right });
-    TouchInputBridge.setDirection({ up, down, left, right });
-  }, []);
+  const updateDirectionState = useCallback(
+    (up: boolean, down: boolean, left: boolean, right: boolean) => {
+      setActiveDirections({ up, down, left, right });
+      TouchInputBridge.setDirection({ up, down, left, right });
+    },
+    []
+  );
 
   // D-Pad Touch/Pointer coordinate resolver for smooth 360 thumb gliding
-  const handleDpadPointer = useCallback((clientX: number, clientY: number) => {
-    if (!dpadRef.current) return;
-    const rect = dpadRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const dx = clientX - centerX;
-    const dy = clientY - centerY;
-    const deadzone = rect.width * 0.12;
+  const handleDpadPointer = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!dpadRef.current) return;
+      const rect = dpadRef.current.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const dx = clientX - centerX;
+      const dy = clientY - centerY;
+      const deadzone = rect.width * 0.12;
 
-    const left = dx < -deadzone;
-    const right = dx > deadzone;
-    const up = dy < -deadzone;
-    const down = dy > deadzone;
+      const left = dx < -deadzone;
+      const right = dx > deadzone;
+      const up = dy < -deadzone;
+      const down = dy > deadzone;
 
-    updateDirectionState(up, down, left, right);
-  }, [updateDirectionState]);
+      updateDirectionState(up, down, left, right);
+    },
+    [updateDirectionState]
+  );
 
   const onDpadTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -257,7 +263,12 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             }}
             onTouchEnd={e => {
               e.preventDefault();
-              updateDirectionState(false, activeDirections.down, activeDirections.left, activeDirections.right);
+              updateDirectionState(
+                false,
+                activeDirections.down,
+                activeDirections.left,
+                activeDirections.right
+              );
             }}
             aria-label="Jump / Up"
           >
@@ -275,7 +286,12 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             }}
             onTouchEnd={e => {
               e.preventDefault();
-              updateDirectionState(activeDirections.up, activeDirections.down, false, activeDirections.right);
+              updateDirectionState(
+                activeDirections.up,
+                activeDirections.down,
+                false,
+                activeDirections.right
+              );
             }}
             aria-label="Move Left"
           >
@@ -298,7 +314,12 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             }}
             onTouchEnd={e => {
               e.preventDefault();
-              updateDirectionState(activeDirections.up, activeDirections.down, activeDirections.left, false);
+              updateDirectionState(
+                activeDirections.up,
+                activeDirections.down,
+                activeDirections.left,
+                false
+              );
             }}
             aria-label="Move Right"
           >
@@ -311,12 +332,22 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             className={`${styles.dpadDir} ${styles.dpadDown} ${activeDirections.down ? styles.active : ''}`}
             onTouchStart={e => {
               e.preventDefault();
-              updateDirectionState(activeDirections.up, true, activeDirections.left, activeDirections.right);
+              updateDirectionState(
+                activeDirections.up,
+                true,
+                activeDirections.left,
+                activeDirections.right
+              );
               triggerHaptic(8);
             }}
             onTouchEnd={e => {
               e.preventDefault();
-              updateDirectionState(activeDirections.up, false, activeDirections.left, activeDirections.right);
+              updateDirectionState(
+                activeDirections.up,
+                false,
+                activeDirections.left,
+                activeDirections.right
+              );
             }}
             aria-label="Crouch / Down"
           >

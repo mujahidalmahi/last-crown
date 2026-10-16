@@ -392,7 +392,7 @@ export class CombatEffects {
     }
 
     this.showFloatingText(pos, '⚡ COUNTER!', '#ff793f', '24px', true);
-    this.scene.cameras.main.shake(140, 0.010);
+    this.scene.cameras.main.shake(140, 0.01);
   }
 
   /**

@@ -411,9 +411,9 @@ export class BattleScene extends Phaser.Scene {
 
       const isFastFall = Boolean(
         localInput.moveY &&
-          localInput.moveY > 0 &&
-          this.lastRemoteSnapshot?.p1 &&
-          !this.lastRemoteSnapshot.p1.isGrounded
+        localInput.moveY > 0 &&
+        this.lastRemoteSnapshot?.p1 &&
+        !this.lastRemoteSnapshot.p1.isGrounded
       );
       if (isFastFall && !this.wasP1FastFalling && this.soundManager) {
         this.soundManager.playFastFallWhoosh();

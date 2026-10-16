@@ -296,9 +296,7 @@ export default function RoomPage() {
 
             {/* Dynamic Chamber Roster */}
             <div className={styles.rosterBox}>
-              <div className={styles.rosterTitle}>
-                Chamber Roster ({warriorsList.length}/2)
-              </div>
+              <div className={styles.rosterTitle}>Chamber Roster ({warriorsList.length}/2)</div>
 
               {/* Slot 1: Host / First Warrior */}
               {warriorsList[0] ? (
@@ -308,7 +306,8 @@ export default function RoomPage() {
                   }`}
                 >
                   <span>
-                    👑 {warriorsList[0].name} {warriorsList[0].id === room?.sessionId ? '(YOU)' : ''}
+                    👑 {warriorsList[0].name}{' '}
+                    {warriorsList[0].id === room?.sessionId ? '(YOU)' : ''}
                   </span>
                   <span
                     className={
@@ -333,7 +332,8 @@ export default function RoomPage() {
                   }`}
                 >
                   <span>
-                    ⚔️ {warriorsList[1].name} {warriorsList[1].id === room?.sessionId ? '(YOU)' : ''}
+                    ⚔️ {warriorsList[1].name}{' '}
+                    {warriorsList[1].id === room?.sessionId ? '(YOU)' : ''}
                   </span>
                   <span
                     className={

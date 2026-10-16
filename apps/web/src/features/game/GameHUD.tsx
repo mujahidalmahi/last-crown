@@ -420,9 +420,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         {/* Center Round & Match Timer Medallion */}
         <div className={hudStyles.timerMedallion}>
           {/* Top Filigree Accent */}
-          <span className={hudStyles.roundLabel}>
-            Round {roundNumber}
-          </span>
+          <span className={hudStyles.roundLabel}>Round {roundNumber}</span>
           <span
             className={hudStyles.timerDigits}
             style={{

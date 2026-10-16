@@ -206,7 +206,10 @@ export class WarriorBotAI {
           parry: false,
           facing: facingPlayer,
         };
-      } else if (botSnapshot.velocity.y > 50 && (this.difficulty === 'master' || this.difficulty === 'adept')) {
+      } else if (
+        botSnapshot.velocity.y > 50 &&
+        (this.difficulty === 'master' || this.difficulty === 'adept')
+      ) {
         // Fast-fall to return swiftly to earth and regain full ground defense
         return {
           sequence: this._sequence,
