@@ -66,7 +66,6 @@ export const VOICE_ICE_SERVERS: RTCConfiguration = {
       credential: 'openrelayproject',
     },
   ],
-  iceCandidatePoolSize: 10,
 };
 
 function getOrCreateAudioElement(): HTMLAudioElement | null {
@@ -76,6 +75,7 @@ function getOrCreateAudioElement(): HTMLAudioElement | null {
     el = document.createElement('audio');
     el.id = 'last-crown-remote-voice-audio';
     el.autoplay = true;
+    el.volume = 1.0;
     el.setAttribute('playsinline', 'true');
     el.setAttribute('webkit-playsinline', 'true');
     el.style.position = 'fixed';
@@ -96,10 +96,18 @@ function playAudioSafely(audio: HTMLAudioElement) {
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
       window.removeEventListener('click', unlock);
+      window.removeEventListener('touchstart', unlock);
+      document.removeEventListener('pointerdown', unlock);
+      document.removeEventListener('keydown', unlock);
+      document.removeEventListener('click', unlock);
     };
     window.addEventListener('pointerdown', unlock, { once: true });
     window.addEventListener('keydown', unlock, { once: true });
     window.addEventListener('click', unlock, { once: true });
+    window.addEventListener('touchstart', unlock, { once: true });
+    document.addEventListener('pointerdown', unlock, { once: true });
+    document.addEventListener('keydown', unlock, { once: true });
+    document.addEventListener('click', unlock, { once: true });
   });
 }
 
@@ -122,6 +130,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   const opponentSessionIdRef = useRef<string | null>(null);
   const isJoinedRef = useRef<boolean>(false);
   const isDeafenedRef = useRef<boolean>(false);
+  const isNegotiatingRef = useRef<boolean>(false);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Audio Analysers for voice activity detection
@@ -166,6 +175,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   // Teardown helper
   const cleanup = useCallback(() => {
     isJoinedRef.current = false;
+    isNegotiatingRef.current = false;
 
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
@@ -277,6 +287,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     if (audio) {
       audio.srcObject = stream;
       audio.muted = isDeafenedRef.current;
+      audio.volume = 1.0;
       playAudioSafely(audio);
     }
 
@@ -294,13 +305,13 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     }
   }, []);
 
-  // Create PeerConnection instance with audio tracks
-  const createPeerConnection = useCallback((): RTCPeerConnection => {
-    if (pcRef.current) {
-      pcRef.current.close();
-      pcRef.current = null;
+  // Reusable helper to get or create the PeerConnection instance without killing in-flight connections
+  const getOrCreatePeerConnection = useCallback((): RTCPeerConnection => {
+    if (pcRef.current && pcRef.current.signalingState !== 'closed') {
+      return pcRef.current;
     }
 
+    console.log('[VoiceChat] Creating new RTCPeerConnection');
     const pc = new RTCPeerConnection(VOICE_ICE_SERVERS);
     pcRef.current = pc;
 
@@ -313,7 +324,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
 
     // Stream ICE candidates to opponent
     pc.onicecandidate = event => {
-      if (event.candidate) {
+      if (event.candidate && event.candidate.candidate) {
         sendSignal({
           type: 'candidate',
           data: event.candidate.toJSON(),
@@ -321,17 +332,19 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       }
     };
 
-    // Receive opponent audio stream
+    // Receive opponent audio stream (supports both event.streams and fallback to new MediaStream)
     pc.ontrack = event => {
-      if (event.streams && event.streams[0]) {
-        attachRemoteStream(event.streams[0]);
-      }
+      console.log('[VoiceChat] Remote track received:', event.track.id, event.track.kind);
+      const stream =
+        event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track]);
+      attachRemoteStream(stream);
     };
 
     // Connection lifecycle monitoring
     pc.onconnectionstatechange = () => {
       if (!pcRef.current) return;
       const state = pcRef.current.connectionState;
+      console.log('[VoiceChat] Connection state:', state);
 
       if (state === 'connected') {
         setStatus('connected');
@@ -348,7 +361,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
               if (isJoinedRef.current && opponentSessionIdRef.current) {
                 initiateOffer();
               }
-            }, 1200);
+            }, 1500);
           }
         } else {
           setStatus(isJoinedRef.current ? 'waiting_rival' : 'disconnected');
@@ -365,10 +378,22 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       return;
     }
 
-    try {
-      setStatus('connecting');
-      const pc = createPeerConnection();
+    if (isNegotiatingRef.current) {
+      console.log('[VoiceChat] Offer negotiation already active, skipping');
+      return;
+    }
 
+    try {
+      isNegotiatingRef.current = true;
+      setStatus('connecting');
+      const pc = getOrCreatePeerConnection();
+
+      if (pc.signalingState !== 'stable') {
+        console.log('[VoiceChat] PC not stable for offer generation:', pc.signalingState);
+        return;
+      }
+
+      console.log('[VoiceChat] Initiating WebRTC offer as designated caller');
       const offer = await pc.createOffer({
         offerToReceiveAudio: true,
         offerToReceiveVideo: false,
@@ -382,8 +407,12 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       });
     } catch (err) {
       console.error('[VoiceChat] Failed to create WebRTC offer:', err);
+    } finally {
+      setTimeout(() => {
+        isNegotiatingRef.current = false;
+      }, 500);
     }
-  }, [createPeerConnection, sendSignal]);
+  }, [getOrCreatePeerConnection, sendSignal]);
 
   // Join Voice Chat
   const joinVoice = useCallback(async () => {
@@ -396,17 +425,18 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       setStatus('requesting_permission');
       setError(null);
 
+      console.log('[VoiceChat] Requesting microphone permission...');
       // Request microphone access with echo cancellation & noise suppression
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          channelCount: 1,
         },
         video: false,
       });
 
+      console.log('[VoiceChat] Microphone granted, active tracks:', stream.getAudioTracks().length);
       localStreamRef.current = stream;
       isJoinedRef.current = true;
       setIsMuted(!stream.getAudioTracks()[0]?.enabled);
@@ -438,6 +468,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
           errorMsg = err.message;
         }
       }
+      console.error('[VoiceChat] Microphone error:', errorMsg);
       setError(errorMsg);
       setStatus('error');
       cleanup();
@@ -492,12 +523,10 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
 
       // 1. Ready presence signal
       if (signal.type === 'ready') {
+        console.log('[VoiceChat] Received ready signal from rival:', from);
         setOpponentInVoice(true);
 
         if (isJoinedRef.current && localStreamRef.current) {
-          // Send acknowledgment ready back
-          sendSignal({ type: 'ready' });
-
           // Deterministic role: higher sessionId initiates the offer
           if (room.sessionId > from) {
             await initiateOffer();
@@ -514,13 +543,15 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         const desc = signal.data as RTCSessionDescriptionInit;
 
         if (desc.type === 'offer') {
+          console.log('[VoiceChat] Received offer from initiator:', from);
           if (!isJoinedRef.current || !localStreamRef.current) {
+            console.log('[VoiceChat] Received offer but local user is not yet in voice');
             return;
           }
 
           try {
             setStatus('connecting');
-            const pc = createPeerConnection();
+            const pc = getOrCreatePeerConnection();
             await pc.setRemoteDescription(new RTCSessionDescription(desc));
 
             // Drain queued ICE candidates
@@ -535,6 +566,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
 
+            console.log('[VoiceChat] Sending answer to initiator');
             sendSignal({
               type: 'answer',
               data: answer,
@@ -547,8 +579,9 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
 
         // 3. Incoming Answer (Initiator handles answer)
         if (desc.type === 'answer') {
+          console.log('[VoiceChat] Received answer from responder:', from);
           const pc = pcRef.current;
-          if (pc) {
+          if (pc && pc.signalingState === 'have-local-offer') {
             try {
               await pc.setRemoteDescription(new RTCSessionDescription(desc));
 
@@ -571,6 +604,8 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       if (signal.type === 'candidate' && signal.data) {
         try {
           const candidateData = signal.data as RTCIceCandidateInit;
+          if (!candidateData || !candidateData.candidate) return;
+
           const pc = pcRef.current;
           if (pc && pc.remoteDescription && pc.remoteDescription.type) {
             await pc.addIceCandidate(new RTCIceCandidate(candidateData)).catch(() => {});
@@ -592,6 +627,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
 
       // 6. Opponent Left Voice
       if (signal.type === 'leave') {
+        console.log('[VoiceChat] Rival left voice chat');
         setOpponentInVoice(false);
         setIsOpponentSpeaking(false);
         setIsOpponentMuted(false);
@@ -623,7 +659,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         unsubscribe();
       }
     };
-  }, [room, createPeerConnection, initiateOffer, sendSignal]);
+  }, [room, getOrCreatePeerConnection, initiateOffer, sendSignal]);
 
   // Auto-join if requested
   useEffect(() => {
