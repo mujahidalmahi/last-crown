@@ -79,5 +79,27 @@ describe('Protocol Validation', () => {
       const result = PlayerInputSchema.safeParse(invalidSnapshot);
       expect(result.success).toBe(false);
     });
+
+    it('accepts BigInt timestamp, sequence, and moveX from msgpack and transforms to number', () => {
+      const msgpackPayload = {
+        sequence: 42n,
+        timestamp: 1792123896033n,
+        moveX: 1n,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+      };
+      const result = PlayerInputSchema.safeParse(msgpackPayload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(typeof result.data.sequence).toBe('number');
+        expect(result.data.sequence).toBe(42);
+        expect(typeof result.data.timestamp).toBe('number');
+        expect(result.data.timestamp).toBe(1792123896033);
+        expect(typeof result.data.moveX).toBe('number');
+        expect(result.data.moveX).toBe(1);
+      }
+    });
   });
 });

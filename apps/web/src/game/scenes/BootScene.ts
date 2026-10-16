@@ -10,6 +10,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   public create(): void {
-    this.scene.start('BattleScene');
+    const sceneConfig = this.registry.get('battleSceneConfig');
+    this.scene.start('BattleScene', sceneConfig);
   }
 }

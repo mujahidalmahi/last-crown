@@ -15,6 +15,7 @@ import {
   WarriorSnapshot,
 } from '@last-crown/shared';
 import { GameSimulation } from '@last-crown/game-core';
+import { getArenaConfig } from '@last-crown/game-config';
 import { RoomRegistry } from '../matchmaking/RoomRegistry.js';
 import { serverEnv } from '../config/env.js';
 
@@ -31,6 +32,8 @@ interface ClientMetadata {
 export class BattleRoom extends Room<BattleRoomState> {
   public maxClients = 2;
   private simulation: GameSimulation | null = null;
+  private p1SessionId: string | null = null;
+  private p2SessionId: string | null = null;
   private clientMetadata = new Map<string, ClientMetadata>();
   private clientInputs = new Map<string, PlayerInputMessage>();
   private rematchReadyClients = new Set<string>();
@@ -99,9 +102,13 @@ export class BattleRoom extends Room<BattleRoomState> {
     });
 
     // Ping / Latency Handler
-    this.onMessage(ClientMessageType.PING, (client, message: { timestamp: number }) => {
+    this.onMessage(ClientMessageType.PING, (client, message: { timestamp: number | bigint }) => {
+      const clientTimestamp =
+        typeof message?.timestamp === 'bigint'
+          ? Number(message.timestamp)
+          : Number(message?.timestamp || Date.now());
       client.send(ServerMessageType.PONG, {
-        clientTimestamp: message?.timestamp || Date.now(),
+        clientTimestamp,
         serverTimestamp: Date.now(),
       });
     });
@@ -113,6 +120,11 @@ export class BattleRoom extends Room<BattleRoomState> {
         // Start rematch when all connected clients in the room signal ready
         if (this.rematchReadyClients.size >= this.clients.length) {
           this.rematchReadyClients.clear();
+          for (const meta of this.clientMetadata.values()) {
+            meta.lastInputSequence = 0;
+            meta.inputMessageCount = 0;
+          }
+          this.clientInputs.clear();
           this.simulation.resetMatch();
           this.state.matchState = 'in_progress';
           this.state.winnerId = '';
@@ -140,18 +152,27 @@ export class BattleRoom extends Room<BattleRoomState> {
     };
     this.clientMetadata.set(client.sessionId, meta);
 
+    const arenaConfig = getArenaConfig(this.state.arenaId);
+    const spawnPoint = isHost ? arenaConfig.spawnPointP1 : arenaConfig.spawnPointP2;
+
     const warriorState = new WarriorNetworkState();
     warriorState.id = client.sessionId;
     warriorState.name = name;
+    warriorState.x = spawnPoint.x;
+    warriorState.y = spawnPoint.y;
+    warriorState.facing = isHost ? 'right' : 'left';
     this.state.warriors.set(client.sessionId, warriorState);
 
     RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clients.length);
 
     // Once 2 players join, initialize the authoritative GameSimulation
-    if (this.clients.length === 2 && !this.simulation) {
+    if (this.clients.length === 2 && !this.simulation && this.clientMetadata.size >= 2) {
       const clientsList = Array.from(this.clientMetadata.values());
       const p1 = clientsList[0]!;
       const p2 = clientsList[1]!;
+
+      this.p1SessionId = p1.id;
+      this.p2SessionId = p2.id;
 
       this.simulation = new GameSimulation(
         p1.id,
@@ -197,6 +218,12 @@ export class BattleRoom extends Room<BattleRoomState> {
       if (warrior) {
         warrior.isConnected = true;
       }
+      const meta = this.clientMetadata.get(client.sessionId);
+      if (meta) {
+        meta.lastInputSequence = 0;
+        meta.inputMessageCount = 0;
+      }
+      this.clientInputs.delete(client.sessionId);
     } catch {
       this.cleanupClient(client.sessionId);
     }
@@ -208,6 +235,13 @@ export class BattleRoom extends Room<BattleRoomState> {
     this.rematchReadyClients.delete(sessionId);
     this.state.warriors.delete(sessionId);
     RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clientMetadata.size);
+
+    if (sessionId === this.p1SessionId) {
+      this.p1SessionId = null;
+    }
+    if (sessionId === this.p2SessionId) {
+      this.p2SessionId = null;
+    }
 
     if (
       this.clientMetadata.size < 2 &&
@@ -233,9 +267,8 @@ export class BattleRoom extends Room<BattleRoomState> {
     }
 
     const deltaSec = deltaTimeMs / 1000;
-    const clientIds = Array.from(this.clientMetadata.keys());
-    const p1Id = clientIds[0];
-    const p2Id = clientIds[1];
+    const p1Id = this.p1SessionId;
+    const p2Id = this.p2SessionId;
 
     const p1Input = p1Id ? this.clientInputs.get(p1Id) || null : null;
     const p2Input = p2Id ? this.clientInputs.get(p2Id) || null : null;
@@ -325,6 +358,8 @@ export class BattleRoom extends Room<BattleRoomState> {
     if (this.inviteCode) {
       RoomRegistry.getInstance().unregisterRoom(this.roomId);
     }
+    this.p1SessionId = null;
+    this.p2SessionId = null;
     this.rematchReadyClients.clear();
     this.clientMetadata.clear();
     this.clientInputs.clear();

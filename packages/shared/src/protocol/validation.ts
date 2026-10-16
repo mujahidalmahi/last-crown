@@ -8,10 +8,12 @@ export const InviteCodeSchema = z
   .length(INVITE_CODE_LENGTH, `Invite code must be exactly ${INVITE_CODE_LENGTH} characters`)
   .regex(/^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]+$/, 'Invite code contains invalid characters');
 
+const numeric = z.union([z.number(), z.bigint()]).transform(val => Number(val));
+
 export const PlayerInputSchema = z.object({
-  sequence: z.number().int().nonnegative(),
-  timestamp: z.number(),
-  moveX: z.number().min(-1).max(1),
+  sequence: numeric.pipe(z.number().int().nonnegative()),
+  timestamp: numeric.pipe(z.number()),
+  moveX: numeric.pipe(z.number().min(-1).max(1)),
   jump: z.boolean(),
   attack: z.boolean(),
   attackType: z.enum(['light', 'heavy', 'thrust', 'aerial', 'dash']).optional(),

@@ -21,6 +21,7 @@ export default function SettingsPage() {
   const [highContrast, setHighContrast] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [botDifficulty, setBotDifficulty] = useState<'novice' | 'adept' | 'master'>('adept');
+  const [controlPreset, setControlPreset] = useState<'modern' | 'classic'>('modern');
 
   const [stats, setStats] = useState<PlayerStatistics>(DEFAULT_PLAYER_STATISTICS);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -46,6 +47,9 @@ export default function SettingsPage() {
         if (['novice', 'adept', 'master'].includes(parsed.botDifficulty)) {
           setBotDifficulty(parsed.botDifficulty);
         }
+        if (['modern', 'classic'].includes(parsed.controlPreset)) {
+          setControlPreset(parsed.controlPreset);
+        }
       }
     } catch {
       // localStorage error fallback
@@ -67,6 +71,7 @@ export default function SettingsPage() {
       highContrast: boolean;
       reducedMotion: boolean;
       botDifficulty: 'novice' | 'adept' | 'master';
+      controlPreset: 'modern' | 'classic';
     }>
   ) => {
     try {
@@ -79,10 +84,12 @@ export default function SettingsPage() {
           highContrast,
           reducedMotion,
           botDifficulty,
+          controlPreset,
           ...current,
           ...updates,
         };
         window.localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(merged));
+        window.dispatchEvent(new Event('last_crown_settings_changed'));
       }
     } catch {
       // ignore
@@ -118,6 +125,11 @@ export default function SettingsPage() {
   const handleDifficultyChange = (difficulty: 'novice' | 'adept' | 'master') => {
     setBotDifficulty(difficulty);
     persistSettings({ botDifficulty: difficulty });
+  };
+
+  const handlePresetChange = (preset: 'modern' | 'classic') => {
+    setControlPreset(preset);
+    persistSettings({ controlPreset: preset });
   };
 
   const handleResetStats = () => {
@@ -432,8 +444,103 @@ export default function SettingsPage() {
           </div>
         </Card>
 
+        {/* Control Scheme Preset */}
+        <Card
+          header={
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.2rem', color: '#f1c40f' }}>Control Scheme Preset</h2>
+              <Badge variant={controlPreset === 'modern' ? 'gold' : 'steel'}>
+                {controlPreset === 'modern' ? '⚡ Modern Fighting Standard' : '🕹️ Classic Arcade'}
+              </Badge>
+            </div>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '16px',
+              }}
+            >
+              <div>
+                <strong>Execution & Key Layout</strong>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  Standard PC fighting layout uses Space for Jump and dedicated Heavy/Execution
+                  keys.
+                </p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => handlePresetChange('modern')}
+                  style={{
+                    backgroundColor: controlPreset === 'modern' ? '#f1c40f' : '#1e272e',
+                    color: controlPreset === 'modern' ? '#070b12' : '#dcdde1',
+                    border: '1px solid #485460',
+                    borderRadius: '4px',
+                    padding: '8px 16px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  ⚡ Modern (Recommended)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePresetChange('classic')}
+                  style={{
+                    backgroundColor: controlPreset === 'classic' ? '#f1c40f' : '#1e272e',
+                    color: controlPreset === 'classic' ? '#070b12' : '#dcdde1',
+                    border: '1px solid #485460',
+                    borderRadius: '4px',
+                    padding: '8px 16px',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🕹️ Classic Brawler
+                </button>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '12px 16px',
+                backgroundColor: 'rgba(241, 196, 15, 0.08)',
+                border: '1px solid rgba(241, 196, 15, 0.3)',
+                borderRadius: '6px',
+                fontSize: '0.84rem',
+                color: '#f1c40f',
+                lineHeight: 1.5,
+              }}
+            >
+              <strong>⚔️ Finishing Executions:</strong> In both presets, decapitating executions
+              require an intentional finishing blow: <strong>Heavy Strike (K)</strong>,{' '}
+              <strong>3-Hit Combo Finisher</strong>, <strong>Aerial Helm Splitter</strong>, or
+              striking a <strong>Guard-Broken/Exhausted</strong> opponent. Light slashes deliver an
+              honorable knockout.
+            </div>
+          </div>
+        </Card>
+
         {/* Controls Table */}
-        <Card header={<h2 style={{ fontSize: '1.2rem', color: '#2ecc71' }}>Combat Keybindings</h2>}>
+        <Card
+          header={
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h2 style={{ fontSize: '1.2rem', color: '#2ecc71' }}>Combat Keybindings</h2>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                Active: {controlPreset === 'modern' ? 'Modern Fighting' : 'Classic Brawler'}
+              </span>
+            </div>
+          }
+        >
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)', textAlign: 'left' }}>
@@ -454,37 +561,69 @@ export default function SettingsPage() {
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                 <td style={{ padding: '10px 0' }}>Jump</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-gold)', fontWeight: 600 }}>W</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>Up Arrow</td>
+                <td style={{ padding: '10px 0', color: 'var(--text-gold)', fontWeight: 600 }}>
+                  Space
+                </td>
+                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>W / Up Arrow</td>
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Light Slash</td>
-                <td style={{ padding: '10px 0', color: '#f39c12', fontWeight: 600 }}>J</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>Space</td>
-              </tr>
-              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Heavy Strike (Shield Breaker)</td>
-                <td style={{ padding: '10px 0', color: '#e74c3c', fontWeight: 600 }}>S + J</td>
+                <td style={{ padding: '10px 0' }}>Tactical Dash</td>
+                <td style={{ padding: '10px 0', color: 'var(--text-gold)', fontWeight: 600 }}>
+                  C / E
+                </td>
                 <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  Down Arrow + Space
+                  Double-tap A / D
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                <td style={{ padding: '10px 0' }}>Forward Thrust</td>
-                <td style={{ padding: '10px 0', color: '#9b59b6', fontWeight: 600 }}>U / I</td>
+                <td style={{ padding: '10px 0' }}>Light Slash (3-Hit Combo)</td>
+                <td style={{ padding: '10px 0', color: '#f39c12', fontWeight: 600 }}>J</td>
+                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>Z</td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <td style={{ padding: '10px 0' }}>Heavy Strike & Execution Finisher</td>
+                <td style={{ padding: '10px 0', color: '#e74c3c', fontWeight: 600 }}>
+                  {controlPreset === 'modern' ? 'K' : 'S + J'}
+                </td>
                 <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
-                  W + J (Air / Forward)
+                  {controlPreset === 'modern' ? 'X or S + J' : 'Down Arrow + J'}
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <td style={{ padding: '10px 0' }}>Forward Thrust (Armor Pierce)</td>
+                <td style={{ padding: '10px 0', color: '#9b59b6', fontWeight: 600 }}>
+                  {controlPreset === 'modern' ? 'L' : 'U / I'}
+                </td>
+                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
+                  {controlPreset === 'modern' ? 'U' : 'Forward + J'}
                 </td>
               </tr>
               <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                 <td style={{ padding: '10px 0' }}>Guard / Block (75% Absorption)</td>
-                <td style={{ padding: '10px 0', color: '#3498db', fontWeight: 600 }}>K</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>Shift</td>
+                <td style={{ padding: '10px 0', color: '#3498db', fontWeight: 600 }}>
+                  {controlPreset === 'modern' ? 'Shift / I' : 'K / Shift'}
+                </td>
+                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
+                  Left or Right Shift
+                </td>
+              </tr>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                <td style={{ padding: '10px 0' }}>Parry (Counter-Stun)</td>
+                <td style={{ padding: '10px 0', color: '#f1c40f', fontWeight: 600 }}>
+                  {controlPreset === 'modern' ? 'Alt / O' : 'L / Alt'}
+                </td>
+                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
+                  {controlPreset === 'modern' ? 'Key F' : 'Alt'}
+                </td>
               </tr>
               <tr>
-                <td style={{ padding: '10px 0' }}>Parry (Counter-Stun)</td>
-                <td style={{ padding: '10px 0', color: '#f1c40f', fontWeight: 600 }}>L</td>
-                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>Alt</td>
+                <td style={{ padding: '10px 0' }}>Aerial Helm Splitter</td>
+                <td style={{ padding: '10px 0', color: '#e67e22', fontWeight: 600 }}>
+                  Air + J / K
+                </td>
+                <td style={{ padding: '10px 0', color: 'var(--text-secondary)' }}>
+                  Space then J in air
+                </td>
               </tr>
             </tbody>
           </table>

@@ -156,6 +156,11 @@ export class BattleScene extends Phaser.Scene {
       room.onStateChange((state: BattleRoomState) => {
         this.syncRoomState(state);
       });
+
+      // Synchronize immediately if room state is already populated
+      if (room.state && room.state.warriors && room.state.warriors.size > 0) {
+        this.syncRoomState(room.state);
+      }
     }
 
     // Clean up on scene destroy
@@ -455,6 +460,16 @@ export class BattleScene extends Phaser.Scene {
         this.lastInputSendTime = now;
         this.config.colyseusRoom.send(ClientMessageType.PLAYER_INPUT, localInput);
       }
+
+      // Render updated warrior states at 60fps
+      if (this.lastRemoteSnapshot) {
+        if (this.p1Renderer && this.lastRemoteSnapshot.p1) {
+          this.p1Renderer.render(this.lastRemoteSnapshot.p1);
+        }
+        if (this.p2Renderer && this.lastRemoteSnapshot.p2) {
+          this.p2Renderer.render(this.lastRemoteSnapshot.p2);
+        }
+      }
     }
 
     // 5. Update Visual Combat Effects (severed heads, arterial blood geysers, expanding pools)
@@ -682,6 +697,12 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private cleanUp(): void {
+    if (this.simulation) {
+      this.simulation = null;
+    }
+    if (this.botAI) {
+      this.botAI = null;
+    }
     if (this.effects) {
       this.effects.destroy();
       this.effects = null;

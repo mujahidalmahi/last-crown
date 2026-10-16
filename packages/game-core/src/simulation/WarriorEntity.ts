@@ -106,14 +106,20 @@ export class WarriorEntity {
       let attackId = 'light_slash';
       if (!this.movement.isGrounded) {
         attackId = 'aerial_strike';
-      } else if (input.attackType === 'dash' || Math.abs(this.movement.velocity.x) > 350) {
-        attackId = 'dash_lunge';
       } else if (input.attackType === 'heavy') {
         attackId = 'heavy_strike';
       } else if (input.attackType === 'thrust') {
         attackId = 'thrust';
+      } else if (
+        input.attackType === 'dash' ||
+        (input.dash && input.attack) ||
+        Math.abs(this.movement.velocity.x) > 350
+      ) {
+        attackId = 'dash_lunge';
       } else if (input.attackType === 'aerial') {
         attackId = 'aerial_strike';
+      } else {
+        attackId = 'light_slash';
       }
 
       const result = this.combat.startAttack(attackId, this.stamina, this.stateMachine);

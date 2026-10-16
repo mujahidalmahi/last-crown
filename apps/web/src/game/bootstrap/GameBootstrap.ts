@@ -11,7 +11,14 @@ export class GameBootstrap {
     }
 
     const config = createPhaserConfig(parentElement);
-    this.game = new Phaser.Game(config);
+    this.game = new Phaser.Game({
+      ...config,
+      callbacks: {
+        preBoot: (game: Phaser.Game) => {
+          game.registry.set('battleSceneConfig', sceneConfig);
+        },
+      },
+    });
 
     // Pass runtime scene configuration when BattleScene starts
     this.game.events.once('ready', () => {

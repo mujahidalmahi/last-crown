@@ -356,6 +356,26 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             </div>
           )}
 
+          {/* P1 Execution Danger Badge */}
+          {p1.health > 0 && (p1.health <= 28 || isP1Exhausted) && (
+            <div
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 900,
+                color: '#ff4757',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                textShadow: '0 0 10px rgba(255, 71, 87, 0.9)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              <span>💀</span>
+              <span>DANGER: VULNERABLE TO EXECUTION</span>
+            </div>
+          )}
+
           {/* P1 Combo Counter Badge */}
           {p1.comboCount !== undefined && p1.comboCount >= 2 && (
             <div
@@ -606,6 +626,29 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               }}
             >
               ⚠️ POSTURE BROKEN — EXHAUSTED
+            </div>
+          )}
+
+          {/* P2 Execution Opportunity Badge for P1 */}
+          {p2.health > 0 && (p2.health <= 28 || isP2Exhausted) && (
+            <div
+              style={{
+                fontSize: '0.78rem',
+                fontWeight: 900,
+                color: '#f1c40f',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                textAlign: 'right',
+                textShadow: '0 0 10px rgba(241, 196, 15, 0.9)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'flex-end',
+                gap: '6px',
+                animation: 'pulse 0.6s infinite alternate',
+              }}
+            >
+              <span>⚡ EXECUTION READY [HEAVY STRIKE: K]</span>
+              <span>💀</span>
             </div>
           )}
 
@@ -1025,22 +1068,24 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               >
                 <div>
                   <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly tap{' '}
-                  <strong style={{ color: '#fff' }}>J / Space</strong> for Slash ➔ Rising Slash ➔
-                  Spinning Finisher.
+                  <strong style={{ color: '#fff' }}>J</strong> for Slash ➔ Rising Slash ➔ Spinning
+                  Finisher.
                 </div>
                 <div>
-                  <strong style={{ color: '#f1c40f' }}>💥 Weapon Clash:</strong> Simultaneous weapon
-                  strikes clash with sparks, staggering both duelists backwards.
+                  <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong> Execute
+                  rivals at critical health/broken posture with a{' '}
+                  <strong style={{ color: '#fff' }}>Heavy Strike (K)</strong> or 3-hit combo
+                  finisher!
                 </div>
                 <div>
                   <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
-                  <strong style={{ color: '#fff' }}>W</strong>, then strike with{' '}
-                  <strong style={{ color: '#fff' }}>J</strong> in mid-air to plunge downward with
-                  ground-slam impact.
+                  <strong style={{ color: '#fff' }}>Space / W</strong>, then strike with{' '}
+                  <strong style={{ color: '#fff' }}>J / K</strong> in mid-air to plunge downward
+                  with ground-slam impact.
                 </div>
                 <div>
                   <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Dash forward with{' '}
-                  <strong style={{ color: '#fff' }}>C</strong>, then hit{' '}
+                  <strong style={{ color: '#fff' }}>C / E</strong>, then hit{' '}
                   <strong style={{ color: '#fff' }}>J</strong> to pierce enemy defenses.
                 </div>
                 <div>
@@ -1049,8 +1094,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 </div>
                 <div>
                   <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed parry with{' '}
-                  <strong style={{ color: '#fff' }}>L / Alt</strong> deflects blows and causes heavy
-                  posture exhaustion.
+                  <strong style={{ color: '#fff' }}>Alt / O / L</strong> deflects blows and causes
+                  heavy posture exhaustion.
                 </div>
               </div>
             </div>
@@ -1080,43 +1125,35 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           }}
         >
           <span>
-            <strong style={{ color: '#f1c40f' }}>A/D</strong> Move & Skid
+            <strong style={{ color: '#f1c40f' }}>A/D</strong> Move
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>W</strong> Jump / Hop
+            <strong style={{ color: '#f1c40f' }}>Space / W</strong> Jump
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>C</strong> Dash
+            <strong style={{ color: '#f1c40f' }}>C / E</strong> Dash
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>J / Space</strong> 3-Hit Combo
+            <strong style={{ color: '#f1c40f' }}>J</strong> Light Combo
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>Air + J</strong> Helm Splitter
+            <strong style={{ color: '#f1c40f' }}>K</strong> Heavy / Execute
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>Dash + J</strong> Lunge
+            <strong style={{ color: '#f1c40f' }}>L / U</strong> Thrust
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>S + J</strong> Heavy
+            <strong style={{ color: '#f1c40f' }}>Shift / I</strong> Block
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>U / I</strong> Thrust
-          </span>
-          <span style={{ color: '#4a5568' }}>•</span>
-          <span>
-            <strong style={{ color: '#f1c40f' }}>K</strong> Block
-          </span>
-          <span style={{ color: '#4a5568' }}>•</span>
-          <span>
-            <strong style={{ color: '#f1c40f' }}>L</strong> Parry
+            <strong style={{ color: '#f1c40f' }}>Alt / O</strong> Parry
           </span>
           {mode === 'singleplayer' && (
             <>

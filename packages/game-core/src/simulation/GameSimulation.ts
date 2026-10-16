@@ -313,8 +313,20 @@ export class GameSimulation {
       // Check for lethal finishing blow
       const willKill = defender.health <= result.damage;
       if (willKill) {
-        defender.isDecapitated = true;
-        result.isDecapitation = true;
+        // A mortal decapitation execution is earned by landing a heavy blow, combo finisher,
+        // aerial helm splitter, backstab critical, or striking an exhausted / guard-broken rival.
+        const isExecutionAttack =
+          attacker.combat.currentAttack?.type === 'heavy' ||
+          attacker.combat.currentAttack?.id === 'spinning_finisher' ||
+          attacker.combat.currentAttack?.type === 'aerial' ||
+          defender.combat.isExhausted ||
+          defender.combat.hitstunRemainingMs > 0 ||
+          result.isCritical;
+
+        if (isExecutionAttack) {
+          defender.isDecapitated = true;
+          result.isDecapitation = true;
+        }
       }
 
       // Damage applied to defender

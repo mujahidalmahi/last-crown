@@ -3,17 +3,23 @@ import { PlayerInputMessage, AttackType } from '@last-crown/shared';
 export class KeyboardInputAdapter {
   private keysPressed = new Set<string>();
   private sequence: number = 0;
-  private attackBuffer: boolean = false;
-  private thrustTriggered: boolean = false;
+  private lightAttackBuffer: boolean = false;
+  private heavyAttackBuffer: boolean = false;
+  private thrustBuffer: boolean = false;
   private parryBuffer: boolean = false;
   private dashBuffer: boolean = false;
   private lastTapKey: string = '';
   private lastTapTime: number = 0;
+  private controlPreset: 'modern' | 'classic' = 'modern';
+
   private onKeyDownHandler: (e: KeyboardEvent) => void;
   private onKeyUpHandler: (e: KeyboardEvent) => void;
   private onBlurHandler: () => void;
+  private onSettingsChangedHandler: () => void;
 
   constructor() {
+    this.controlPreset = this.loadControlPreset();
+
     this.onKeyDownHandler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (
@@ -23,7 +29,7 @@ export class KeyboardInputAdapter {
         return;
       }
 
-      // Prevent scrolling on Space and Arrow keys
+      // Prevent scrolling on Space, Arrow keys, etc.
       if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
         e.preventDefault();
       }
@@ -40,20 +46,40 @@ export class KeyboardInputAdapter {
         this.lastTapTime = now;
       }
 
-      // Dedicated Dash key (KeyC or KeyE)
-      if (e.code === 'KeyC' || e.code === 'KeyE') {
+      // Dedicated Dash keys: KeyE or KeyC
+      if (e.code === 'KeyE' || e.code === 'KeyC') {
         this.dashBuffer = true;
       }
 
-      if (e.code === 'KeyJ' || e.code === 'Space') {
-        this.attackBuffer = true;
+      // Attack Buffer resolution based on active layout preset
+      if (e.code === 'KeyJ' || e.code === 'KeyZ') {
+        this.lightAttackBuffer = true;
       }
-      if (e.code === 'KeyU' || e.code === 'KeyI') {
-        this.attackBuffer = true;
-        this.thrustTriggered = true;
-      }
-      if (e.code === 'KeyL' || e.code === 'AltLeft' || e.code === 'AltRight') {
-        this.parryBuffer = true;
+
+      if (this.controlPreset === 'modern') {
+        // Modern Preset: K = Direct Heavy Attack, L = Direct Thrust
+        if (e.code === 'KeyK' || e.code === 'KeyX') {
+          this.heavyAttackBuffer = true;
+        }
+        if (e.code === 'KeyL' || e.code === 'KeyU') {
+          this.thrustBuffer = true;
+        }
+        if (
+          e.code === 'KeyO' ||
+          e.code === 'KeyF' ||
+          e.code === 'AltLeft' ||
+          e.code === 'AltRight'
+        ) {
+          this.parryBuffer = true;
+        }
+      } else {
+        // Classic Preset: K = Block, L = Parry, U/I = Thrust, S+J = Heavy
+        if (e.code === 'KeyU' || e.code === 'KeyI') {
+          this.thrustBuffer = true;
+        }
+        if (e.code === 'KeyL' || e.code === 'AltLeft' || e.code === 'AltRight') {
+          this.parryBuffer = true;
+        }
       }
     };
 
@@ -70,17 +96,37 @@ export class KeyboardInputAdapter {
 
     this.onBlurHandler = () => {
       this.keysPressed.clear();
-      this.attackBuffer = false;
-      this.thrustTriggered = false;
+      this.lightAttackBuffer = false;
+      this.heavyAttackBuffer = false;
+      this.thrustBuffer = false;
       this.parryBuffer = false;
       this.dashBuffer = false;
+    };
+
+    this.onSettingsChangedHandler = () => {
+      this.controlPreset = this.loadControlPreset();
     };
 
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', this.onKeyDownHandler);
       window.addEventListener('keyup', this.onKeyUpHandler);
       window.addEventListener('blur', this.onBlurHandler);
+      window.addEventListener('last_crown_settings_changed', this.onSettingsChangedHandler);
     }
+  }
+
+  private loadControlPreset(): 'modern' | 'classic' {
+    if (typeof window === 'undefined') return 'modern';
+    try {
+      const raw = window.localStorage.getItem('last_crown_player_settings_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed.controlPreset === 'classic') return 'classic';
+      }
+    } catch {
+      // ignore
+    }
+    return 'modern';
   }
 
   public pollInput(): PlayerInputMessage {
@@ -94,32 +140,51 @@ export class KeyboardInputAdapter {
       moveX += 1;
     }
 
-    const jump = this.keysPressed.has('KeyW') || this.keysPressed.has('ArrowUp');
+    // Space is the universal jump standard across all modern PC games!
+    // W and ArrowUp are also preserved for player flexibility
+    const jump =
+      this.keysPressed.has('Space') ||
+      this.keysPressed.has('KeyW') ||
+      this.keysPressed.has('ArrowUp');
 
+    // Block mapping:
+    // Modern: Shift (left/right) or KeyI (home row defense)
+    // Classic: KeyK or Shift
     const block =
-      this.keysPressed.has('KeyK') ||
-      this.keysPressed.has('ShiftLeft') ||
-      this.keysPressed.has('ShiftRight');
-
-    const attack = this.attackBuffer;
-    this.attackBuffer = false;
+      this.controlPreset === 'modern'
+        ? this.keysPressed.has('KeyI') ||
+          this.keysPressed.has('ShiftLeft') ||
+          this.keysPressed.has('ShiftRight')
+        : this.keysPressed.has('KeyK') ||
+          this.keysPressed.has('ShiftLeft') ||
+          this.keysPressed.has('ShiftRight');
 
     const dash = this.dashBuffer;
     this.dashBuffer = false;
 
+    // Resolve attack and attackType cleanly
+    let attack = false;
     let attackType: AttackType = 'light';
-    if (dash && attack) {
-      attackType = 'dash';
-    } else if (
-      this.thrustTriggered ||
-      this.keysPressed.has('KeyU') ||
-      this.keysPressed.has('KeyI')
-    ) {
-      attackType = 'thrust';
-    } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown')) {
+
+    if (this.heavyAttackBuffer) {
+      attack = true;
       attackType = 'heavy';
+      this.heavyAttackBuffer = false;
+    } else if (this.thrustBuffer) {
+      attack = true;
+      attackType = 'thrust';
+      this.thrustBuffer = false;
+    } else if (this.lightAttackBuffer) {
+      attack = true;
+      if (dash) {
+        attackType = 'dash';
+      } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown')) {
+        attackType = 'heavy';
+      } else {
+        attackType = 'light';
+      }
+      this.lightAttackBuffer = false;
     }
-    this.thrustTriggered = false;
 
     const parry = this.parryBuffer;
     this.parryBuffer = false;
@@ -142,6 +207,7 @@ export class KeyboardInputAdapter {
       window.removeEventListener('keydown', this.onKeyDownHandler);
       window.removeEventListener('keyup', this.onKeyUpHandler);
       window.removeEventListener('blur', this.onBlurHandler);
+      window.removeEventListener('last_crown_settings_changed', this.onSettingsChangedHandler);
     }
     this.keysPressed.clear();
   }
