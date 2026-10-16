@@ -55,12 +55,14 @@ export async function GET() {
     } catch {}
   }
 
-  // Default high-availability STUN + OpenRelay fallback
+  // Default high-availability STUN + OpenRelay fallback (100% free, no credit card required)
   return NextResponse.json({
     iceServers: [
       { urls: 'stun:stun.cloudflare.com:3478' },
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
       { urls: 'stun:openrelay.metered.ca:80' },
       {
         urls: 'turn:openrelay.metered.ca:80?transport=udp',
@@ -68,7 +70,17 @@ export async function GET() {
         credential: 'openrelayproject',
       },
       {
+        urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turns:openrelay.metered.ca:443?transport=tcp',
         username: 'openrelayproject',
         credential: 'openrelayproject',
       },

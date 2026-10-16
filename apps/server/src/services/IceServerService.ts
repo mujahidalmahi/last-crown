@@ -10,9 +10,14 @@ export class IceServerService {
 
   public static getDefaultIceServers(): RTCIceServerConfig[] {
     return [
+      // Cloudflare Public Anycast STUN (100% free, no credit card)
       { urls: 'stun:stun.cloudflare.com:3478' },
+      // Google Public Global Anycast STUN (100% free, no credit card)
       { urls: 'stun:stun.l.google.com:19302' },
       { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun3.l.google.com:19302' },
+      // Open Relay Free STUN + TURN (100% free, no credit card, no signup)
       { urls: 'stun:openrelay.metered.ca:80' },
       {
         urls: 'turn:openrelay.metered.ca:80?transport=udp',
@@ -20,7 +25,17 @@ export class IceServerService {
         credential: 'openrelayproject',
       },
       {
+        urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
         urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+        username: 'openrelayproject',
+        credential: 'openrelayproject',
+      },
+      {
+        urls: 'turns:openrelay.metered.ca:443?transport=tcp',
         username: 'openrelayproject',
         credential: 'openrelayproject',
       },
