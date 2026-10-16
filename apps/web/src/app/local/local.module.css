@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* Master Fullscreen Viewport */
+/* Master Fullscreen Viewport with localbg.jpg */
 .pageWrapper {
   position: relative;
   width: 100vw;
@@ -23,20 +23,25 @@
   user-select: none;
 }
 
-
-/* Master Stone Chamber Frame (Faithful reproduction of reference design) */
+/* Master Stone Chamber Frame: Blocky, Mossy, Heavy Medieval Stone Look */
 .chamberContainer {
   position: relative;
   width: 100%;
   max-width: 980px;
-  background: linear-gradient(180deg, #1e2430 0%, #151a24 100%);
-  border: clamp(12px, 2vw, 20px) solid #283342;
-  border-radius: 10px;
+  background:
+    radial-gradient(ellipse at top left, rgba(34, 197, 94, 0.12) 0%, transparent 45%),
+    radial-gradient(ellipse at bottom right, rgba(34, 197, 94, 0.09) 0%, transparent 40%),
+    linear-gradient(180deg, #1d2533 0%, #111620 100%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.014) 0px, rgba(255, 255, 255, 0.014) 2px, transparent 2px, transparent 6px);
+  border: clamp(14px, 2.2vw, 22px) solid #2d3848;
+  border-radius: 4px;
   box-shadow:
     0 0 0 4px #0c1017,
-    0 0 0 8px #334155,
-    0 24px 60px rgba(0, 0, 0, 0.95),
-    inset 0 0 24px rgba(0, 0, 0, 0.9);
+    0 0 0 8px #3e4c62,
+    0 24px 60px rgba(0, 0, 0, 0.98),
+    inset 0 0 32px rgba(0, 0, 0, 0.95),
+    inset 3px 3px 0 rgba(255, 255, 255, 0.15),
+    inset -3px -3px 0 rgba(0, 0, 0, 0.85);
   padding: clamp(14px, 2.2vw, 26px);
   display: flex;
   flex-direction: column;
@@ -45,109 +50,156 @@
   z-index: 10;
 }
 
-/* Corner Metallic Plates with Screws */
+/* Blocky Metallic Corner Brackets with 4 Corner Screws */
 .cornerRivetTL,
 .cornerRivetTR,
 .cornerRivetBL,
 .cornerRivetBR {
   position: absolute;
-  width: clamp(16px, 2.2vw, 24px);
-  height: clamp(16px, 2.2vw, 24px);
+  width: clamp(20px, 2.6vw, 30px);
+  height: clamp(20px, 2.6vw, 30px);
   background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
-  border: 2px solid #0f172a;
-  border-radius: 3px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+  border: 2.5px solid #0f172a;
+  border-radius: 2px;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.3),
+    0 3px 8px rgba(0, 0, 0, 0.95);
   z-index: 25;
   pointer-events: none;
 }
 
 .cornerRivetTL {
-  top: -12px;
-  left: -12px;
+  top: -14px;
+  left: -14px;
 }
 .cornerRivetTR {
-  top: -12px;
-  right: -12px;
+  top: -14px;
+  right: -14px;
 }
 .cornerRivetBL {
-  bottom: -12px;
-  left: -12px;
+  bottom: -14px;
+  left: -14px;
 }
 .cornerRivetBR {
-  bottom: -12px;
-  right: -12px;
+  bottom: -14px;
+  right: -14px;
 }
 
 /* Top & Bottom Mid-rail Rivets */
 .borderRivetTop,
 .borderRivetBottom {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle at 35% 35%, #cbd5e1 0%, #475569 65%, #0f172a 100%);
   border-radius: 50%;
-  border: 1px solid #1e293b;
+  border: 1.5px solid #0f172a;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
   z-index: 25;
   pointer-events: none;
 }
 
 .borderRivetTop {
-  top: -6px;
+  top: -8px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .borderRivetBottom {
-  bottom: -6px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
 }
 
-/* Moss & Ivy Vines crawling over stone frame */
-.mossTL,
-.mossTR,
-.mossBL,
-.mossBR {
-  position: absolute;
-  pointer-events: none;
-  z-index: 26;
-  opacity: 0.85;
-}
-
+/* Dense Pixel Moss & Ivy Crawling Over the Stone Frame */
 .mossTL {
-  top: -10px;
-  left: 14px;
-  width: 32px;
-  height: 18px;
-  background: radial-gradient(circle at 20% 20%, #4ade80 0%, #15803d 70%, transparent 100%);
-  border-radius: 6px;
+  position: absolute;
+  top: -16px;
+  left: 20px;
+  width: 56px;
+  height: 24px;
+  background:
+    radial-gradient(circle at 20% 30%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
+    radial-gradient(circle at 70% 60%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  border-radius: 2px 8px 4px 6px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.92;
 }
 
 .mossTR {
-  top: -10px;
-  right: 14px;
-  width: 28px;
-  height: 22px;
-  background: radial-gradient(circle at 80% 20%, #4ade80 0%, #166534 70%, transparent 100%);
-  border-radius: 6px;
+  position: absolute;
+  top: -16px;
+  right: 20px;
+  width: 52px;
+  height: 28px;
+  background:
+    radial-gradient(circle at 60% 30%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
+    radial-gradient(circle at 20% 70%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  border-radius: 6px 2px 6px 8px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.92;
 }
 
 .mossBL {
-  bottom: -10px;
-  left: 12px;
-  width: 36px;
-  height: 20px;
-  background: radial-gradient(circle at 20% 80%, #4ade80 0%, #14532d 70%, transparent 100%);
-  border-radius: 6px;
+  position: absolute;
+  bottom: -16px;
+  left: 18px;
+  width: 54px;
+  height: 26px;
+  background:
+    radial-gradient(circle at 30% 70%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
+    radial-gradient(circle at 80% 30%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  border-radius: 4px 6px 2px 8px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.92;
 }
 
 .mossBR {
-  bottom: -10px;
-  right: 12px;
-  width: 32px;
+  position: absolute;
+  bottom: -16px;
+  right: 18px;
+  width: 60px;
+  height: 24px;
+  background:
+    radial-gradient(circle at 70% 70%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
+    radial-gradient(circle at 20% 30%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  border-radius: 8px 4px 8px 2px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.92;
+}
+
+.mossTopMid {
+  position: absolute;
+  top: -12px;
+  left: 45%;
+  width: 44px;
   height: 18px;
-  background: radial-gradient(circle at 80% 80%, #4ade80 0%, #166534 70%, transparent 100%);
-  border-radius: 6px;
+  background: radial-gradient(circle at 40% 40%, #4ade80 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  border-radius: 4px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+.mossBottomMid {
+  position: absolute;
+  bottom: -12px;
+  left: 55%;
+  width: 40px;
+  height: 16px;
+  background: radial-gradient(circle at 50% 50%, #4ade80 0%, #15803d 60%, #14532d 90%, transparent 100%);
+  border-radius: 4px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.85;
 }
 
 /* Header Section */
@@ -157,7 +209,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  border-bottom: 2px solid #283342;
+  border-bottom: 2.5px solid #283342;
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
   padding-bottom: clamp(10px, 1.4vh, 16px);
 }
@@ -212,12 +264,17 @@
   }
 }
 
-/* Left Column: QR Card */
+/* Left Column: QR Card (Blocky Carved Mossy Stone Slab) */
 .qrCard {
-  background: #151a24;
-  border: 3px solid #283342;
-  outline: 1.5px solid #0f131a;
-  border-radius: 8px;
+  position: relative;
+  background:
+    radial-gradient(ellipse at top left, rgba(34, 197, 94, 0.09) 0%, transparent 40%),
+    radial-gradient(ellipse at bottom right, rgba(34, 197, 94, 0.06) 0%, transparent 45%),
+    linear-gradient(180deg, #1e2634 0%, #141a24 55%, #0e131b 100%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 2px, transparent 2px, transparent 6px);
+  border: 5px solid #3c495c;
+  outline: 2px solid #0a0e16;
+  border-radius: 4px;
   padding: clamp(12px, 1.8vw, 18px);
   display: flex;
   flex-direction: column;
@@ -226,8 +283,10 @@
   justify-content: space-between;
   gap: 12px;
   box-shadow:
-    inset 0 0 14px rgba(0, 0, 0, 0.8),
-    0 4px 12px rgba(0, 0, 0, 0.5);
+    inset 0 0 18px rgba(0, 0, 0, 0.92),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.16),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.8),
+    0 8px 18px rgba(0, 0, 0, 0.7);
   box-sizing: border-box;
 }
 
@@ -249,11 +308,12 @@
   height: clamp(180px, 18vw, 224px);
   background: #ffdb15;
   padding: 6px;
-  border: 3px solid #fef08a;
-  border-radius: 8px;
+  border: 3.5px solid #fef08a;
+  outline: 2px solid #854d0e;
+  border-radius: 4px;
   box-shadow:
-    0 0 16px rgba(254, 240, 138, 0.85),
-    0 0 32px rgba(245, 158, 11, 0.45),
+    0 0 18px rgba(254, 240, 138, 0.9),
+    0 0 36px rgba(245, 158, 11, 0.5),
     inset 0 0 8px rgba(254, 240, 138, 0.4);
   display: flex;
   align-items: center;
@@ -283,13 +343,14 @@
 /* Room Code Pill Box */
 .roomCodeBox {
   font-size: clamp(8.5px, 1.1vw, 11px);
-  background: #1e2634;
-  border: 1.5px solid #3b4758;
+  background: #171e2c;
+  border: 2px solid #3b4758;
+  outline: 1.5px solid #0f141e;
   color: #94a3b8;
   padding: 6px 16px;
-  border-radius: 4px;
+  border-radius: 3px;
   letter-spacing: 0.12em;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .roomCodeValue {
@@ -301,20 +362,23 @@
 .copyBtn {
   width: 100%;
   background: #1a2230;
-  border: 1.5px solid #856122;
+  border: 2px solid #856122;
+  outline: 1.5px solid #0f141e;
   color: #f6e05e;
   font-family: inherit;
   font-size: clamp(7px, 0.9vw, 9px);
   font-weight: 700;
   padding: 8px 12px;
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
   letter-spacing: 0.05em;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.1),
+    0 3px 6px rgba(0, 0, 0, 0.6);
   transition:
     transform 0.12s ease,
     background 0.15s ease,
@@ -352,21 +416,94 @@
   }
 }
 
-/* Stone Player Card Frame */
+/* Stone Player Card Frame - Blocky Carved Stone Panels */
 .playerCard {
   position: relative;
-  background: #171d27;
-  border: 2.5px solid #2d3748;
-  outline: 1.5px solid #0f131a;
-  border-radius: 8px;
+  background:
+    radial-gradient(ellipse at top left, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
+    radial-gradient(ellipse at bottom right, rgba(34, 197, 94, 0.06) 0%, transparent 45%),
+    linear-gradient(180deg, #1e2634 0%, #141a24 55%, #0e131b 100%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 2px, transparent 2px, transparent 6px);
+  border: 5px solid #3c495c;
+  outline: 2px solid #0a0e16;
+  border-radius: 4px;
   padding: clamp(12px, 1.6vw, 16px);
   display: flex;
   flex-direction: column;
   gap: clamp(10px, 1.4vh, 14px);
   box-shadow:
-    inset 0 0 12px rgba(0, 0, 0, 0.8),
-    0 4px 10px rgba(0, 0, 0, 0.4);
+    inset 0 0 18px rgba(0, 0, 0, 0.92),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.16),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.8),
+    0 8px 18px rgba(0, 0, 0, 0.7);
   box-sizing: border-box;
+}
+
+/* Card-level Blocky Square Bolts and Dense Moss Accents */
+.cardRivetTL,
+.cardRivetTR,
+.cardRivetBL,
+.cardRivetBR {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background: linear-gradient(135deg, #cbd5e1 0%, #64748b 50%, #1e293b 100%);
+  border-radius: 1px;
+  border: 1.5px solid #090e17;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.9);
+  z-index: 17;
+  pointer-events: none;
+}
+
+.cardRivetTL {
+  top: 5px;
+  left: 5px;
+}
+.cardRivetTR {
+  top: 5px;
+  right: 5px;
+}
+.cardRivetBL {
+  bottom: 5px;
+  left: 5px;
+}
+.cardRivetBR {
+  bottom: 5px;
+  right: 5px;
+}
+
+.cardMossTL {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  width: 28px;
+  height: 20px;
+  background:
+    radial-gradient(circle at 30% 30%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
+    radial-gradient(circle at 75% 70%, #86efac 0%, #16a34a 45%, #14532d 85%, transparent 100%);
+  border-radius: 3px 10px 4px 8px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
+  z-index: 18;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.cardMossBR {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  width: 30px;
+  height: 22px;
+  background:
+    radial-gradient(circle at 70% 70%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
+    radial-gradient(circle at 25% 30%, #86efac 0%, #16a34a 45%, #14532d 85%, transparent 100%);
+  border-radius: 8px 4px 10px 3px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
+  z-index: 18;
+  pointer-events: none;
+  opacity: 0.95;
 }
 
 /* Player 1 Card Header (Gold / Green) */
@@ -464,21 +601,23 @@
 
 .select {
   width: 100%;
-  background-color: #1a2232;
-  border: 1.5px solid #334155;
+  background-color: #171e2c;
+  border: 2px solid #3b485d;
+  outline: 1.5px solid #0c1017;
   color: #ffffff;
   font-family: inherit;
   font-size: clamp(7.5px, 1vw, 10px);
   font-weight: 700;
-  padding: clamp(7px, 1vh, 10px) clamp(28px, 3vw, 36px) clamp(7px, 1vh, 10px) clamp(10px, 1.2vw, 14px);
-  border-radius: 5px;
+  padding: clamp(8px, 1.1vh, 11px) clamp(28px, 3vw, 36px) clamp(8px, 1.1vh, 11px) clamp(10px, 1.2vw, 14px);
+  border-radius: 3px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
   box-shadow:
-    inset 0 1px 3px rgba(0, 0, 0, 0.7),
-    0 2px 4px rgba(0, 0, 0, 0.3);
+    inset 0 2px 6px rgba(0, 0, 0, 0.85),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+    0 2px 4px rgba(0, 0, 0, 0.4);
   transition: border-color 0.15s ease;
   box-sizing: border-box;
 }
@@ -486,7 +625,7 @@
 .select:hover,
 .select:focus {
   border-color: #f6e05e;
-  outline: none;
+  outline-color: #d97706;
 }
 
 .select option {
@@ -508,17 +647,23 @@
 
 /* Full Width Arena Section */
 .arenaSection {
-  background: #171d27;
-  border: 2px solid #2d3748;
-  outline: 1.5px solid #0f131a;
-  border-radius: 8px;
+  position: relative;
+  background:
+    radial-gradient(ellipse at top right, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
+    linear-gradient(180deg, #1e2634 0%, #141a24 55%, #0e131b 100%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 2px, transparent 2px, transparent 6px);
+  border: 4.5px solid #3c495c;
+  outline: 2px solid #0a0e16;
+  border-radius: 4px;
   padding: clamp(10px, 1.4vw, 14px);
   display: flex;
   flex-direction: column;
   gap: 6px;
   box-shadow:
-    inset 0 0 12px rgba(0, 0, 0, 0.8),
-    0 4px 10px rgba(0, 0, 0, 0.4);
+    inset 0 0 16px rgba(0, 0, 0, 0.92),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.14),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.8),
+    0 6px 14px rgba(0, 0, 0, 0.65);
 }
 
 /* Actions Footer: Back Button, Tip, and Start Button */
@@ -526,27 +671,30 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 2px solid #283342;
+  border-top: 2.5px solid #283342;
   box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.05);
   padding-top: clamp(12px, 1.6vh, 18px);
   flex-wrap: wrap;
   gap: 12px;
 }
 
-/* Back to Menu Button */
+/* Back to Menu Button: Heavy Blocky Slate Button */
 .backBtn {
-  background: linear-gradient(180deg, #252e3e 0%, #171d27 100%);
+  background: linear-gradient(180deg, #2b3648 0%, #1a202c 100%);
   color: #cbd5e1;
-  border: 2px solid #334155;
-  outline: 1.5px solid #0f141e;
-  padding: clamp(8px, 1.2vh, 12px) clamp(14px, 2vw, 20px);
+  border: 2.5px solid #475569;
+  outline: 2px solid #0f141e;
+  padding: clamp(9px, 1.3vh, 13px) clamp(16px, 2vw, 22px);
   font-family: inherit;
   font-size: clamp(7.5px, 1vw, 10px);
   font-weight: 700;
   letter-spacing: 0.05em;
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.2),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.7);
   transition:
     transform 0.12s ease,
     background 0.15s ease,
@@ -555,10 +703,11 @@
 }
 
 .backBtn:hover {
-  background: linear-gradient(180deg, #742a2a 0%, #4a1515 100%);
+  background: linear-gradient(180deg, #822727 0%, #4c1313 100%);
   color: #ffffff;
-  border-color: #991b1b;
-  transform: translateY(-1px);
+  border-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 0 16px rgba(220, 38, 38, 0.5);
 }
 
 .backBtn:active {
@@ -584,24 +733,26 @@
   filter: drop-shadow(0 0 6px #f6e05e);
 }
 
-/* Giant Glowing Gold Start Local Duel Button */
+/* Giant Glowing Gold Start Local Duel Button: Heavy Blocky Golden Ingot Stone */
 .startBtn {
-  background: linear-gradient(180deg, #fce052 0%, #f59e0b 60%, #b45309 100%);
-  color: #111622;
-  border: clamp(2.5px, 0.4vw, 4px) solid #fef08a;
-  outline: 2px solid #78350f;
-  padding: clamp(10px, 1.5vh, 15px) clamp(18px, 2.5vw, 28px);
+  background: linear-gradient(180deg, #fef08a 0%, #facc15 35%, #eab308 70%, #a16207 100%);
+  color: #0f172a;
+  border: clamp(3px, 0.4vw, 4px) solid #fef9c3;
+  outline: 2.5px solid #713f12;
+  padding: clamp(11px, 1.6vh, 16px) clamp(20px, 2.8vw, 32px);
   font-family: inherit;
   font-size: clamp(9px, 1.3vw, 13px);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  border-radius: 6px;
+  border-radius: 3px;
   cursor: pointer;
   box-shadow:
-    0 0 20px rgba(245, 158, 11, 0.65),
-    0 0 40px rgba(245, 158, 11, 0.35),
-    0 8px 18px rgba(0, 0, 0, 0.8);
+    inset 2px 2px 0 rgba(255, 255, 255, 0.8),
+    inset -2px -2px 0 rgba(113, 63, 18, 0.7),
+    0 0 20px rgba(250, 204, 21, 0.7),
+    0 0 40px rgba(234, 179, 8, 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.9);
   transform: translate3d(0, 0, 0);
   transition:
     transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
@@ -613,15 +764,16 @@
 }
 
 .startBtn:hover {
-  transform: translate3d(0, -2px, 0) scale(1.02);
-  filter: brightness(1.08);
+  transform: translate3d(0, -3px, 0) scale(1.02);
+  filter: brightness(1.06);
   box-shadow:
-    0 0 28px rgba(254, 240, 138, 0.85),
-    0 0 50px rgba(245, 158, 11, 0.6),
-    0 12px 24px rgba(0, 0, 0, 0.9);
+    inset 2px 2px 0 rgba(255, 255, 255, 0.9),
+    0 0 30px rgba(254, 240, 138, 0.95),
+    0 0 55px rgba(234, 179, 8, 0.65),
+    0 12px 24px rgba(0, 0, 0, 0.95);
 }
 
 .startBtn:active {
-  transform: translate3d(0, 1px, 0) scale(0.98);
+  transform: translate3d(0, 2px, 0) scale(0.98);
   filter: brightness(0.95);
 }

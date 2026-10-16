@@ -184,6 +184,8 @@ export default function LocalDuelPage() {
         <div className={styles.mossTR} aria-hidden="true" />
         <div className={styles.mossBL} aria-hidden="true" />
         <div className={styles.mossBR} aria-hidden="true" />
+        <div className={styles.mossTopMid} aria-hidden="true" />
+        <div className={styles.mossBottomMid} aria-hidden="true" />
 
         {/* Header */}
         <header className={styles.header}>
@@ -203,6 +205,12 @@ export default function LocalDuelPage() {
         <div className={styles.mainGrid}>
           {/* Left Column: QR Card */}
           <div className={styles.qrCard} role="region" aria-label="Smartphone Controller Setup">
+            <div className={styles.cardRivetTL} aria-hidden="true" />
+            <div className={styles.cardRivetTR} aria-hidden="true" />
+            <div className={styles.cardRivetBL} aria-hidden="true" />
+            <div className={styles.cardRivetBR} aria-hidden="true" />
+            <div className={styles.cardMossTL} aria-hidden="true" />
+
             <p className={styles.qrInstruction}>SCAN WITH PHONE CAMERA TO PLAY AS CONTROLLER</p>
 
             {/* Dedicated Space ONLY for QR Code (Never blurry) */}
@@ -238,6 +246,12 @@ export default function LocalDuelPage() {
             <div className={styles.playersGrid}>
               {/* Player 1 Card */}
               <div className={styles.playerCard}>
+                <div className={styles.cardRivetTL} aria-hidden="true" />
+                <div className={styles.cardRivetTR} aria-hidden="true" />
+                <div className={styles.cardRivetBL} aria-hidden="true" />
+                <div className={styles.cardRivetBR} aria-hidden="true" />
+                <div className={styles.cardMossTL} aria-hidden="true" />
+
                 <div className={styles.cardHeaderP1}>
                   <span>👑 PLAYER 1</span>
                   <span className={styles.selectTag}>
@@ -309,6 +323,12 @@ export default function LocalDuelPage() {
 
               {/* Player 2 Card */}
               <div className={styles.playerCard}>
+                <div className={styles.cardRivetTL} aria-hidden="true" />
+                <div className={styles.cardRivetTR} aria-hidden="true" />
+                <div className={styles.cardRivetBL} aria-hidden="true" />
+                <div className={styles.cardRivetBR} aria-hidden="true" />
+                <div className={styles.cardMossBR} aria-hidden="true" />
+
                 <div className={styles.cardHeaderP2}>
                   <span>⚔️ PLAYER 2</span>
                   <span className={styles.selectTag}>
@@ -381,6 +401,11 @@ export default function LocalDuelPage() {
 
             {/* Arena Selection */}
             <div className={styles.arenaSection}>
+              <div className={styles.cardRivetTL} aria-hidden="true" />
+              <div className={styles.cardRivetTR} aria-hidden="true" />
+              <div className={styles.cardRivetBL} aria-hidden="true" />
+              <div className={styles.cardRivetBR} aria-hidden="true" />
+              <div className={styles.cardMossTL} aria-hidden="true" />
               <label htmlFor="arenaSelect" className={styles.label}>
                 ARENA BATTLEGROUND:
               </label>
