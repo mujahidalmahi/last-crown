@@ -13,6 +13,7 @@ import {
 export type VoiceStatus =
   | 'disconnected'
   | 'requesting_permission'
+  | 'waiting_rival'
   | 'connecting'
   | 'connected'
   | 'error';
@@ -30,6 +31,7 @@ export interface VoiceChatState {
   isUserSpeaking: boolean;
   isOpponentSpeaking: boolean;
   opponentInVoice: boolean;
+  isOpponentMuted: boolean;
   error: string | null;
   remoteAudioRef: MutableRefObject<HTMLAudioElement | null>;
   joinVoice: () => Promise<void>;
@@ -38,15 +40,68 @@ export interface VoiceChatState {
   toggleDeafen: () => void;
 }
 
-const ICE_SERVERS: RTCConfiguration = {
+export const VOICE_ICE_SERVERS: RTCConfiguration = {
   iceServers: [
+    // Google Public STUN
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
     { urls: 'stun:stun2.l.google.com:19302' },
+    // Cloudflare Public STUN
     { urls: 'stun:stun.cloudflare.com:3478' },
+    // Free Public TURN (Metered Open Relay - handles restrictive NATs, 4G/5G, symmetric firewalls)
+    { urls: 'stun:openrelay.metered.ca:80' },
+    {
+      urls: 'turn:openrelay.metered.ca:80?transport=udp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:80?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
   ],
   iceCandidatePoolSize: 10,
 };
+
+function getOrCreateAudioElement(): HTMLAudioElement | null {
+  if (typeof document === 'undefined') return null;
+  let el = document.getElementById('last-crown-remote-voice-audio') as HTMLAudioElement | null;
+  if (!el) {
+    el = document.createElement('audio');
+    el.id = 'last-crown-remote-voice-audio';
+    el.autoplay = true;
+    el.setAttribute('playsinline', 'true');
+    el.setAttribute('webkit-playsinline', 'true');
+    el.style.position = 'fixed';
+    el.style.top = '-9999px';
+    el.style.left = '-9999px';
+    el.style.opacity = '0';
+    el.style.pointerEvents = 'none';
+    document.body.appendChild(el);
+  }
+  return el;
+}
+
+function playAudioSafely(audio: HTMLAudioElement) {
+  audio.play().catch(err => {
+    console.warn('[VoiceChat] Audio playback deferred awaiting user interaction:', err);
+    const unlock = () => {
+      audio.play().catch(() => {});
+      window.removeEventListener('pointerdown', unlock);
+      window.removeEventListener('keydown', unlock);
+      window.removeEventListener('click', unlock);
+    };
+    window.addEventListener('pointerdown', unlock, { once: true });
+    window.addEventListener('keydown', unlock, { once: true });
+    window.addEventListener('click', unlock, { once: true });
+  });
+}
 
 export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {}): VoiceChatState {
   const [isSupported, setIsSupported] = useState<boolean>(true);
@@ -56,22 +111,33 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   const [isUserSpeaking, setIsUserSpeaking] = useState<boolean>(false);
   const [isOpponentSpeaking, setIsOpponentSpeaking] = useState<boolean>(false);
   const [opponentInVoice, setOpponentInVoice] = useState<boolean>(false);
+  const [isOpponentMuted, setIsOpponentMuted] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const candidateQueueRef = useRef<RTCIceCandidateInit[]>([]);
   const opponentSessionIdRef = useRef<string | null>(null);
-  const makingOfferRef = useRef<boolean>(false);
-  const ignoreOfferRef = useRef<boolean>(false);
   const isJoinedRef = useRef<boolean>(false);
+  const isDeafenedRef = useRef<boolean>(false);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Audio Analysers for voice activity detection
   const audioContextRef = useRef<AudioContext | null>(null);
   const localAnalyserRef = useRef<AnalyserNode | null>(null);
   const remoteAnalyserRef = useRef<AnalyserNode | null>(null);
   const activityCheckTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    isDeafenedRef.current = isDeafened;
+    const audio = getOrCreateAudioElement();
+    if (audio) {
+      audio.muted = isDeafened;
+    }
+  }, [isDeafened]);
 
   // Check WebRTC browser support on mount
   useEffect(() => {
@@ -82,11 +148,29 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       typeof navigator.mediaDevices.getUserMedia === 'function' &&
       typeof window.RTCPeerConnection !== 'undefined';
     setIsSupported(supported);
+
+    // Bind DOM audio element ref
+    remoteAudioRef.current = getOrCreateAudioElement();
   }, []);
 
-  // Cleanup helper
+  // Send signaling message strictly to the opponent in this match instance
+  const sendSignal = useCallback(
+    (signal: VoiceSignalPayload) => {
+      if (room && room.sessionId) {
+        room.send(ClientMessageType.VOICE_SIGNAL, { signal });
+      }
+    },
+    [room]
+  );
+
+  // Teardown helper
   const cleanup = useCallback(() => {
     isJoinedRef.current = false;
+
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current);
+      reconnectTimeoutRef.current = null;
+    }
 
     if (activityCheckTimerRef.current) {
       clearInterval(activityCheckTimerRef.current);
@@ -105,15 +189,16 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     if (pcRef.current) {
       pcRef.current.onicecandidate = null;
       pcRef.current.ontrack = null;
-      pcRef.current.onnegotiationneeded = null;
       pcRef.current.onconnectionstatechange = null;
       pcRef.current.close();
       pcRef.current = null;
     }
 
-    if (remoteAudioRef.current) {
-      remoteAudioRef.current.srcObject = null;
+    const audio = getOrCreateAudioElement();
+    if (audio) {
+      audio.srcObject = null;
     }
+    remoteStreamRef.current = null;
 
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close().catch(() => {});
@@ -124,35 +209,14 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     remoteAnalyserRef.current = null;
     candidateQueueRef.current = [];
     opponentSessionIdRef.current = null;
-    makingOfferRef.current = false;
-    ignoreOfferRef.current = false;
 
     setIsUserSpeaking(false);
     setIsOpponentSpeaking(false);
     setOpponentInVoice(false);
+    setIsOpponentMuted(false);
   }, []);
 
-  // Send signaling message strictly to the opponent in this match instance
-  const sendSignal = useCallback(
-    (signal: VoiceSignalPayload) => {
-      if (room && room.sessionId) {
-        room.send(ClientMessageType.VOICE_SIGNAL, { signal });
-      }
-    },
-    [room]
-  );
-
-  // Helper to ensure audio playback is unblocked by user gestures
-  const ensureAudioPlayback = useCallback(() => {
-    if (remoteAudioRef.current && remoteAudioRef.current.srcObject) {
-      remoteAudioRef.current.play().catch(() => {});
-    }
-    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-      audioContextRef.current.resume().catch(() => {});
-    }
-  }, []);
-
-  // Initialize Web Audio API Analyser for speech detection
+  // Initialize Web Audio API Analyser for voice activity detection
   const setupAudioAnalysers = useCallback((localStream: MediaStream) => {
     try {
       const AudioContextClass =
@@ -190,7 +254,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
           }
 
           // Check remote opponent speaking
-          if (remoteAnalyserRef.current) {
+          if (remoteAnalyserRef.current && !isDeafenedRef.current) {
             const remoteData = new Uint8Array(remoteAnalyserRef.current.frequencyBinCount);
             remoteAnalyserRef.current.getByteFrequencyData(remoteData);
             const sum = remoteData.reduce((acc, v) => acc + v, 0);
@@ -206,114 +270,120 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     }
   }, []);
 
-  // Create & wire RTCPeerConnection with W3C Perfect Negotiation
-  const createPeerConnection = useCallback(
-    (localStream: MediaStream): RTCPeerConnection => {
-      if (pcRef.current) {
-        pcRef.current.close();
+  // Attach remote stream to audio element and remote analyser
+  const attachRemoteStream = useCallback((stream: MediaStream) => {
+    remoteStreamRef.current = stream;
+    const audio = getOrCreateAudioElement();
+    if (audio) {
+      audio.srcObject = stream;
+      audio.muted = isDeafenedRef.current;
+      playAudioSafely(audio);
+    }
+
+    try {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+        const remoteSource = audioContextRef.current.createMediaStreamSource(stream);
+        const remoteAnalyser = audioContextRef.current.createAnalyser();
+        remoteAnalyser.fftSize = 256;
+        remoteAnalyser.smoothingTimeConstant = 0.3;
+        remoteSource.connect(remoteAnalyser);
+        remoteAnalyserRef.current = remoteAnalyser;
       }
+    } catch (e) {
+      console.warn('[VoiceChat] Remote analyser attach notice:', e);
+    }
+  }, []);
 
-      const pc = new RTCPeerConnection(ICE_SERVERS);
-      pcRef.current = pc;
+  // Create PeerConnection instance with audio tracks
+  const createPeerConnection = useCallback((): RTCPeerConnection => {
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
 
-      // Add local audio tracks to peer connection
-      localStream.getAudioTracks().forEach(track => {
-        pc.addTrack(track, localStream);
+    const pc = new RTCPeerConnection(VOICE_ICE_SERVERS);
+    pcRef.current = pc;
+
+    // Add local mic audio track
+    if (localStreamRef.current) {
+      localStreamRef.current.getAudioTracks().forEach(track => {
+        pc.addTrack(track, localStreamRef.current!);
+      });
+    }
+
+    // Stream ICE candidates to opponent
+    pc.onicecandidate = event => {
+      if (event.candidate) {
+        sendSignal({
+          type: 'candidate',
+          data: event.candidate.toJSON(),
+        });
+      }
+    };
+
+    // Receive opponent audio stream
+    pc.ontrack = event => {
+      if (event.streams && event.streams[0]) {
+        attachRemoteStream(event.streams[0]);
+      }
+    };
+
+    // Connection lifecycle monitoring
+    pc.onconnectionstatechange = () => {
+      if (!pcRef.current) return;
+      const state = pcRef.current.connectionState;
+
+      if (state === 'connected') {
+        setStatus('connected');
+        setError(null);
+      } else if (state === 'connecting') {
+        setStatus('connecting');
+      } else if (state === 'failed' || state === 'disconnected') {
+        if (isJoinedRef.current && opponentSessionIdRef.current) {
+          setStatus('connecting');
+          // Auto-reconnect if caller
+          if (room && room.sessionId && room.sessionId > opponentSessionIdRef.current) {
+            if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = setTimeout(() => {
+              if (isJoinedRef.current && opponentSessionIdRef.current) {
+                initiateOffer();
+              }
+            }, 1200);
+          }
+        } else {
+          setStatus(isJoinedRef.current ? 'waiting_rival' : 'disconnected');
+        }
+      }
+    };
+
+    return pc;
+  }, [sendSignal, attachRemoteStream, room]);
+
+  // Deterministic call initiation: called ONLY by the designated initiator
+  const initiateOffer = useCallback(async () => {
+    if (!isJoinedRef.current || !localStreamRef.current || !opponentSessionIdRef.current) {
+      return;
+    }
+
+    try {
+      setStatus('connecting');
+      const pc = createPeerConnection();
+
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: true,
+        offerToReceiveVideo: false,
       });
 
-      // Stream incoming ICE candidates to opponent
-      pc.onicecandidate = event => {
-        if (event.candidate) {
-          sendSignal({
-            type: 'candidate',
-            data: event.candidate.toJSON(),
-          });
-        }
-      };
+      await pc.setLocalDescription(offer);
 
-      // Perfect Negotiation: onnegotiationneeded handles offer creation automatically
-      pc.onnegotiationneeded = async () => {
-        try {
-          makingOfferRef.current = true;
-          const offer = await pc.createOffer({
-            offerToReceiveAudio: true,
-            offerToReceiveVideo: false,
-          });
-          if (pc.signalingState !== 'stable') return;
-          await pc.setLocalDescription(offer);
-          sendSignal({
-            type: 'description',
-            data: pc.localDescription,
-          });
-        } catch (err) {
-          console.error('[VoiceChat] Negotiation offer error:', err);
-        } finally {
-          makingOfferRef.current = false;
-        }
-      };
-
-      // Handle receiving opponent audio stream
-      pc.ontrack = event => {
-        if (event.streams && event.streams[0]) {
-          const stream = event.streams[0];
-          setOpponentInVoice(true);
-
-          if (!remoteAudioRef.current) {
-            const audio = new Audio();
-            audio.autoplay = true;
-            remoteAudioRef.current = audio;
-          }
-
-          remoteAudioRef.current.srcObject = stream;
-          remoteAudioRef.current.muted = isDeafened;
-          remoteAudioRef.current.play().catch(e => {
-            console.warn('[VoiceChat] Autoplay restricted until user interaction:', e);
-            // Resume on next user interaction
-            const resumeHandler = () => {
-              ensureAudioPlayback();
-              window.removeEventListener('pointerdown', resumeHandler);
-              window.removeEventListener('keydown', resumeHandler);
-            };
-            window.addEventListener('pointerdown', resumeHandler, { once: true });
-            window.addEventListener('keydown', resumeHandler, { once: true });
-          });
-
-          // Setup remote analyser
-          try {
-            if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-              const remoteSource = audioContextRef.current.createMediaStreamSource(stream);
-              const remoteAnalyser = audioContextRef.current.createAnalyser();
-              remoteAnalyser.fftSize = 256;
-              remoteAnalyser.smoothingTimeConstant = 0.3;
-              remoteSource.connect(remoteAnalyser);
-              remoteAnalyserRef.current = remoteAnalyser;
-            }
-          } catch {}
-        }
-      };
-
-      pc.onconnectionstatechange = () => {
-        if (!pcRef.current) return;
-        const state = pcRef.current.connectionState;
-        if (state === 'connected') {
-          setStatus('connected');
-          setError(null);
-        } else if (state === 'connecting') {
-          setStatus('connecting');
-        } else if (state === 'failed' || state === 'closed') {
-          if (isJoinedRef.current) {
-            setStatus('connecting');
-          } else {
-            setStatus('disconnected');
-          }
-          setOpponentInVoice(false);
-        }
-      };
-
-      return pc;
-    },
-    [sendSignal, isDeafened, ensureAudioPlayback]
-  );
+      sendSignal({
+        type: 'offer',
+        data: offer,
+      });
+    } catch (err) {
+      console.error('[VoiceChat] Failed to create WebRTC offer:', err);
+    }
+  }, [createPeerConnection, sendSignal]);
 
   // Join Voice Chat
   const joinVoice = useCallback(async () => {
@@ -340,27 +410,28 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       localStreamRef.current = stream;
       isJoinedRef.current = true;
       setIsMuted(!stream.getAudioTracks()[0]?.enabled);
+
       setupAudioAnalysers(stream);
 
-      // Create Peer Connection
-      createPeerConnection(stream);
-      setStatus('connecting');
+      // Check if opponent is already in voice
+      if (opponentSessionIdRef.current) {
+        setStatus('connecting');
+      } else {
+        setStatus('waiting_rival');
+      }
 
-      // Ensure any existing audio contexts are resumed on user click
-      ensureAudioPlayback();
-
-      // Announce ready presence to opponent in this match instance
+      // Announce readiness to the room
       sendSignal({ type: 'ready' });
 
-      // If opponent is already in voice and we know their session, initiate offer directly if negotiationneeded hasn't
-      if (opponentSessionIdRef.current) {
-        setOpponentInVoice(true);
+      // If opponent is already in voice and we are the designated initiator, start call
+      if (opponentSessionIdRef.current && room.sessionId > opponentSessionIdRef.current) {
+        await initiateOffer();
       }
     } catch (err: unknown) {
       let errorMsg = 'Failed to access microphone';
       if (err instanceof Error) {
         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-          errorMsg = 'Microphone permission denied. Enable microphone access in your browser.';
+          errorMsg = 'Microphone permission denied. Allow microphone access in your browser.';
         } else if (err.name === 'NotFoundError') {
           errorMsg = 'No microphone device found on your system.';
         } else {
@@ -371,7 +442,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       setStatus('error');
       cleanup();
     }
-  }, [room, createPeerConnection, sendSignal, setupAudioAnalysers, ensureAudioPlayback, cleanup]);
+  }, [room, setupAudioAnalysers, sendSignal, initiateOffer, cleanup]);
 
   // Leave Voice Chat
   const leaveVoice = useCallback(() => {
@@ -400,8 +471,9 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   const toggleDeafen = useCallback(() => {
     setIsDeafened(prev => {
       const next = !prev;
-      if (remoteAudioRef.current) {
-        remoteAudioRef.current.muted = next;
+      const audio = getOrCreateAudioElement();
+      if (audio) {
+        audio.muted = next;
       }
       return next;
     });
@@ -414,94 +486,88 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     const messageHandler = async (message: VoiceSignalServerMessage) => {
       if (!message || !message.signal) return;
       const { signal, from } = message;
+
+      // Track opponent session ID
       opponentSessionIdRef.current = from;
 
-      // Opponent is in voice
+      // 1. Ready presence signal
       if (signal.type === 'ready') {
         setOpponentInVoice(true);
-        // If we are already joined in voice, respond with ready so opponent knows we are in voice too
+
         if (isJoinedRef.current && localStreamRef.current) {
+          // Send acknowledgment ready back
           sendSignal({ type: 'ready' });
 
-          // If our peer connection is idle, trigger renegotiation
-          const pc = pcRef.current;
-          if (pc && pc.signalingState === 'stable') {
-            try {
-              makingOfferRef.current = true;
-              const offer = await pc.createOffer();
-              await pc.setLocalDescription(offer);
-              sendSignal({
-                type: 'description',
-                data: pc.localDescription,
-              });
-            } catch (err) {
-              console.error('[VoiceChat] Ready handshake offer error:', err);
-            } finally {
-              makingOfferRef.current = false;
-            }
+          // Deterministic role: higher sessionId initiates the offer
+          if (room.sessionId > from) {
+            await initiateOffer();
+          } else {
+            setStatus('connecting');
           }
         }
         return;
       }
 
-      // WebRTC Description (Offer or Answer) - Perfect Negotiation
-      if (
-        (signal.type === 'description' || signal.type === 'offer' || signal.type === 'answer') &&
-        signal.data
-      ) {
+      // 2. Incoming Offer (Responder handles offer)
+      if ((signal.type === 'offer' || signal.type === 'description') && signal.data) {
         setOpponentInVoice(true);
-        try {
-          let pc = pcRef.current;
-          if (!pc && localStreamRef.current) {
-            pc = createPeerConnection(localStreamRef.current);
-          }
-          if (!pc) return;
+        const desc = signal.data as RTCSessionDescriptionInit;
 
-          const desc = signal.data as RTCSessionDescriptionInit;
-          const isOffer = desc.type === 'offer';
-
-          // Politeness tie-break: peer with lexicographically higher sessionId is polite
-          const isPolite = room.sessionId > from;
-          const offerCollision = isOffer && (makingOfferRef.current || pc.signalingState !== 'stable');
-          ignoreOfferRef.current = !isPolite && offerCollision;
-
-          if (ignoreOfferRef.current) {
-            console.log('[VoiceChat] Impolite peer ignoring colliding offer');
+        if (desc.type === 'offer') {
+          if (!isJoinedRef.current || !localStreamRef.current) {
             return;
           }
 
-          if (offerCollision) {
-            await Promise.all([
-              pc.setLocalDescription({ type: 'rollback' }),
-              pc.setRemoteDescription(new RTCSessionDescription(desc)),
-            ]);
-          } else {
+          try {
+            setStatus('connecting');
+            const pc = createPeerConnection();
             await pc.setRemoteDescription(new RTCSessionDescription(desc));
-          }
 
-          // Drain queued ICE candidates
-          while (candidateQueueRef.current.length > 0) {
-            const candidate = candidateQueueRef.current.shift();
-            if (candidate) {
-              await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+            // Drain queued ICE candidates
+            while (candidateQueueRef.current.length > 0) {
+              const candidate = candidateQueueRef.current.shift();
+              if (candidate) {
+                await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+              }
             }
-          }
 
-          if (isOffer) {
+            // Create and send answer
             const answer = await pc.createAnswer();
             await pc.setLocalDescription(answer);
+
             sendSignal({
-              type: 'description',
-              data: pc.localDescription,
+              type: 'answer',
+              data: answer,
             });
+          } catch (err) {
+            console.error('[VoiceChat] Responder offer handling error:', err);
           }
-        } catch (err) {
-          console.error('[VoiceChat] Description exchange error:', err);
+          return;
         }
-        return;
+
+        // 3. Incoming Answer (Initiator handles answer)
+        if (desc.type === 'answer') {
+          const pc = pcRef.current;
+          if (pc) {
+            try {
+              await pc.setRemoteDescription(new RTCSessionDescription(desc));
+
+              // Drain queued ICE candidates
+              while (candidateQueueRef.current.length > 0) {
+                const candidate = candidateQueueRef.current.shift();
+                if (candidate) {
+                  await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+                }
+              }
+            } catch (err) {
+              console.error('[VoiceChat] Initiator answer handling error:', err);
+            }
+          }
+          return;
+        }
       }
 
-      // Received ICE Candidate
+      // 4. Incoming ICE Candidate
       if (signal.type === 'candidate' && signal.data) {
         try {
           const candidateData = signal.data as RTCIceCandidateInit;
@@ -512,38 +578,52 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
             candidateQueueRef.current.push(candidateData);
           }
         } catch (err) {
-          if (!ignoreOfferRef.current) {
-            console.error('[VoiceChat] Error adding ICE candidate:', err);
-          }
+          console.error('[VoiceChat] ICE candidate handling error:', err);
         }
         return;
       }
 
-      // Opponent left voice chat
+      // 5. Opponent Mute Status Signal
+      if (signal.type === 'mute' && signal.data) {
+        const data = signal.data as { isMuted?: boolean };
+        setIsOpponentMuted(!!data.isMuted);
+        return;
+      }
+
+      // 6. Opponent Left Voice
       if (signal.type === 'leave') {
         setOpponentInVoice(false);
         setIsOpponentSpeaking(false);
-        if (remoteAudioRef.current) {
-          remoteAudioRef.current.srcObject = null;
+        setIsOpponentMuted(false);
+        opponentSessionIdRef.current = null;
+
+        const audio = getOrCreateAudioElement();
+        if (audio) {
+          audio.srcObject = null;
         }
+        remoteStreamRef.current = null;
+
         if (pcRef.current) {
           pcRef.current.close();
           pcRef.current = null;
         }
-        if (isJoinedRef.current && localStreamRef.current) {
-          // Re-create peer connection to be ready for opponent return or rematch
-          createPeerConnection(localStreamRef.current);
+
+        if (isJoinedRef.current) {
+          setStatus('waiting_rival');
         }
+        return;
       }
     };
 
-    // Bind Colyseus message listener
-    room.onMessage(ServerMessageType.VOICE_SIGNAL, messageHandler);
+    // Bind Colyseus message listener and capture unsubscribe function
+    const unsubscribe = room.onMessage(ServerMessageType.VOICE_SIGNAL, messageHandler);
 
     return () => {
-      // Room listeners in Colyseus
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
     };
-  }, [room, createPeerConnection, sendSignal]);
+  }, [room, createPeerConnection, initiateOffer, sendSignal]);
 
   // Auto-join if requested
   useEffect(() => {
@@ -567,6 +647,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     isUserSpeaking,
     isOpponentSpeaking,
     opponentInVoice,
+    isOpponentMuted,
     error,
     remoteAudioRef,
     joinVoice,

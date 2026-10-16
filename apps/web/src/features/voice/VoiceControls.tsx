@@ -17,8 +17,8 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
     isUserSpeaking,
     isOpponentSpeaking,
     opponentInVoice,
+    isOpponentMuted,
     error,
-    remoteAudioRef,
     joinVoice,
     leaveVoice,
     toggleMute,
@@ -29,17 +29,16 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
     return null;
   }
 
-  // Not connected state
+  // 1. Disconnected state: Single clean CTA button
   if (status === 'disconnected') {
     return (
       <div style={{ display: 'inline-flex', alignItems: 'center', pointerEvents: 'auto' }}>
-        <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
         <button
           type="button"
           onClick={joinVoice}
           title="Enable free peer-to-peer voice chat with your opponent"
           style={{
-            backgroundColor: 'rgba(10, 14, 22, 0.82)',
+            backgroundColor: 'rgba(10, 14, 22, 0.85)',
             color: '#f1c40f',
             border: '1px solid rgba(212, 175, 55, 0.5)',
             borderRadius: '6px',
@@ -64,16 +63,16 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
     );
   }
 
-  // Requesting permissions or connecting state
-  if (status === 'requesting_permission' || status === 'connecting') {
+  // 2. Requesting Mic Permissions
+  if (status === 'requesting_permission') {
     return (
       <div
         style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: 'rgba(10, 14, 22, 0.88)',
-          border: '1px solid rgba(241, 196, 15, 0.5)',
+          backgroundColor: 'rgba(10, 14, 22, 0.92)',
+          border: '1px solid rgba(241, 196, 15, 0.6)',
           borderRadius: '6px',
           padding: '6px 14px',
           color: '#f1c40f',
@@ -86,14 +85,137 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
         }}
       >
         <span style={{ animation: 'spin 1.2s linear infinite' }}>⏳</span>
-        <span>
-          {status === 'requesting_permission' ? 'Grant Mic Access...' : 'Connecting P2P Voice...'}
-        </span>
+        <span>Grant Mic Access...</span>
       </div>
     );
   }
 
-  // Error state
+  // 3. User Mic Active, Waiting for Rival to enable voice
+  if (status === 'waiting_rival') {
+    return (
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          backgroundColor: 'rgba(10, 14, 22, 0.92)',
+          border: '1px solid rgba(212, 175, 55, 0.4)',
+          borderRadius: '8px',
+          padding: '4px 8px',
+          backdropFilter: 'blur(8px)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.7)',
+          pointerEvents: 'auto',
+        }}
+      >
+        {/* Local Mic button while waiting */}
+        <button
+          type="button"
+          onClick={toggleMute}
+          title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            backgroundColor: isMuted ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.06)',
+            border: isMuted ? '1px solid #ef4444' : '1px solid rgba(212, 175, 55, 0.3)',
+            borderRadius: '5px',
+            padding: '3px 8px',
+            color: isMuted ? '#f87171' : '#f1c40f',
+            fontSize: '0.76rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+          }}
+        >
+          <span>{isMuted ? '🔇' : '🎙️'}</span>
+          <span>{isMuted ? 'Muted' : 'Mic Active'}</span>
+        </button>
+
+        {/* Rival prompt badge */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '2px 8px',
+            fontSize: '0.76rem',
+            color: '#cbd5e1',
+          }}
+        >
+          <span
+            style={{
+              width: '6px',
+              height: '6px',
+              borderRadius: '50%',
+              backgroundColor: '#eab308',
+              boxShadow: '0 0 6px #eab308',
+            }}
+          />
+          <span>Waiting for Rival to enable voice...</span>
+        </div>
+
+        {/* Cancel button */}
+        <button
+          type="button"
+          onClick={leaveVoice}
+          title="Turn off voice chat"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#94a3b8',
+            padding: '2px 6px',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  // 4. Connecting P2P handshake
+  if (status === 'connecting') {
+    return (
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          backgroundColor: 'rgba(10, 14, 22, 0.92)',
+          border: '1px solid rgba(52, 152, 219, 0.6)',
+          borderRadius: '8px',
+          padding: '4px 10px',
+          color: '#60a5fa',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          backdropFilter: 'blur(6px)',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
+          pointerEvents: 'auto',
+        }}
+      >
+        <span style={{ animation: 'spin 1.2s linear infinite' }}>⏳</span>
+        <span>Connecting P2P Voice...</span>
+        <button
+          type="button"
+          onClick={leaveVoice}
+          title="Cancel"
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#94a3b8',
+            padding: '2px 4px',
+            cursor: 'pointer',
+            fontSize: '0.85rem',
+            marginLeft: '4px',
+          }}
+        >
+          ✕
+        </button>
+      </div>
+    );
+  }
+
+  // 5. Error state
   if (status === 'error') {
     return (
       <div
@@ -101,14 +223,14 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: 'rgba(50, 10, 10, 0.9)',
+          backgroundColor: 'rgba(50, 10, 10, 0.92)',
           border: '1px solid #ef4444',
           borderRadius: '6px',
           padding: '6px 12px',
           color: '#fca5a5',
           fontSize: '0.78rem',
           pointerEvents: 'auto',
-          maxWidth: '320px',
+          maxWidth: '340px',
         }}
         title={error || 'Microphone error'}
       >
@@ -150,14 +272,14 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
     );
   }
 
-  // Connected state: Full Voice Bar
+  // 6. Connected state: Full Live Gothic Voice Bar
   return (
     <div
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: '6px',
-        backgroundColor: 'rgba(10, 14, 22, 0.92)',
+        backgroundColor: 'rgba(10, 14, 22, 0.94)',
         border: '1px solid rgba(212, 175, 55, 0.4)',
         borderRadius: '8px',
         padding: '4px 8px',
@@ -166,7 +288,6 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
         pointerEvents: 'auto',
       }}
     >
-      <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
       {/* Local Microphone Toggle */}
       <button
         type="button"
@@ -257,7 +378,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
         )}
       </button>
 
-      {/* Opponent Connection Indicator */}
+      {/* Opponent Connection & Speech Indicator */}
       <div
         style={{
           display: 'flex',
@@ -265,10 +386,16 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           gap: '5px',
           padding: '2px 8px',
           fontSize: '0.74rem',
-          color: opponentInVoice ? '#34d399' : '#94a3b8',
+          color: opponentInVoice ? (isOpponentMuted ? '#f87171' : '#34d399') : '#94a3b8',
         }}
         title={
-          opponentInVoice ? 'Opponent is connected in voice' : 'Opponent has not enabled voice yet'
+          opponentInVoice
+            ? isOpponentMuted
+              ? 'Opponent has muted their microphone'
+              : isOpponentSpeaking
+                ? 'Opponent is speaking'
+                : 'Opponent connected in voice'
+            : 'Opponent has not enabled voice yet'
         }
       >
         <span
@@ -276,11 +403,27 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             width: '6px',
             height: '6px',
             borderRadius: '50%',
-            backgroundColor: opponentInVoice ? '#10b981' : '#64748b',
-            boxShadow: opponentInVoice ? '0 0 6px #10b981' : 'none',
+            backgroundColor: opponentInVoice
+              ? isOpponentMuted
+                ? '#ef4444'
+                : '#10b981'
+              : '#64748b',
+            boxShadow: opponentInVoice
+              ? isOpponentMuted
+                ? '0 0 6px #ef4444'
+                : '0 0 6px #10b981'
+              : 'none',
           }}
         />
-        <span>{opponentInVoice ? 'Rival Live' : 'Waiting Rival'}</span>
+        <span>
+          {opponentInVoice
+            ? isOpponentMuted
+              ? 'Rival Muted'
+              : isOpponentSpeaking
+                ? 'Rival Speaking'
+                : 'Rival Live'
+            : 'Waiting Rival'}
+        </span>
       </div>
 
       {/* Disconnect Voice Button */}

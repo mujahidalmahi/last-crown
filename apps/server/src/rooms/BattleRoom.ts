@@ -144,6 +144,14 @@ export class BattleRoom extends Room<BattleRoomState> {
             from: client.sessionId,
             signal,
           });
+
+          // If opponent was already in voice when this client sent ready, immediately inform client
+          if (signal.type === 'ready' && this.voiceClients.has(opponent.sessionId)) {
+            client.send(ServerMessageType.VOICE_SIGNAL, {
+              from: opponent.sessionId,
+              signal: { type: 'ready' },
+            });
+          }
         }
       }
     );
