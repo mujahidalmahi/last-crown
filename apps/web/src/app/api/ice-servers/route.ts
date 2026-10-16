@@ -1,8 +1,37 @@
+import path from 'node:path';
+import fs from 'node:fs';
 import { NextResponse } from 'next/server';
+import dotenv from 'dotenv';
 
 export const dynamic = 'force-dynamic';
 
+function loadEnvFallback() {
+  if (process.env.TURN_URL || process.env.EXPRESSTURN_URL) return;
+
+  const candidates = [
+    path.resolve(process.cwd(), '.env.local'),
+    path.resolve(process.cwd(), 'apps/web/.env.local'),
+    path.resolve(process.cwd(), 'apps/server/.env'),
+    path.resolve(process.cwd(), '.env'),
+  ];
+
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      try {
+        const content = fs.readFileSync(p, 'utf-8');
+        const parsed = dotenv.parse(content);
+        for (const [k, v] of Object.entries(parsed)) {
+          if (!process.env[k]) {
+            process.env[k] = v;
+          }
+        }
+      } catch {}
+    }
+  }
+}
+
 export async function GET() {
+  loadEnvFallback();
   const isVercel = Boolean(process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL_ENV);
   const serverUrl =
     process.env.SERVER_URL ||

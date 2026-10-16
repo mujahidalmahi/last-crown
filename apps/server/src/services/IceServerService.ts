@@ -1,3 +1,5 @@
+import '../config/env.js';
+
 export interface RTCIceServerConfig {
   urls: string | string[];
   username?: string;

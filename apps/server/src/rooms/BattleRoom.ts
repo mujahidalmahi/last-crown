@@ -19,6 +19,7 @@ import { GameSimulation } from '@last-crown/game-core';
 import { getArenaConfig } from '@last-crown/game-config';
 import { RoomRegistry } from '../matchmaking/RoomRegistry.js';
 import { serverEnv } from '../config/env.js';
+import { IceServerService } from '../services/IceServerService.js';
 
 interface ClientMetadata {
   id: string;
@@ -134,6 +135,14 @@ export class BattleRoom extends Room<BattleRoomState> {
 
         if (signal.type === 'ready') {
           this.voiceClients.add(client.sessionId);
+          // Push active ICE / TURN servers directly to client over Colyseus WebSocket
+          client.send(ServerMessageType.VOICE_SIGNAL, {
+            from: 'server',
+            signal: {
+              type: 'ice_servers',
+              data: { iceServers: IceServerService.getDefaultIceServers() },
+            },
+          });
         } else if (signal.type === 'leave') {
           this.voiceClients.delete(client.sessionId);
         }

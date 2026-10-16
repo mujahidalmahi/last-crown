@@ -55,7 +55,8 @@ export interface ErrorMessage {
 }
 
 export interface VoiceSignalPayload {
-  type: 'ready' | 'description' | 'offer' | 'answer' | 'candidate' | 'mute' | 'leave';
+  type:
+    'ready' | 'description' | 'offer' | 'answer' | 'candidate' | 'mute' | 'leave' | 'ice_servers';
   data?: unknown;
 }
 

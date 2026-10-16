@@ -99,10 +99,11 @@ function getOrCreateAudioElement(): HTMLAudioElement | null {
     el.volume = 1.0;
     el.setAttribute('playsinline', 'true');
     el.setAttribute('webkit-playsinline', 'true');
-    el.style.position = 'fixed';
-    el.style.top = '-9999px';
-    el.style.left = '-9999px';
-    el.style.opacity = '0';
+    el.style.position = 'absolute';
+    el.style.width = '1px';
+    el.style.height = '1px';
+    el.style.overflow = 'hidden';
+    el.style.clip = 'rect(0 0 0 0)';
     el.style.pointerEvents = 'none';
     document.body.appendChild(el);
   }
@@ -311,13 +312,23 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
             setIsUserSpeaking(false);
           }
 
-          // Check remote opponent speaking
-          if (remoteAnalyserRef.current && !isDeafenedRef.current) {
-            const remoteData = new Uint8Array(remoteAnalyserRef.current.frequencyBinCount);
-            remoteAnalyserRef.current.getByteFrequencyData(remoteData);
-            const sum = remoteData.reduce((acc, v) => acc + v, 0);
-            const avg = sum / remoteData.length;
-            setIsOpponentSpeaking(avg > 14);
+          // Check remote opponent speaking via standard WebRTC receiver sources
+          if (!isDeafenedRef.current && pcRef.current) {
+            try {
+              const receivers = pcRef.current.getReceivers();
+              const audioReceiver = receivers.find(r => r.track && r.track.kind === 'audio');
+              if (audioReceiver && typeof audioReceiver.getSynchronizationSources === 'function') {
+                const sources = audioReceiver.getSynchronizationSources();
+                const firstSource = sources && sources.length > 0 ? sources[0] : undefined;
+                if (firstSource && typeof firstSource.audioLevel === 'number') {
+                  setIsOpponentSpeaking(firstSource.audioLevel > 0.02);
+                } else {
+                  setIsOpponentSpeaking(false);
+                }
+              }
+            } catch {
+              setIsOpponentSpeaking(false);
+            }
           } else {
             setIsOpponentSpeaking(false);
           }
@@ -328,8 +339,12 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     }
   }, []);
 
-  // Attach remote stream to audio element and remote analyser
+  // Attach remote stream to audio element for native, hardware-accelerated playback
   const attachRemoteStream = useCallback((stream: MediaStream) => {
+    console.log(
+      '[VoiceChat] Attaching remote audio stream with active tracks:',
+      stream.getAudioTracks().length
+    );
     remoteStreamRef.current = stream;
     const audio = getOrCreateAudioElement();
     if (audio) {
@@ -338,19 +353,6 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       audio.volume = 1.0;
       playAudioSafely(audio);
     }
-
-    try {
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        const remoteSource = audioContextRef.current.createMediaStreamSource(stream);
-        const remoteAnalyser = audioContextRef.current.createAnalyser();
-        remoteAnalyser.fftSize = 256;
-        remoteAnalyser.smoothingTimeConstant = 0.3;
-        remoteSource.connect(remoteAnalyser);
-        remoteAnalyserRef.current = remoteAnalyser;
-      }
-    } catch (e) {
-      console.warn('[VoiceChat] Remote analyser attach notice:', e);
-    }
   }, []);
 
   const initiateOfferRef = useRef<((iceRestart?: boolean) => Promise<void>) | null>(null);
@@ -358,6 +360,15 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   // Reusable helper to get or create the PeerConnection instance without killing in-flight connections
   const getOrCreatePeerConnection = useCallback((): RTCPeerConnection => {
     if (pcRef.current && pcRef.current.signalingState !== 'closed') {
+      if (localStreamRef.current) {
+        const currentSenders = pcRef.current.getSenders();
+        localStreamRef.current.getAudioTracks().forEach(track => {
+          const hasSender = currentSenders.some(s => s.track === track);
+          if (!hasSender) {
+            pcRef.current!.addTrack(track, localStreamRef.current!);
+          }
+        });
+      }
       return pcRef.current;
     }
 
@@ -488,13 +499,19 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
           offerToReceiveVideo: false,
         });
 
-        // Tune SDP for mono 32kbps Opus with forward error correction
-        const tunedSdp = tuneOpusSDP(offer.sdp || '');
-        await pc.setLocalDescription({ type: offer.type, sdp: tunedSdp });
+        // Set local description safely with graceful fallback to native SDP
+        let sdpToUse = offer.sdp || '';
+        try {
+          sdpToUse = tuneOpusSDP(offer.sdp || '');
+          await pc.setLocalDescription({ type: offer.type, sdp: sdpToUse });
+        } catch {
+          await pc.setLocalDescription(offer);
+          sdpToUse = pc.localDescription?.sdp || offer.sdp || '';
+        }
 
         sendSignal({
           type: 'offer',
-          data: { type: offer.type, sdp: tunedSdp },
+          data: { type: offer.type, sdp: sdpToUse },
         });
       } catch (err) {
         console.error('[VoiceChat] Failed to create WebRTC offer:', err);
@@ -564,15 +581,21 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
           }
         }
 
-        // Create and send answer with tuned Opus SDP
+        // Create and send answer safely with graceful fallback to native SDP
         const answer = await pc.createAnswer();
-        const tunedSdp = tuneOpusSDP(answer.sdp || '');
-        await pc.setLocalDescription({ type: answer.type, sdp: tunedSdp });
+        let sdpToUse = answer.sdp || '';
+        try {
+          sdpToUse = tuneOpusSDP(answer.sdp || '');
+          await pc.setLocalDescription({ type: answer.type, sdp: sdpToUse });
+        } catch {
+          await pc.setLocalDescription(answer);
+          sdpToUse = pc.localDescription?.sdp || answer.sdp || '';
+        }
 
-        console.log('[VoiceChat] Sending tuned Opus answer to initiator:', from);
+        console.log('[VoiceChat] Sending answer to initiator:', from);
         sendSignal({
           type: 'answer',
-          data: { type: answer.type, sdp: tunedSdp },
+          data: { type: answer.type, sdp: sdpToUse },
         });
       } catch (err) {
         console.error('[VoiceChat] Responder offer handling error:', err);
@@ -628,6 +651,11 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       setError(null);
 
       console.log('[VoiceChat] Requesting microphone permission...');
+      // Pre-unlock audio element inside user click gesture
+      const audioEl = getOrCreateAudioElement();
+      if (audioEl) {
+        audioEl.play().catch(() => {});
+      }
       // Request microphone access with echo cancellation & noise suppression
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -730,8 +758,30 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       if (!message || !message.signal) return;
       const { signal, from } = message;
 
-      // Track opponent session ID
-      opponentSessionIdRef.current = from;
+      // Handle active ICE / TURN servers pushed directly from server via WebSocket
+      if (signal.type === 'ice_servers' && signal.data) {
+        const payload = signal.data as {
+          iceServers?: { urls: string | string[]; username?: string; credential?: string }[];
+        };
+        if (payload.iceServers && payload.iceServers.length > 0) {
+          iceServersRef.current = { iceServers: payload.iceServers };
+          console.info(
+            '[VoiceChat] Received active ICE / TURN servers via Colyseus signaling:',
+            payload.iceServers.map(s => s.urls)
+          );
+          if (pcRef.current && pcRef.current.signalingState !== 'closed') {
+            try {
+              pcRef.current.setConfiguration({ iceServers: payload.iceServers });
+            } catch {}
+          }
+        }
+        return;
+      }
+
+      // Track opponent session ID (only from rivals, not server broadcasts)
+      if (from !== 'server') {
+        opponentSessionIdRef.current = from;
+      }
 
       // 1. Ready presence signal
       if (signal.type === 'ready') {
@@ -741,7 +791,13 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         if (isJoinedRef.current && localStreamRef.current) {
           // Deterministic role: higher sessionId initiates the offer
           if (room.sessionId > from) {
-            await initiateOffer(false);
+            if (pcRef.current && pcRef.current.signalingState !== 'stable') {
+              console.log(
+                '[VoiceChat] PeerConnection already negotiating, skipping duplicate offer initiation'
+              );
+            } else {
+              await initiateOffer(false);
+            }
           } else {
             setStatus('connecting');
           }
