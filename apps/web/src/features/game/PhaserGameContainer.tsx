@@ -257,6 +257,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         <GameHUD
           snapshot={snapshot}
           mode={mode}
+          colyseusRoom={colyseusRoom}
           onRematch={handleRematch}
           onExit={handleExit}
           isFullscreen={isFullscreen}

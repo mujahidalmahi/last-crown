@@ -182,14 +182,15 @@ app.post('/api/rooms/quickmatch', async (req: Request, res: Response) => {
     const playerName = req.body?.playerName || 'Challenger';
     const warriorPreset = req.body?.warriorPreset || 'knight';
 
-    const room = await matchMaker.joinOrCreate('battle', {
+    const reservation = await matchMaker.joinOrCreate('battle', {
       isPrivate: false,
       warriorPreset,
       playerName,
     });
 
     res.json({
-      roomId: room.roomId,
+      roomId: reservation.room.roomId,
+      sessionId: reservation.sessionId,
       protocolVersion: PROTOCOL_VERSION,
     });
   } catch (err) {

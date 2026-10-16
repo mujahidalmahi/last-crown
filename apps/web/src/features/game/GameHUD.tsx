@@ -2,12 +2,16 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Room } from 'colyseus.js';
+import { BattleRoomState, StatisticsManager } from '@last-crown/shared';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
-import { StatisticsManager } from '@last-crown/shared';
+import { useVoiceChat } from '../voice/useVoiceChat';
+import { VoiceControls } from '../voice/VoiceControls';
 
 export interface GameHUDProps {
   snapshot: GameSimulationSnapshot | null;
   mode?: 'singleplayer' | 'multiplayer';
+  colyseusRoom?: Room<BattleRoomState> | null;
   onRematch?: () => void;
   onExit?: () => void;
   isFullscreen?: boolean;
@@ -19,6 +23,7 @@ export interface GameHUDProps {
 export const GameHUD: React.FC<GameHUDProps> = ({
   snapshot,
   mode = 'singleplayer',
+  colyseusRoom,
   onRematch,
   onExit,
   isFullscreen,
@@ -26,6 +31,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   isPaused = false,
   onTogglePause,
 }) => {
+  const voice = useVoiceChat({ room: mode === 'multiplayer' ? colyseusRoom : null });
   const currentMatchIdRef = useRef<string>(
     `match_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
   );
@@ -900,6 +906,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           >
             ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
           </button>
+          {mode === 'multiplayer' && colyseusRoom && <VoiceControls voice={voice} compact={true} />}
         </div>
 
         {/* Bottom Right: Fullscreen Toggle */}
@@ -1025,7 +1032,13 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 </p>
               </div>
               <div>
-                <strong style={{ color: '#e74c3c' }}>K (or S + J):</strong>
+                <strong style={{ color: '#e67e22' }}>S + J:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                  Low Sweep (Trips High Guard; Jump to evade)
+                </p>
+              </div>
+              <div>
+                <strong style={{ color: '#e74c3c' }}>K:</strong>
                 <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
                   Heavy Strike & Execution
                 </p>
@@ -1037,15 +1050,21 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 </p>
               </div>
               <div>
+                <strong style={{ color: '#1abc9c' }}>Windup + Dash/Guard:</strong>
+                <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                  Feint Cancel (Bait Parries)
+                </p>
+              </div>
+              <div>
                 <strong style={{ color: '#3498db' }}>Shift / I:</strong>
                 <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
                   Block (Absorbs 75%)
                 </p>
               </div>
               <div>
-                <strong style={{ color: '#f1c40f' }}>Alt / O / L:</strong>
+                <strong style={{ color: '#f1c40f' }}>Alt / O:</strong>
                 <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-                  Parry (Counter-Stun)
+                  Parry & Riposte Counter
                 </p>
               </div>
             </div>
@@ -1382,7 +1401,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>Space / W</strong> Jump
+            <strong style={{ color: '#f1c40f' }}>Space</strong> Jump
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
@@ -1390,11 +1409,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>J</strong> Light Combo
+            <strong style={{ color: '#f1c40f' }}>J</strong> Light
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>K</strong> Heavy / Execute
+            <strong style={{ color: '#f1c40f' }}>S+J</strong> Sweep
+          </span>
+          <span style={{ color: '#4a5568' }}>•</span>
+          <span>
+            <strong style={{ color: '#f1c40f' }}>K</strong> Heavy/Exec
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
@@ -1402,11 +1425,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>Shift / I</strong> Block
+            <strong style={{ color: '#f1c40f' }}>Shift</strong> Guard
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>Alt / O</strong> Parry
+            <strong style={{ color: '#f1c40f' }}>Alt / O</strong> Parry/Riposte
           </span>
           {mode === 'singleplayer' && (
             <>

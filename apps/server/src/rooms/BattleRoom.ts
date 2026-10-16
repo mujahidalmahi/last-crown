@@ -13,6 +13,7 @@ import {
   SIMULATION_DELTA_MS,
   HitResult,
   WarriorSnapshot,
+  VoiceSignalClientMessage,
 } from '@last-crown/shared';
 import { GameSimulation } from '@last-crown/game-core';
 import { getArenaConfig } from '@last-crown/game-config';
@@ -122,6 +123,21 @@ export class BattleRoom extends Room<BattleRoomState> {
         serverTimestamp: Date.now(),
       });
     });
+
+    // Voice Signaling Relay: routes WebRTC offer/answer/candidates strictly to opponent in THIS room
+    this.onMessage(
+      ClientMessageType.VOICE_SIGNAL,
+      (client, rawMessage: VoiceSignalClientMessage) => {
+        if (!rawMessage || !rawMessage.signal) return;
+        const opponent = this.clients.find(c => c.sessionId !== client.sessionId);
+        if (opponent) {
+          opponent.send(ServerMessageType.VOICE_SIGNAL, {
+            from: client.sessionId,
+            signal: rawMessage.signal,
+          });
+        }
+      }
+    );
 
     // Rematch Ready Handler
     this.onMessage(ClientMessageType.READY, client => {
@@ -262,6 +278,15 @@ export class BattleRoom extends Room<BattleRoomState> {
       this.p2SessionId = null;
     }
 
+    // Notify opponent in THIS room that the player has disconnected from voice
+    const opponent = this.clients.find(c => c.sessionId !== sessionId);
+    if (opponent) {
+      opponent.send(ServerMessageType.VOICE_SIGNAL, {
+        from: sessionId,
+        signal: { type: 'leave' },
+      });
+    }
+
     // Auto-dispose room immediately if all clients have left
     if (this.clientMetadata.size === 0) {
       this.disconnect();
@@ -336,7 +361,7 @@ export class BattleRoom extends Room<BattleRoomState> {
           roundNumber: snap.roundNumber,
           winnerId: snap.winnerId,
         });
-      } else if (snap.matchState === 'match_over' && previousState !== 'match_over') {
+      } else if (snap.matchState === 'match_over') {
         this.broadcast(ServerMessageType.MATCH_END, {
           winnerId: snap.winnerId,
         });

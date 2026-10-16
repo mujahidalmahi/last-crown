@@ -239,6 +239,73 @@ export class SoundManager {
     }
   }
 
+  public playRiposteCrit(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // 1. Violent sub-bass boom
+      const boomOsc = ctx.createOscillator();
+      const boomGain = ctx.createGain();
+      boomOsc.type = 'sawtooth';
+      boomOsc.frequency.setValueAtTime(120, now);
+      boomOsc.frequency.exponentialRampToValueAtTime(30, now + 0.3);
+
+      boomGain.gain.setValueAtTime(0.6 * this.volume, now);
+      boomGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+      boomOsc.connect(boomGain);
+      boomGain.connect(ctx.destination);
+      boomOsc.start(now);
+      boomOsc.stop(now + 0.31);
+
+      // 2. High puncture slice
+      const stabOsc = ctx.createOscillator();
+      const stabGain = ctx.createGain();
+      stabOsc.type = 'triangle';
+      stabOsc.frequency.setValueAtTime(880, now);
+      stabOsc.frequency.exponentialRampToValueAtTime(220, now + 0.15);
+
+      stabGain.gain.setValueAtTime(0.5 * this.volume, now);
+      stabGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+      stabOsc.connect(stabGain);
+      stabGain.connect(ctx.destination);
+      stabOsc.start(now);
+      stabOsc.stop(now + 0.16);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playLowSweep(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(260, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
+
+      gain.gain.setValueAtTime(0.4 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.19);
+    } catch {
+      // Audio error handling
+    }
+  }
+
   public playBloodGush(): void {
     if (this.isMuted || this.volume <= 0) return;
     const ctx = this.initContext();

@@ -113,6 +113,22 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     knockback: { x: 300, y: -60 },
     hitstunMs: 380,
   },
+  low_sweep: {
+    id: 'low_sweep',
+    name: 'Low Leg Sweep',
+    type: 'sweep',
+    damage: 16,
+    staminaCost: 18,
+    windupMs: 180,
+    activeMs: 110,
+    recoveryMs: 260,
+    hitboxWidth: 84,
+    hitboxHeight: 28,
+    hitboxOffsetX: 44,
+    hitboxOffsetY: 24, // low near the feet
+    knockback: { x: 230, y: -80 },
+    hitstunMs: 460,
+  },
 };
 
 export function getAttackDefinition(id: string): AttackDefinition {

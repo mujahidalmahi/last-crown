@@ -25,10 +25,7 @@
 .scanlineOverlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%,
-    rgba(0, 0, 0, 0.2) 50%
-  );
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
   background-size: 100% 4px;
   pointer-events: none;
   z-index: 5;

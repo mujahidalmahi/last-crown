@@ -1,10 +1,11 @@
 import { Direction } from '../domain/types.js';
-import { HitResult } from '../domain/combat.js';
+import { HitResult, AttackType } from '../domain/combat.js';
 
 export const ClientMessageType = {
   PLAYER_INPUT: 'PLAYER_INPUT',
   PING: 'PING',
   READY: 'READY',
+  VOICE_SIGNAL: 'VOICE_SIGNAL',
 } as const;
 
 export type ClientMessageType = (typeof ClientMessageType)[keyof typeof ClientMessageType];
@@ -15,7 +16,7 @@ export interface PlayerInputMessage {
   moveX: number; // -1, 0, 1
   jump: boolean;
   attack: boolean;
-  attackType?: 'light' | 'heavy' | 'thrust' | 'aerial' | 'dash';
+  attackType?: AttackType;
   block: boolean;
   parry: boolean;
   dash?: boolean;
@@ -33,6 +34,7 @@ export const ServerMessageType = {
   ROUND_END: 'ROUND_END',
   MATCH_END: 'MATCH_END',
   ERROR: 'ERROR',
+  VOICE_SIGNAL: 'VOICE_SIGNAL',
 } as const;
 
 export type ServerMessageType = (typeof ServerMessageType)[keyof typeof ServerMessageType];
@@ -50,4 +52,18 @@ export interface CombatEventMessage {
 export interface ErrorMessage {
   code: string;
   message: string;
+}
+
+export interface VoiceSignalPayload {
+  type: 'offer' | 'answer' | 'candidate' | 'mute' | 'leave';
+  data?: unknown;
+}
+
+export interface VoiceSignalClientMessage {
+  signal: VoiceSignalPayload;
+}
+
+export interface VoiceSignalServerMessage {
+  from: string;
+  signal: VoiceSignalPayload;
 }

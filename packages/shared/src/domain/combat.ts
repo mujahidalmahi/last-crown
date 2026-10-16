@@ -2,7 +2,7 @@ import { AABB, Vector2 } from './types.js';
 
 export type AttackPhase = 'none' | 'windup' | 'active' | 'recovery';
 
-export type AttackType = 'light' | 'heavy' | 'thrust' | 'aerial' | 'dash' | 'combo';
+export type AttackType = 'light' | 'heavy' | 'thrust' | 'aerial' | 'dash' | 'combo' | 'sweep';
 
 export interface AttackDefinition {
   id: string;
@@ -37,6 +37,10 @@ export interface HitResult {
   comboCount?: number;
   isClash?: boolean;
   isWallBounce?: boolean;
+  isRiposte?: boolean;
+  isGuardCrush?: boolean;
+  attackId?: string;
+  attackType?: AttackType;
 }
 
 export interface HitboxInstance {

@@ -553,6 +553,13 @@ export class BattleScene extends Phaser.Scene {
       return;
     }
 
+    if (result.isGuardCrush) {
+      this.effects.triggerGuardBreak({ x: impactX, y: impactY });
+      this.soundManager.playExhaustionBreak();
+      this.hitStopRemainingMs = 100;
+      this.cameras.main.shake(160, 0.015);
+    }
+
     if (result.resolution === 'parried') {
       this.effects.triggerParryFlash({ x: impactX, y: impactY });
       this.soundManager.playParryChime();
@@ -560,7 +567,9 @@ export class BattleScene extends Phaser.Scene {
     } else if (result.resolution === 'blocked') {
       this.effects.triggerBlockSparks({ x: impactX, y: impactY });
       this.soundManager.playBlockClang();
-      this.hitStopRemainingMs = 30; // 30ms block hit-stop
+      if (!result.isGuardCrush) {
+        this.hitStopRemainingMs = 30; // 30ms block hit-stop
+      }
     } else if (result.resolution === 'hit') {
       if (result.isDecapitation) {
         let attackerFacing: Direction = 'right';
@@ -588,11 +597,27 @@ export class BattleScene extends Phaser.Scene {
         this.soundManager.playDecapitationSlash();
         this.hitStopRemainingMs = 180; // Dramatic mortal decapitation hit-stop freeze
 
-        // Cinematic slow-motion camera zoom punch
+        // Cinematic slow-motion camera zoom punch and crimson flash
+        this.cameras.main.flash(200, 200, 25, 25);
+        this.cameras.main.shake(260, 0.022);
         this.cameras.main.zoomTo(1.1, 240, 'Quad.easeOut');
         this.time.delayedCall(900, () => {
           this.cameras.main.zoomTo(1.0, 450, 'Quad.easeIn');
         });
+      } else if (result.isRiposte) {
+        // High-damage counter-puncture against stunned/exhausted rival
+        this.effects.triggerRiposteImpact({ x: impactX, y: impactY }, result.damage);
+        this.soundManager.playRiposteCrit();
+        this.hitStopRemainingMs = 120; // Intense mortal riposte freeze
+        this.cameras.main.flash(120, 180, 20, 20);
+        this.cameras.main.shake(180, 0.018);
+      } else if (result.attackType === 'sweep' || result.attackId === 'low_sweep') {
+        // Low sweep trips defender and bypasses high block
+        this.effects.triggerLowSweepTrip({ x: impactX, y: impactY });
+        this.soundManager.playLowSweep();
+        this.effects.triggerHitImpact({ x: impactX, y: impactY }, true, result.damage);
+        this.hitStopRemainingMs = 90;
+        this.cameras.main.shake(120, 0.012);
       } else {
         this.effects.triggerHitImpact({ x: impactX, y: impactY }, result.isCritical, result.damage);
         if (result.comboCount && result.comboCount >= 2) {

@@ -101,11 +101,33 @@ export class WarriorEntity {
   public processInput(input: PlayerInputMessage): void {
     if (this.health <= 0) return;
 
+    // Feint / Attack Cancel: Cancel attack during windup with dash, block, or parry
+    if (
+      this.combat.attackPhase === 'windup' &&
+      (input.dash || input.block || input.parry) &&
+      this.stamina >= 10 &&
+      !this.combat.isExhausted
+    ) {
+      this.combat.feintAttack(this.stateMachine);
+      this.stamina = Math.max(0, this.stamina - 10);
+      if (input.dash) {
+        const dashDir =
+          input.moveX !== 0 ? Math.sign(input.moveX) : this.movement.facing === 'right' ? 1 : -1;
+        this.movement.setVelocity({
+          x: dashDir * BALANCE_CONFIG.combat.dashSpeed,
+          y: this.movement.velocity.y,
+        });
+      }
+      return;
+    }
+
     // Attack requested
     if (input.attack) {
       let attackId = 'light_slash';
       if (!this.movement.isGrounded) {
         attackId = 'aerial_strike';
+      } else if (input.attackType === 'sweep') {
+        attackId = 'low_sweep';
       } else if (input.attackType === 'heavy') {
         attackId = 'heavy_strike';
       } else if (input.attackType === 'thrust') {

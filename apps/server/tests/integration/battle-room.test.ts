@@ -197,4 +197,126 @@ describe('BattleRoom Lifecycle and Simulation', () => {
     expect(typeof pongData.clientTimestamp).toBe('number');
     expect(pongData.clientTimestamp).toBe(1792123896033);
   });
+
+  it('routes VOICE_SIGNAL strictly to the opponent in the room without broadcasting to self', () => {
+    const sent1: Array<{ type: string | number; data: unknown }> = [];
+    const sent2: Array<{ type: string | number; data: unknown }> = [];
+
+    const dummyClient1 = {
+      sessionId: 'p1-session',
+      send: (type: string | number, data: unknown) => sent1.push({ type, data }),
+      enqueueRaw: () => {},
+      raw: () => {},
+      readyState: 1,
+    } as unknown as Client;
+
+    const dummyClient2 = {
+      sessionId: 'p2-session',
+      send: (type: string | number, data: unknown) => sent2.push({ type, data }),
+      enqueueRaw: () => {},
+      raw: () => {},
+      readyState: 1,
+    } as unknown as Client;
+
+    room.clients = [dummyClient1, dummyClient2];
+    room.onJoin(dummyClient1, { playerName: 'Player 1' });
+    room.onJoin(dummyClient2, { playerName: 'Player 2' });
+
+    const onMessageHandlers = (
+      room as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers;
+    const voiceHandler = onMessageHandlers[ClientMessageType.VOICE_SIGNAL];
+    expect(voiceHandler).toBeDefined();
+
+    // Client 1 sends an offer
+    voiceHandler(dummyClient1, {
+      signal: { type: 'offer', data: { sdp: 'fake-offer-sdp' } },
+    });
+
+    // Client 1 (sender) should NOT receive it
+    expect(sent1.filter(msg => msg.type === ServerMessageType.VOICE_SIGNAL)).toHaveLength(0);
+
+    // Client 2 (opponent) MUST receive it with from = 'p1-session'
+    const receivedBy2 = sent2.filter(msg => msg.type === ServerMessageType.VOICE_SIGNAL);
+    expect(receivedBy2).toHaveLength(1);
+    expect(receivedBy2[0]!.data).toEqual({
+      from: 'p1-session',
+      signal: { type: 'offer', data: { sdp: 'fake-offer-sdp' } },
+    });
+
+    // Client 2 replies with answer
+    voiceHandler(dummyClient2, {
+      signal: { type: 'answer', data: { sdp: 'fake-answer-sdp' } },
+    });
+
+    // Client 1 receives answer from p2-session
+    const receivedBy1 = sent1.filter(msg => msg.type === ServerMessageType.VOICE_SIGNAL);
+    expect(receivedBy1).toHaveLength(1);
+    expect(receivedBy1[0]!.data).toEqual({
+      from: 'p2-session',
+      signal: { type: 'answer', data: { sdp: 'fake-answer-sdp' } },
+    });
+  });
+
+  it('isolates VOICE_SIGNAL between simultaneous separate game matches', () => {
+    // Room A (Game 1)
+    const roomA = new BattleRoom();
+    roomA.roomId = 'match-A';
+    roomA.onCreate({ isPrivate: true });
+
+    // Room B (Game 2 running simultaneously)
+    const roomB = new BattleRoom();
+    roomB.roomId = 'match-B';
+    roomB.onCreate({ isPrivate: true });
+
+    const roomASentP2: Array<{ type: string | number; data: unknown }> = [];
+    const roomBSentP1: Array<{ type: string | number; data: unknown }> = [];
+    const roomBSentP2: Array<{ type: string | number; data: unknown }> = [];
+
+    const clientA1 = createMockClient('A1');
+    const clientA2 = {
+      ...createMockClient('A2'),
+      send: (type: string | number, data: unknown) => roomASentP2.push({ type, data }),
+    } as unknown as Client;
+
+    const clientB1 = {
+      ...createMockClient('B1'),
+      send: (type: string | number, data: unknown) => roomBSentP1.push({ type, data }),
+    } as unknown as Client;
+    const clientB2 = {
+      ...createMockClient('B2'),
+      send: (type: string | number, data: unknown) => roomBSentP2.push({ type, data }),
+    } as unknown as Client;
+
+    roomA.clients = [clientA1, clientA2];
+    roomA.onJoin(clientA1, { playerName: 'A1' });
+    roomA.onJoin(clientA2, { playerName: 'A2' });
+
+    roomB.clients = [clientB1, clientB2];
+    roomB.onJoin(clientB1, { playerName: 'B1' });
+    roomB.onJoin(clientB2, { playerName: 'B2' });
+
+    const voiceHandlerA = (
+      roomA as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers[ClientMessageType.VOICE_SIGNAL];
+
+    // Client A1 in Match A speaks/signals
+    voiceHandlerA(clientA1, {
+      signal: { type: 'offer', data: { match: 'A' } },
+    });
+
+    // Room A opponent receives the signal
+    expect(roomASentP2).toHaveLength(1);
+
+    // CRITICAL: Room B players (different game) receive NOTHING!
+    expect(roomBSentP1).toHaveLength(0);
+    expect(roomBSentP2).toHaveLength(0);
+
+    roomA.onDispose();
+    roomB.onDispose();
+  });
 });

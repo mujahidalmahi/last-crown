@@ -381,6 +381,10 @@ export default function SettingsPage() {
               <span className={`${styles.keyTag} ${styles.tagOrange}`}>J</span>
             </div>
             <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Low Sweep</span>
+              <span className={`${styles.keyTag} ${styles.tagOrange}`}>S + J</span>
+            </div>
+            <div className={styles.keyRow}>
               <span className={styles.keyAction}>Heavy/Exec</span>
               <span className={`${styles.keyTag} ${styles.tagRed}`}>
                 {controlPreset === 'modern' ? 'K' : 'S+J'}
@@ -393,13 +397,17 @@ export default function SettingsPage() {
               </span>
             </div>
             <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Feint</span>
+              <span className={`${styles.keyTag} ${styles.tagBlue}`}>WINDUP+DASH</span>
+            </div>
+            <div className={styles.keyRow}>
               <span className={styles.keyAction}>Guard</span>
               <span className={`${styles.keyTag} ${styles.tagBlue}`}>
                 {controlPreset === 'modern' ? 'SHIFT / I' : 'K'}
               </span>
             </div>
             <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Parry</span>
+              <span className={styles.keyAction}>Parry/Riposte</span>
               <span className={`${styles.keyTag} ${styles.tagYellow}`}>
                 {controlPreset === 'modern' ? 'ALT / O' : 'L'}
               </span>

@@ -548,6 +548,72 @@ export class CombatEffects {
   }
 
   /**
+   * Mortal riposte puncture: violent blood explosion, crimson flash and brutal screen shock
+   */
+  public triggerRiposteImpact(pos: Vector2, damageAmount: number): void {
+    // 1. Violent cross-cleave flash
+    const cross = this.scene.add.graphics();
+    cross.lineStyle(6, 0xff0000, 1);
+    cross.lineBetween(pos.x - 50, pos.y - 35, pos.x + 50, pos.y + 35);
+    cross.lineStyle(8, 0xffffff, 0.9);
+    cross.lineBetween(pos.x - 40, pos.y + 35, pos.x + 40, pos.y - 35);
+
+    this.scene.tweens.add({
+      targets: cross,
+      scaleX: 1.8,
+      scaleY: 1.8,
+      alpha: 0,
+      duration: 220,
+      ease: 'Quad.easeOut',
+      onComplete: () => cross.destroy(),
+    });
+
+    // 2. High-volume arterial spray
+    for (let i = 0; i < 22; i++) {
+      const angle = (Math.PI * 2 * i) / 22 + (Math.random() - 0.5) * 0.4;
+      const speed = Math.random() * 220 + 100;
+      this.spawnBloodParticle(
+        pos.x,
+        pos.y,
+        Math.cos(angle) * speed,
+        Math.sin(angle) * speed,
+        Math.random() * 3 + 2
+      );
+    }
+
+    this.showFloatingText(pos, `💀 MORTAL RIPOSTE! -${damageAmount}`, '#ff0033', '26px', true);
+    this.scene.cameras.main.shake(220, 0.02);
+  }
+
+  /**
+   * Low leg sweep dust arc and ground sparks
+   */
+  public triggerLowSweepTrip(pos: Vector2): void {
+    const sweepArc = this.scene.add.graphics();
+    sweepArc.lineStyle(5, 0xf39c12, 0.9);
+    sweepArc.strokeEllipse(pos.x, pos.y + 20, 60, 16);
+
+    this.scene.tweens.add({
+      targets: sweepArc,
+      scaleX: 2.2,
+      scaleY: 1.8,
+      alpha: 0,
+      duration: 260,
+      ease: 'Quad.easeOut',
+      onComplete: () => sweepArc.destroy(),
+    });
+
+    this.showFloatingText(
+      { x: pos.x, y: pos.y + 10 },
+      '⚡ LOW SWEEP TRIP!',
+      '#f39c12',
+      '20px',
+      true
+    );
+    this.scene.cameras.main.shake(140, 0.01);
+  }
+
+  /**
    * Fatal execution: decapitate opponent, send severed head tumbling, spurt arterial blood, and pool continuously on stone floor
    */
   public triggerDecapitation(

@@ -661,4 +661,96 @@ describe('Combat Simulation', () => {
     const distanceAfter = sim.p2.movement.position.x - sim.p1.movement.position.x;
     expect(distanceAfter).toBeGreaterThan(5);
   });
+
+  it('bypasses standing block with low sweep, tripping the defender', () => {
+    sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+    sim.p1.movement.setFacing('right');
+    sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
+    sim.p2.movement.setFacing('left');
+
+    let hitEvent: HitResult | null = null;
+    sim.onCombatEvent(result => {
+      hitEvent = result;
+    });
+
+    // P1 initiates low sweep, P2 attempts to block
+    sim.step(
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'sweep',
+        block: false,
+        parry: false,
+      },
+      {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: true,
+        parry: false,
+      },
+      0.016
+    );
+
+    // Advance until sweep active frame lands
+    for (let i = 0; i < 15; i++) {
+      sim.step(
+        null,
+        {
+          sequence: i + 2,
+          timestamp: Date.now(),
+          moveX: 0,
+          jump: false,
+          attack: false,
+          block: true,
+          parry: false,
+        },
+        0.016
+      );
+    }
+
+    expect(hitEvent).not.toBeNull();
+    // High block was bypassed! Resolution is 'hit' (trip) instead of 'blocked'
+    expect((hitEvent as HitResult).resolution).toBe('hit');
+    expect((hitEvent as HitResult).damage).toBe(16);
+    expect(sim.p2.stateMachine.state).toBe('hitstun');
+  });
+
+  it('allows canceling/feinting an attack during windup with a dash or block', () => {
+    // P1 initiates heavy attack
+    sim.p1.processInput({
+      sequence: 1,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      attackType: 'heavy',
+      block: false,
+      parry: false,
+    });
+
+    expect(sim.p1.combat.attackPhase).toBe('windup');
+    expect(sim.p1.stateMachine.state).toBe('attacking');
+
+    // During windup, player triggers dash to feint cancel
+    sim.p1.processInput({
+      sequence: 2,
+      timestamp: Date.now(),
+      moveX: 1,
+      jump: false,
+      attack: false,
+      dash: true,
+      block: false,
+      parry: false,
+    });
+
+    // Attack was feinted back to idle or dashing
+    expect(sim.p1.combat.attackPhase).toBe('none');
+    expect(sim.p1.movement.velocity.x).toBeGreaterThan(0);
+  });
 });

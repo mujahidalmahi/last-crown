@@ -34,4 +34,36 @@ describe('RoomRegistry', () => {
     registry.unregisterRoom('room-xyz');
     expect(registry.getRoomByCode(code)).toBeUndefined();
   });
+
+  it('accurately calculates active room and total player counts across multiple matches', () => {
+    registry.registerRoom('room-1');
+    registry.registerRoom('room-2');
+    registry.registerRoom('room-3');
+
+    registry.updatePlayerCount('room-1', 2);
+    registry.updatePlayerCount('room-2', 2);
+    registry.updatePlayerCount('room-3', 1);
+
+    expect(registry.getActiveRoomCount()).toBe(3);
+    expect(registry.getTotalPlayerCount()).toBe(5);
+
+    registry.unregisterRoom('room-2');
+    expect(registry.getActiveRoomCount()).toBe(2);
+    expect(registry.getTotalPlayerCount()).toBe(3);
+  });
+
+  it('prunes stale rooms older than threshold', () => {
+    registry.registerRoom('fresh-room');
+    const staleCode = registry.registerRoom('stale-room');
+
+    const reg = registry.getRoomByCode(staleCode);
+    if (reg) {
+      reg.createdAt = Date.now() - 7200000; // 2 hours ago
+    }
+
+    const pruned = registry.pruneStaleRooms(3600000); // 1 hour threshold
+    expect(pruned).toBe(1);
+    expect(registry.getRoomByCode(staleCode)).toBeUndefined();
+    expect(registry.getActiveRoomCount()).toBe(1);
+  });
 });

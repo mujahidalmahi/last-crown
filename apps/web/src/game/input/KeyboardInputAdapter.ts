@@ -179,7 +179,7 @@ export class KeyboardInputAdapter {
       if (dash) {
         attackType = 'dash';
       } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown')) {
-        attackType = 'heavy';
+        attackType = this.controlPreset === 'modern' ? 'sweep' : 'heavy';
       } else {
         attackType = 'light';
       }

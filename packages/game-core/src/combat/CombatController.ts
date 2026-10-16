@@ -273,21 +273,44 @@ export class CombatController {
         knockback: { x: 0, y: 0 },
         hitstunMs: 0,
         isCritical: false,
+        attackId: attack.id,
+        attackType: attack.type,
       };
     }
 
     // Check Block
     if (stateMachine.state === 'blocking' && isDefenderFacingAttacker) {
-      resolution = 'blocked';
-      blockedDamage = attack.damage * BALANCE_CONFIG.combat.blockDamageReduction;
-      finalDamage = attack.damage - blockedDamage;
-      staminaDamage = attack.damage * BALANCE_CONFIG.combat.blockStaminaCostPerDamage;
-      stunMs = Math.floor(attack.hitstunMs * 0.4); // Greatly reduced hitstun on block
+      if (attack.type === 'sweep') {
+        // Low leg sweep bypasses standing shield guard, sweeping legs and tripping opponent!
+        resolution = 'hit';
+        isCritical = true;
+        finalDamage = attack.damage;
+        stunMs = attack.hitstunMs + 80;
+        this.resetCombo();
+        this.interruptAttack();
+        stateMachine.forceState('hitstun');
+        this._hitstunTimerMs = stunMs;
+      } else {
+        resolution = 'blocked';
+        blockedDamage = attack.damage * BALANCE_CONFIG.combat.blockDamageReduction;
+        finalDamage = attack.damage - blockedDamage;
+        // Heavy strikes and aerial Helm Splitters apply crushing posture strain
+        const staminaMultiplier =
+          attack.type === 'heavy' || attack.type === 'aerial'
+            ? 1.6
+            : BALANCE_CONFIG.combat.blockStaminaCostPerDamage;
+        staminaDamage = attack.damage * staminaMultiplier;
+        stunMs = Math.floor(attack.hitstunMs * 0.4); // Greatly reduced hitstun on block
+      }
     } else {
       // Clean Hit
       resolution = 'hit';
-      isCritical = !isDefenderFacingAttacker; // Backstab / flanking critical
-      if (isCritical) {
+      const isBackstab = !isDefenderFacingAttacker;
+      const isRiposte = this._exhaustionTimerMs > 0 || this._hitstunTimerMs > 0;
+      isCritical = isBackstab || isRiposte;
+      if (isRiposte) {
+        finalDamage = Math.floor(finalDamage * 1.5); // Brutal 1.5x riposte puncture
+      } else if (isBackstab) {
         finalDamage = Math.floor(finalDamage * 1.3);
       }
       this.resetCombo();
@@ -303,6 +326,8 @@ export class CombatController {
       y: attack.knockback.y * (resolution === 'blocked' ? 0.2 : 1),
     };
 
+    const isRiposteHit = resolution === 'hit' && (this._exhaustionTimerMs > 0 || isCritical);
+
     return {
       resolution,
       attackerId,
@@ -313,7 +338,21 @@ export class CombatController {
       knockback,
       hitstunMs: stunMs,
       isCritical,
+      isRiposte: isRiposteHit,
+      attackId: attack.id,
+      attackType: attack.type,
     };
+  }
+
+  public feintAttack(stateMachine: WarriorStateMachine): boolean {
+    if (this._attackPhase === 'windup') {
+      this.interruptAttack();
+      if (stateMachine.state === 'attacking') {
+        stateMachine.transitionTo('idle');
+      }
+      return true;
+    }
+    return false;
   }
 
   public applyClashStagger(durationMs: number, stateMachine: WarriorStateMachine): void {
