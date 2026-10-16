@@ -7,6 +7,7 @@ const { Server, matchMaker } = colyseus;
 import { WebSocketTransport } from '@colyseus/ws-transport';
 import { PROTOCOL_VERSION, CreateRoomSchema, JoinRoomSchema } from '@last-crown/shared';
 import { BattleRoom } from './rooms/BattleRoom.js';
+import { PartyControllerRoom } from './rooms/PartyControllerRoom.js';
 import { RoomRegistry } from './matchmaking/RoomRegistry.js';
 import { InMemoryRateLimiter } from './security/RateLimiter.js';
 import { serverEnv } from './config/env.js';
@@ -264,6 +265,9 @@ const gameServer = new Server({
 
 // Register BattleRoom definition with isolation filtering
 gameServer.define('battle', BattleRoom).filterBy(['isPrivate', 'arenaId']);
+
+// Register PartyControllerRoom for phone controllers and 2-player couch co-op
+gameServer.define('party', PartyControllerRoom).filterBy(['partyCode']);
 
 // Server startup
 export function startServer(): Promise<http.Server> {

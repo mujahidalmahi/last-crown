@@ -116,6 +116,13 @@ export default function HomePage() {
         </PixelButton>
         <PixelButton
           size="lg"
+          onClick={() => handleModeClick('/local')}
+          className={styles.modeButton}
+        >
+          LOCAL 2-PLAYER (CONTROLLERS &amp; QR)
+        </PixelButton>
+        <PixelButton
+          size="lg"
           onClick={() => handleModeClick('/room')}
           className={styles.modeButton}
         >

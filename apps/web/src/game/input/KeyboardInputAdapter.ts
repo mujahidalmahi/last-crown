@@ -1,7 +1,9 @@
 import { PlayerInputMessage, AttackType } from '@last-crown/shared';
 import { TouchInputBridge } from './TouchInputBridge';
+import { GamepadInputAdapter } from './GamepadInputAdapter';
 
 export class KeyboardInputAdapter {
+  private gamepadAdapter = new GamepadInputAdapter();
   private keysPressed = new Set<string>();
   private sequence: number = 0;
   private lightAttackBuffer: boolean = false;
@@ -134,8 +136,9 @@ export class KeyboardInputAdapter {
     this.sequence++;
 
     const touch = TouchInputBridge.poll();
+    const gp = this.gamepadAdapter.pollInput(0);
 
-    let moveX = 0;
+    let moveX = gp?.moveX || 0;
     if (this.keysPressed.has('KeyA') || this.keysPressed.has('ArrowLeft') || touch.moveLeft) {
       moveX -= 1;
     }
@@ -143,7 +146,7 @@ export class KeyboardInputAdapter {
       moveX += 1;
     }
 
-    let moveY = 0;
+    let moveY = gp?.moveY || 0;
     if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown') || touch.moveDown) {
       moveY += 1;
     }
@@ -158,7 +161,8 @@ export class KeyboardInputAdapter {
       this.keysPressed.has('KeyW') ||
       this.keysPressed.has('ArrowUp') ||
       touch.jump ||
-      touch.moveUp;
+      touch.moveUp ||
+      !!gp?.jump;
 
     // Block mapping:
     // Modern: Shift (left/right) or KeyI (home row defense)
@@ -168,20 +172,25 @@ export class KeyboardInputAdapter {
         ? this.keysPressed.has('KeyI') ||
           this.keysPressed.has('ShiftLeft') ||
           this.keysPressed.has('ShiftRight') ||
-          touch.block
+          touch.block ||
+          !!gp?.block
         : this.keysPressed.has('KeyK') ||
           this.keysPressed.has('ShiftLeft') ||
           this.keysPressed.has('ShiftRight') ||
-          touch.block;
+          touch.block ||
+          !!gp?.block;
 
-    const dash = this.dashBuffer || touch.dashTrigger;
+    const dash = this.dashBuffer || touch.dashTrigger || !!gp?.dash;
     this.dashBuffer = false;
 
     // Resolve attack and attackType cleanly
     let attack = false;
     let attackType: AttackType = 'light';
 
-    if (this.heavyAttackBuffer || touch.heavyAttackTrigger) {
+    if (gp?.attack) {
+      attack = true;
+      attackType = gp.attackType || 'light';
+    } else if (this.heavyAttackBuffer || touch.heavyAttackTrigger) {
       attack = true;
       attackType = 'heavy';
       this.heavyAttackBuffer = false;
@@ -205,7 +214,7 @@ export class KeyboardInputAdapter {
       this.lightAttackBuffer = false;
     }
 
-    const parry = this.parryBuffer || touch.parryTrigger;
+    const parry = Boolean(this.parryBuffer || touch.parryTrigger || gp?.parry);
     this.parryBuffer = false;
 
     return {

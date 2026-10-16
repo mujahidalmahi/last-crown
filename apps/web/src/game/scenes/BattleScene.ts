@@ -18,9 +18,11 @@ import { WarriorRenderer } from '../rendering/WarriorRenderer';
 import { CombatEffects } from '../effects/CombatEffects';
 import { SoundManager } from '../audio/SoundManager';
 import { KeyboardInputAdapter } from '../input/KeyboardInputAdapter';
+import { DualPlayerInputManager } from '../input/DualPlayerInputManager';
+import { PartyControllerBridge } from '../input/PartyControllerBridge';
 
 export interface BattleSceneConfig {
-  mode: 'singleplayer' | 'multiplayer';
+  mode: 'singleplayer' | 'multiplayer' | 'local_multiplayer';
   playerPreset?: string;
   opponentPreset?: string;
   arenaId?: string;
@@ -39,6 +41,7 @@ export class BattleScene extends Phaser.Scene {
   private effects: CombatEffects | null = null;
   private soundManager: SoundManager | null = null;
   private inputAdapter: KeyboardInputAdapter | null = null;
+  private dualInputManager: DualPlayerInputManager | null = null;
 
   private arenaGraphics: Phaser.GameObjects.Graphics | null = null;
   private torchGlowLeft: Phaser.GameObjects.Arc | null = null;
@@ -97,6 +100,7 @@ export class BattleScene extends Phaser.Scene {
     this.soundManager = new SoundManager();
     this.effects = new CombatEffects(this);
     this.inputAdapter = new KeyboardInputAdapter();
+    this.dualInputManager = new DualPlayerInputManager();
 
     // Render playground colosseum arena backdrop
     this.drawArena(width, height);
@@ -228,6 +232,60 @@ export class BattleScene extends Phaser.Scene {
       // Synchronize immediately if room state is already populated
       if (room.state && room.state.warriors && room.state.warriors.size > 0) {
         this.syncRoomState(room.state);
+      }
+    } else if (this.config.mode === 'local_multiplayer') {
+      this.simulation = new GameSimulation(
+        'p1',
+        'Player 1',
+        this.config.playerPreset || 'knight',
+        'p2',
+        'Player 2',
+        this.config.opponentPreset || 'marauder',
+        this.config.arenaId || 'bastion_courtyard'
+      );
+      this.botAI = null;
+
+      this.simulation.onCombatEvent((result: HitResult) => {
+        this.handleCombatEvent(result);
+        const party = PartyControllerBridge.getInstance();
+        if (result.defenderId === 'p1') {
+          party.sendVibrate('p1', 'hit');
+          this.dualInputManager?.vibrateGamepad(0, 120);
+        } else if (result.defenderId === 'p2') {
+          party.sendVibrate('p2', 'hit');
+          this.dualInputManager?.vibrateGamepad(1, 120);
+        }
+        if (result.resolution === 'parried' || result.isClash) {
+          party.sendVibrate('all', 'parry');
+          this.dualInputManager?.vibrateGamepad(0, 160);
+          this.dualInputManager?.vibrateGamepad(1, 160);
+        }
+        if (this.config.onCombatEvent) {
+          this.config.onCombatEvent(result);
+        }
+      });
+
+      this.simulation.onRoundStart((roundNum: number) => {
+        this.currentRoundNumber = roundNum;
+        this.hitStopRemainingMs = 0;
+        if (this.effects) {
+          this.effects.resetRound();
+        }
+        if (this.simulation?.isSuddenDeath) {
+          this.soundManager?.playSuddenDeathGong();
+          this.soundManager?.playCrowdCheer('roar');
+          this.cameras.main.flash(300, 180, 25, 25);
+          this.cameras.main.shake(220, 0.016);
+        }
+      });
+
+      const initialSnap = this.simulation.getSnapshot();
+      this.currentRoundNumber = initialSnap.roundNumber;
+      this.previousMatchState = initialSnap.matchState;
+      if (this.p1Renderer) this.p1Renderer.render(initialSnap.p1);
+      if (this.p2Renderer) this.p2Renderer.render(initialSnap.p2);
+      if (this.config.onSnapshot) {
+        this.config.onSnapshot(initialSnap);
       }
     }
 
@@ -393,6 +451,64 @@ export class BattleScene extends Phaser.Scene {
       this.wasP2Exhausted = snap.p2.isExhausted;
 
       // Emit to React HUD
+      if (this.config.onSnapshot) {
+        this.config.onSnapshot(snap);
+      }
+    } else if (
+      this.config.mode === 'local_multiplayer' &&
+      this.simulation &&
+      this.dualInputManager
+    ) {
+      const p1Input = this.dualInputManager.pollP1();
+      const p2Input = this.dualInputManager.pollP2();
+
+      if (p1Input.attack && !this.wasP1Attacking && this.soundManager) {
+        this.soundManager.playSwordSwing();
+      }
+      this.wasP1Attacking = !!p1Input.attack;
+
+      if (p1Input.dash) {
+        if (this.soundManager) this.soundManager.playDashWhoosh();
+        if (this.effects)
+          this.effects.triggerDashDust(
+            this.simulation.p1.movement.position,
+            this.simulation.p1.movement.facing
+          );
+      }
+
+      if (p2Input.attack && !this.wasP2Attacking && this.soundManager) {
+        this.soundManager.playSwordSwing();
+      }
+      this.wasP2Attacking = !!p2Input.attack;
+
+      if (p2Input.dash) {
+        if (this.soundManager) this.soundManager.playDashWhoosh();
+        if (this.effects)
+          this.effects.triggerDashDust(
+            this.simulation.p2.movement.position,
+            this.simulation.p2.movement.facing
+          );
+      }
+
+      this.simulation.step(p1Input, p2Input, deltaSec);
+
+      const snap = this.simulation.getSnapshot();
+      this.handleRoundTransition(snap);
+      if (this.p1Renderer) this.p1Renderer.render(snap.p1);
+      if (this.p2Renderer) this.p2Renderer.render(snap.p2);
+
+      if (snap.p1.isExhausted && !this.wasP1Exhausted) {
+        if (this.soundManager) this.soundManager.playExhaustionBreak();
+        if (this.effects) this.effects.triggerGuardBreak(snap.p1.position);
+      }
+      this.wasP1Exhausted = snap.p1.isExhausted;
+
+      if (snap.p2.isExhausted && !this.wasP2Exhausted) {
+        if (this.soundManager) this.soundManager.playExhaustionBreak();
+        if (this.effects) this.effects.triggerGuardBreak(snap.p2.position);
+      }
+      this.wasP2Exhausted = snap.p2.isExhausted;
+
       if (this.config.onSnapshot) {
         this.config.onSnapshot(snap);
       }
@@ -783,6 +899,10 @@ export class BattleScene extends Phaser.Scene {
     if (this.inputAdapter) {
       this.inputAdapter.destroy();
       this.inputAdapter = null;
+    }
+    if (this.dualInputManager) {
+      this.dualInputManager.destroy();
+      this.dualInputManager = null;
     }
     if (this.p1Renderer) {
       this.p1Renderer.destroy();

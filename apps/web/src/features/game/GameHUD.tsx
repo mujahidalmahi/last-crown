@@ -12,7 +12,7 @@ import hudStyles from './GameHUD.module.css';
 
 export interface GameHUDProps {
   snapshot: GameSimulationSnapshot | null;
-  mode?: 'singleplayer' | 'multiplayer';
+  mode?: 'singleplayer' | 'multiplayer' | 'local_multiplayer';
   colyseusRoom?: Room<BattleRoomState> | null;
   voiceState?: VoiceChatState;
   onRematch?: () => void;

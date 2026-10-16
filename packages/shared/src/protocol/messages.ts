@@ -113,3 +113,36 @@ export interface VoiceSignalServerMessage {
   from: string;
   signal: VoiceSignalPayload;
 }
+
+export const PartyMessageType = {
+  CLAIM_SLOT: 'CLAIM_SLOT',
+  CONTROLLER_INPUT: 'CONTROLLER_INPUT',
+  PARTY_STATE: 'PARTY_STATE',
+  VIBRATE_CONTROLLER: 'VIBRATE_CONTROLLER',
+  START_MATCH: 'START_MATCH',
+  SET_WARRIOR_PRESET: 'SET_WARRIOR_PRESET',
+} as const;
+
+export type PartyMessageType = (typeof PartyMessageType)[keyof typeof PartyMessageType];
+
+export interface PartySlotState {
+  p1Connected: boolean;
+  p2Connected: boolean;
+  p1Name: string;
+  p2Name: string;
+  p1Preset: string;
+  p2Preset: string;
+  hostConnected: boolean;
+  assignedSlot?: 'p1' | 'p2' | 'spectator';
+}
+
+export interface ControllerInputMessage {
+  slot: 'p1' | 'p2';
+  input: PlayerInputMessage;
+}
+
+export interface VibrateControllerMessage {
+  slot: 'p1' | 'p2' | 'all';
+  pattern?: number | number[];
+  type?: 'hit' | 'parry' | 'win' | 'lose';
+}

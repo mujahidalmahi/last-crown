@@ -16,7 +16,7 @@ import {
 } from '../../utils/fullscreen';
 
 export interface PhaserGameContainerProps {
-  mode?: 'singleplayer' | 'multiplayer';
+  mode?: 'singleplayer' | 'multiplayer' | 'local_multiplayer';
   playerPreset?: string;
   opponentPreset?: string;
   arenaId?: string;
