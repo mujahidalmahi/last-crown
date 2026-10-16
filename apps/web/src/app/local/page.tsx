@@ -167,16 +167,6 @@ export default function LocalDuelPage() {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* Wall Torches mounted on dungeon pillars */}
-      <div className={styles.torchLeft} aria-hidden="true">
-        <span className={styles.flameGlow}>🔥</span>
-        <div className={styles.torchBracket} />
-      </div>
-      <div className={styles.torchRight} aria-hidden="true">
-        <span className={styles.flameGlow}>🔥</span>
-        <div className={styles.torchBracket} />
-      </div>
-
       {/* Main Stone Frame Chamber */}
       <div className={styles.chamberContainer}>
         {/* Metallic Corner Plates with Screws */}

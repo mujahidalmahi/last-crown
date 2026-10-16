@@ -8,12 +8,11 @@
   min-height: 100dvh;
   overflow-y: auto;
   overflow-x: hidden;
-  background-color: #0b0f19;
-  /* Castle Dungeon Stone Brick Masonry Background */
-  background-image:
-    radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.6) 0%, rgba(3, 7, 18, 0.95) 100%),
-    repeating-linear-gradient(0deg, #090d16 0px, #090d16 2px, transparent 2px, transparent 28px),
-    repeating-linear-gradient(90deg, #161e2e 0px, #161e2e 2px, transparent 2px, transparent 56px);
+  background-color: #070a10;
+  background-image: url('/assets/backgrounds/localbg.jpg');
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
   color: #ffffff;
   font-family: 'Press Start 2P', monospace, sans-serif;
   display: flex;
@@ -24,57 +23,6 @@
   user-select: none;
 }
 
-/* Atmospheric Wall Torches on Left & Right Pillars */
-.torchLeft,
-.torchRight {
-  position: fixed;
-  top: 48%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  z-index: 5;
-  pointer-events: none;
-}
-
-.torchLeft {
-  left: clamp(8px, 2vw, 24px);
-}
-
-.torchRight {
-  right: clamp(8px, 2vw, 24px);
-}
-
-.flameGlow {
-  font-size: clamp(22px, 3vw, 34px);
-  animation: torchFlicker 0.6s infinite alternate ease-in-out;
-  filter: drop-shadow(0 0 12px #f59e0b) drop-shadow(0 0 24px #ea580c);
-  line-height: 1;
-}
-
-.torchBracket {
-  width: clamp(8px, 1.2vw, 12px);
-  height: clamp(16px, 2vw, 22px);
-  background: #1e293b;
-  border: 1.5px solid #475569;
-  border-radius: 2px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.9);
-}
-
-@keyframes torchFlicker {
-  0% {
-    transform: scale(0.92) rotate(-2deg);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.06) rotate(1.5deg);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(0.95) rotate(-1deg);
-    opacity: 0.95;
-  }
-}
 
 /* Master Stone Chamber Frame (Faithful reproduction of reference design) */
 .chamberContainer {
