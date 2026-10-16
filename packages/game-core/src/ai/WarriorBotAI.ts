@@ -190,7 +190,7 @@ export class WarriorBotAI {
       };
     }
 
-    // 2. Airborne Behavior: Plunge downwards with Helm Splitter!
+    // 2. Airborne Behavior: Plunge downwards with Helm Splitter or Fast-Fall to safety!
     if (!botSnapshot.isGrounded) {
       // If airborne and within striking distance of the player, dive with Helm Splitter
       if (distance < 120 && botSnapshot.stamina >= 25) {
@@ -198,6 +198,7 @@ export class WarriorBotAI {
           sequence: this._sequence,
           timestamp: Date.now(),
           moveX: dx > 0 ? 1 : -1,
+          moveY: 1, // Fast-fall diving plunge
           jump: false,
           attack: true,
           attackType: 'aerial',
@@ -205,7 +206,42 @@ export class WarriorBotAI {
           parry: false,
           facing: facingPlayer,
         };
+      } else if (botSnapshot.velocity.y > 50 && (this.difficulty === 'master' || this.difficulty === 'adept')) {
+        // Fast-fall to return swiftly to earth and regain full ground defense
+        return {
+          sequence: this._sequence,
+          timestamp: Date.now(),
+          moveX: dx > 0 ? 1 : -1,
+          moveY: 1,
+          jump: false,
+          attack: false,
+          block: false,
+          parry: false,
+          facing: facingPlayer,
+        };
       }
+    }
+
+    // 2.5. Whiff Punish: If rival missed an attack and is stuck in recovery, strike instantly!
+    if (
+      playerSnapshot.attackPhase === 'recovery' &&
+      distance < 130 &&
+      botSnapshot.isGrounded &&
+      botSnapshot.stamina >= 15 &&
+      !botSnapshot.isExhausted &&
+      (this.difficulty === 'master' || (this.difficulty === 'adept' && Math.random() < 0.75))
+    ) {
+      return {
+        sequence: this._sequence,
+        timestamp: Date.now(),
+        moveX: dx > 0 ? 1 : -1,
+        jump: false,
+        attack: true,
+        attackType: distance > 85 ? 'thrust' : 'light',
+        block: false,
+        parry: false,
+        facing: facingPlayer,
+      };
     }
 
     // 3. Periodic Tactical Decisions (Pacing & Attack Execution)

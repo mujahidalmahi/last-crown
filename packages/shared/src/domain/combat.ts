@@ -39,6 +39,7 @@ export interface HitResult {
   isWallBounce?: boolean;
   isRiposte?: boolean;
   isGuardCrush?: boolean;
+  isCounterHit?: boolean;
   attackId?: string;
   attackType?: AttackType;
 }

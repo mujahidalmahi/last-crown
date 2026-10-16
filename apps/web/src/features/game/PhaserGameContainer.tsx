@@ -8,6 +8,7 @@ import { GameBootstrap } from '../../game/bootstrap/GameBootstrap';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
 import { VoiceChatState } from '../voice/useVoiceChat';
 import { GameHUD } from './GameHUD';
+import { MobileGameControls } from './MobileGameControls';
 import {
   requestBrowserFullscreen,
   exitBrowserFullscreen,
@@ -44,6 +45,25 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFadingIn, setIsFadingIn] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const [isPortrait, setIsPortrait] = useState(false);
+  const [showRotateTip, setShowRotateTip] = useState(true);
+
+  useEffect(() => {
+    const handleOrientation = () => {
+      if (typeof window === 'undefined') return;
+      const portrait = window.innerHeight > window.innerWidth && window.innerWidth <= 768;
+      setIsPortrait(portrait);
+      bootstrapRef.current?.refreshScale();
+    };
+
+    handleOrientation();
+    window.addEventListener('resize', handleOrientation);
+    window.addEventListener('orientationchange', handleOrientation);
+    return () => {
+      window.removeEventListener('resize', handleOrientation);
+      window.removeEventListener('orientationchange', handleOrientation);
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -232,8 +252,9 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         backgroundColor: '#050810',
         zIndex: 9999,
         display: 'flex',
+        flexDirection: isPortrait ? 'column' : 'row',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: isPortrait ? 'flex-start' : 'center',
         overflow: 'hidden',
         userSelect: 'none',
       }}
@@ -242,14 +263,15 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       <div
         style={{
           position: 'relative',
-          width: 'min(100vw, calc(100vh * (16 / 9)))',
-          height: 'min(100vh, calc(100vw * (9 / 16)))',
+          width: isPortrait ? '100vw' : 'min(100vw, calc(100vh * (16 / 9)))',
+          height: isPortrait ? 'calc(100vw * (9 / 16))' : 'min(100vh, calc(100vw * (9 / 16)))',
           aspectRatio: '16 / 9',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
           boxShadow: '0 0 60px rgba(0, 0, 0, 0.95)',
+          flexShrink: 0,
         }}
       >
         <div
@@ -277,7 +299,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
             onClick={toggleFullscreen}
             style={{
               position: 'absolute',
-              top: '80px',
+              top: 'clamp(54px, 11vh, 80px)',
               left: '50%',
               transform: 'translateX(-50%)',
               zIndex: 150,
@@ -285,17 +307,19 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
               color: '#f1c40f',
               border: '2px solid var(--border-gold)',
               borderRadius: '24px',
-              padding: '8px 24px',
-              fontSize: '0.85rem',
+              padding: '6px 18px',
+              fontSize: 'clamp(0.68rem, 1.8vw, 0.85rem)',
               fontWeight: 900,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.08em',
               textTransform: 'uppercase',
               cursor: 'pointer',
               boxShadow: '0 0 24px rgba(241, 196, 15, 0.6)',
               pointerEvents: 'auto',
+              maxWidth: '92%',
+              whiteSpace: 'nowrap',
             }}
           >
-            ⚔️ CLICK TO ENTER FULL SCREEN [F] ⚔️
+            ⚔️ ENTER FULL SCREEN [F] ⚔️
           </button>
         )}
 
@@ -313,6 +337,57 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           aria-hidden="true"
         />
       </div>
+
+      {/* Portrait Mode Console Lower Deck or Landscape Fullscreen Controls */}
+      {isPortrait ? (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            width: '100%',
+            minHeight: 0,
+            backgroundColor: '#070a10',
+            position: 'relative',
+          }}
+        >
+          {showRotateTip && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '6px 14px',
+                backgroundColor: 'rgba(212, 175, 55, 0.12)',
+                borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
+                color: '#f1c40f',
+                fontSize: 'clamp(0.55rem, 1.8vw, 0.68rem)',
+                fontFamily: "'Press Start 2P', monospace",
+                letterSpacing: '0.04em',
+              }}
+            >
+              <span>📱 Tip: Rotate to landscape for full screen!</span>
+              <button
+                type="button"
+                onClick={() => setShowRotateTip(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#94a3b8',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  padding: '2px 8px',
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          <MobileGameControls isPortrait={true} />
+        </div>
+      ) : (
+        <MobileGameControls isPortrait={false} />
+      )}
     </div>
   );
 };

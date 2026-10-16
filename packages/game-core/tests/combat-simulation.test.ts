@@ -48,8 +48,8 @@ describe('Combat Simulation', () => {
     warrior.update(null, 0.14, sim.arena, sim.physics);
     expect(warrior.combat.attackPhase).toBe('recovery');
 
-    // Step forward another 240ms (recovery is 220ms)
-    warrior.update(null, 0.24, sim.arena, sim.physics);
+    // Step forward another 310ms (recovery is 220ms + 70ms whiff recovery penalty = 290ms)
+    warrior.update(null, 0.31, sim.arena, sim.physics);
     expect(warrior.combat.attackPhase).toBe('none');
     expect(warrior.stateMachine.state).toBe('idle');
   });
@@ -771,5 +771,71 @@ describe('Combat Simulation', () => {
     // Attack was feinted back to idle or dashing
     expect(sim.p1.combat.attackPhase).toBe('none');
     expect(sim.p1.movement.velocity.x).toBeGreaterThan(0);
+  });
+
+  it('triggers Counter-Hit with damage bonus when striking an opponent winding up an attack', () => {
+    sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+    sim.p1.movement.setFacing('right');
+    sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
+    sim.p2.movement.setFacing('left');
+
+    // P2 begins winding up a heavy strike
+    sim.p2.processInput({
+      sequence: 1,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      attackType: 'heavy',
+      block: false,
+      parry: false,
+    });
+    expect(sim.p2.combat.attackPhase).toBe('windup');
+
+    let hitEvent: HitResult | null = null;
+    sim.onCombatEvent(result => {
+      hitEvent = result;
+    });
+
+    // P1 strikes P2 with a fast light slash during P2's windup
+    sim.p1.processInput({
+      sequence: 2,
+      timestamp: Date.now(),
+      moveX: 0,
+      jump: false,
+      attack: true,
+      attackType: 'light',
+      block: false,
+      parry: false,
+    });
+
+    // Advance 180ms to enter active phase and collide
+    for (let i = 0; i < 12; i++) {
+      sim.step(null, null, 0.016);
+    }
+
+    expect(hitEvent).not.toBeNull();
+    expect((hitEvent as HitResult).isCounterHit).toBe(true);
+    // Base light slash is 14 dmg; with +25% counter-hit bonus it deals 17 dmg
+    expect((hitEvent as HitResult).damage).toBeGreaterThan(14);
+    // Defender's attack was cancelled into hitstun
+    expect(sim.p2.combat.attackPhase).toBe('none');
+    expect(sim.p2.stateMachine.state).toBe('hitstun');
+  });
+
+  it('triggers Sudden Death round when match ends in a deciding draw', () => {
+    // Both warriors have 1 round won (tied at deciding round)
+    sim.p1.roundsWon = 1;
+    sim.p2.roundsWon = 1;
+
+    // Both warriors reduced to 0 HP simultaneously (double KO)
+    sim.p1.health = 0;
+    sim.p2.health = 0;
+
+    // Run step to trigger round over condition
+    sim.step(null, null, 0.016);
+
+    expect(sim.isSuddenDeath).toBe(true);
+    expect(sim.getSnapshot().isSuddenDeath).toBe(true);
   });
 });

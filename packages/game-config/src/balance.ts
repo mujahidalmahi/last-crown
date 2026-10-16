@@ -12,6 +12,10 @@ export const BALANCE_CONFIG = {
     clashRecoilImpulse: 240, // Horizontal pushback impulse on weapon clash (px / sec)
     clashRecoilStunMs: 220, // Brief recoil stagger on weapon clash
     comboChainWindowMs: 140, // Buffer window to chain into next combo attack
+    counterHitDamageMultiplier: 1.25, // 25% damage bonus on Counter-Hit
+    counterHitStunBonusMs: 100, // Extra frame advantage on Counter-Hit
+    whiffRecoveryPenaltyMs: 70, // Extra recovery on missed attack (footsies / whiff punish)
+    blockAttackerPushbackImpulse: 130, // Recoil pushback on attacker when attacking a blocking defender
   },
   movement: {
     groundAcceleration: 1800, // Horizontal acceleration on ground (px / sec^2)
@@ -22,6 +26,7 @@ export const BALANCE_CONFIG = {
     gravity: 1800, // Vertical gravitational acceleration (pixels / sec^2)
     maxFallSpeed: 950,
     jumpReleaseGravityScale: 2.2, // Extra gravity applied when jump is released early (variable jump)
+    fastFallSpeedMultiplier: 1.85, // Accelerated downward gravity on intentional fast-fall (Down key in air)
     wallBounceVelocityThreshold: 140, // Minimum horizontal speed to trigger a wall bounce
     wallBounceRestitution: 0.4, // Velocity bounce ratio when crashing into arena boundary
     fighterSeparationDistance: 44, // Minimum horizontal distance between fighters to prevent overlap
@@ -32,5 +37,6 @@ export const BALANCE_CONFIG = {
     roundsToWin: 2,
     roundDurationSeconds: 99,
     countdownSeconds: 3,
+    suddenDeathHealthPercent: 35, // Sudden death tiebreaker starting health
   },
 } as const;

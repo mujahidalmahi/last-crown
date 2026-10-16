@@ -59,7 +59,8 @@ export class BattleRoom extends Room<BattleRoomState> {
   }): void {
     this.setState(new BattleRoomState());
 
-    if (options.isPrivate !== false) {
+    this.isPrivateMatch = options.isPrivate !== false;
+    if (this.isPrivateMatch) {
       this.inviteCode = RoomRegistry.getInstance().registerRoom(this.roomId);
       this.state.inviteCode = this.inviteCode;
     }
@@ -197,8 +198,23 @@ export class BattleRoom extends Room<BattleRoomState> {
       }
     });
 
-    // Rematch Ready Handler
+    // Ready Approval (Lobby) & Rematch Ready (Post-Match) Handler
     this.onMessage(ClientMessageType.READY, client => {
+      // Case A: Pre-match lobby ready approval in private custom rooms
+      if (this.state.matchState === 'waiting') {
+        const warrior = this.state.warriors.get(client.sessionId);
+        if (warrior) {
+          warrior.isReady = !warrior.isReady;
+        }
+
+        // Start match once 2 players are present and both have approved readiness
+        if (this.clients.length === 2 && this.areAllWarriorsReady()) {
+          this.startMatch();
+        }
+        return;
+      }
+
+      // Case B: Post-match rematch approval
       if (this.state.matchState === 'match_over' && this.simulation) {
         if (this.isBotMatch) {
           // Instant rematch against authoritative bot!
@@ -301,41 +317,69 @@ export class BattleRoom extends Room<BattleRoomState> {
       this.clearQuickmatchTimers();
     }
 
-    // Once 2 players join, initialize the authoritative GameSimulation
+    // Once 2 players join, initialize match if public quickmatch, or wait for ready approvals if private
     if (this.clients.length === 2 && !this.simulation && this.clientMetadata.size >= 2) {
       this.clearQuickmatchTimers();
-      const clientsList = Array.from(this.clientMetadata.values());
-      const p1 = clientsList[0]!;
-      const p2 = clientsList[1]!;
-
-      this.p1SessionId = p1.id;
-      this.p2SessionId = p2.id;
-
-      this.simulation = new GameSimulation(
-        p1.id,
-        p1.name,
-        p1.preset,
-        p2.id,
-        p2.name,
-        p2.preset,
-        this.state.arenaId
-      );
-
-      this.simulation.onCombatEvent((result: HitResult) => {
-        this.broadcast(ServerMessageType.COMBAT_EVENT, {
-          tick: Date.now(),
-          result,
-        });
-      });
-
-      this.state.matchState = 'in_progress';
-      this.state.endReason = 'normal';
-      this.broadcast(ServerMessageType.MATCH_START, {
-        roundNumber: 1,
-        p1Id: p1.id,
-        p2Id: p2.id,
-      });
+      if (!this.isPrivateMatch) {
+        this.startMatch();
+      }
+      // In private custom rooms, keep in 'waiting' state until both warriors approve readiness!
     }
+  }
+
+  private areAllWarriorsReady(): boolean {
+    if (this.state.warriors.size < 2) return false;
+    let allReady = true;
+    this.state.warriors.forEach(warrior => {
+      if (!warrior.isReady) {
+        allReady = false;
+      }
+    });
+    return allReady;
+  }
+
+  private startMatch(): void {
+    if (this.simulation || this.clientMetadata.size < 2) return;
+
+    this.clearQuickmatchTimers();
+    const clientsList = Array.from(this.clientMetadata.values());
+    const p1 = clientsList[0]!;
+    const p2 = clientsList[1]!;
+
+    this.p1SessionId = p1.id;
+    this.p2SessionId = p2.id;
+
+    this.simulation = new GameSimulation(
+      p1.id,
+      p1.name,
+      p1.preset,
+      p2.id,
+      p2.name,
+      p2.preset,
+      this.state.arenaId
+    );
+
+    this.simulation.onCombatEvent((result: HitResult) => {
+      this.broadcast(ServerMessageType.COMBAT_EVENT, {
+        tick: Date.now(),
+        result,
+      });
+    });
+
+    this.simulation.onRoundStart((roundNumber: number) => {
+      this.broadcast(ServerMessageType.ROUND_START, {
+        roundNumber,
+        isSuddenDeath: this.simulation?.isSuddenDeath ?? false,
+      });
+    });
+
+    this.state.matchState = 'in_progress';
+    this.state.endReason = 'normal';
+    this.broadcast(ServerMessageType.MATCH_START, {
+      roundNumber: 1,
+      p1Id: p1.id,
+      p2Id: p2.id,
+    });
   }
 
   private startQuickmatchBotTimer(): void {
@@ -396,15 +440,17 @@ export class BattleRoom extends Room<BattleRoomState> {
     const humanMeta = Array.from(this.clientMetadata.values())[0];
     if (!humanMeta) return;
 
-    const botPresets = ['knight', 'duelist', 'marauder'];
-    const botPreset = botPresets[Math.floor(Math.random() * botPresets.length)] || 'marauder';
-    const botNames = [
-      'Arena Gladiator (AI)',
-      'Iron Sentinel (AI)',
-      'Shadow Blade (AI)',
-      'Crown Guardian (AI)',
+    const botProfiles: { name: string; preset: string; difficulty: 'novice' | 'adept' | 'master' }[] = [
+      { name: 'Sir Roderick the Unyielding (AI)', preset: 'knight', difficulty: 'adept' },
+      { name: 'Valeria the Crimson Shadow (AI)', preset: 'duelist', difficulty: 'master' },
+      { name: 'Gorgoroth the Skullcrusher (AI)', preset: 'marauder', difficulty: 'master' },
+      { name: 'Alden the Ironclad (AI)', preset: 'knight', difficulty: 'adept' },
+      { name: 'Sylvia the Swift (AI)', preset: 'duelist', difficulty: 'adept' },
+      { name: 'Brutus the Berserker (AI)', preset: 'marauder', difficulty: 'novice' },
     ];
-    const botName = botNames[Math.floor(Math.random() * botNames.length)] || 'Arena Gladiator (AI)';
+    const profile = (botProfiles[Math.floor(Math.random() * botProfiles.length)] || botProfiles[0])!;
+    const botPreset = profile.preset;
+    const botName = profile.name;
 
     const botSessionId = 'bot_champion';
     const botMeta: ClientMetadata = {
@@ -430,7 +476,7 @@ export class BattleRoom extends Room<BattleRoomState> {
 
     this.p1SessionId = humanMeta.id;
     this.p2SessionId = botSessionId;
-    this.serverBotAI = new WarriorBotAI('adept');
+    this.serverBotAI = new WarriorBotAI(profile.difficulty);
 
     this.simulation = new GameSimulation(
       humanMeta.id,
@@ -446,6 +492,13 @@ export class BattleRoom extends Room<BattleRoomState> {
       this.broadcast(ServerMessageType.COMBAT_EVENT, {
         tick: Date.now(),
         result,
+      });
+    });
+
+    this.simulation.onRoundStart((roundNumber: number) => {
+      this.broadcast(ServerMessageType.ROUND_START, {
+        roundNumber,
+        isSuddenDeath: this.simulation?.isSuddenDeath ?? false,
       });
     });
 
@@ -539,6 +592,11 @@ export class BattleRoom extends Room<BattleRoomState> {
 
     // Case 3: Waiting Chamber Lobby Departure
     if (this.state.matchState === 'waiting') {
+      // Reset ready approvals for any remaining warriors so new matchups require fresh confirmation
+      this.state.warriors.forEach(w => {
+        w.isReady = false;
+      });
+
       if (isHost && this.isPrivateMatch) {
         const opponent = this.clients.find(c => c.sessionId !== sessionId);
         if (opponent) {

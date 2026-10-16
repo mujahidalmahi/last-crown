@@ -51,22 +51,35 @@ describe('Multi-Match Concurrency and Fault Isolation', () => {
     expect(room3.state.inviteCode).toBe(''); // Public room has no invite code
     expect(room1.state.inviteCode).not.toBe(room2.state.inviteCode);
 
-    // Join players into Room 1
+    const sendReady = (r: BattleRoom, client: Client) =>
+      (
+        r as unknown as {
+          onMessageHandlers: Record<string, (c: Client, m: unknown) => void>;
+        }
+      ).onMessageHandlers[ClientMessageType.READY](client, {});
+
+    // Join players into Room 1 (private room requires ready approvals)
     const r1p1 = createMockClient('r1-p1');
     const r1p2 = createMockClient('r1-p2');
     room1.clients = [r1p1];
     room1.onJoin(r1p1, { playerName: 'Alice' });
     room1.clients = [r1p1, r1p2];
     room1.onJoin(r1p2, { playerName: 'Bob' });
+    expect(room1.state.matchState).toBe('waiting');
+    sendReady(room1, r1p1);
+    sendReady(room1, r1p2);
     expect(room1.state.matchState).toBe('in_progress');
 
-    // Join players into Room 2
+    // Join players into Room 2 (private room requires ready approvals)
     const r2p1 = createMockClient('r2-p1');
     const r2p2 = createMockClient('r2-p2');
     room2.clients = [r2p1];
     room2.onJoin(r2p1, { playerName: 'Charlie' });
     room2.clients = [r2p1, r2p2];
     room2.onJoin(r2p2, { playerName: 'Dave' });
+    expect(room2.state.matchState).toBe('waiting');
+    sendReady(room2, r2p1);
+    sendReady(room2, r2p2);
     expect(room2.state.matchState).toBe('in_progress');
 
     // Join players into Room 3
@@ -132,11 +145,11 @@ describe('Multi-Match Concurrency and Fault Isolation', () => {
   it('isolates simulation exceptions so a failure in one room cannot disrupt others', () => {
     const healthyRoom = new BattleRoom();
     healthyRoom.roomId = 'healthy-room';
-    healthyRoom.onCreate({ isPrivate: true });
+    healthyRoom.onCreate({ isPrivate: false });
 
     const failingRoom = new BattleRoom();
     failingRoom.roomId = 'failing-room';
-    failingRoom.onCreate({ isPrivate: true });
+    failingRoom.onCreate({ isPrivate: false });
 
     const c1 = createMockClient('c1');
     const c2 = createMockClient('c2');

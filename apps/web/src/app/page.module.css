@@ -163,13 +163,50 @@
 }
 
 @media (max-width: 480px) {
+  .coverContainer {
+    padding: clamp(10px, 3vh, 20px) 16px;
+  }
   .mainButton {
     min-width: 240px;
     font-size: 0.7rem;
   }
   .modeButton {
-    min-width: 260px;
+    min-width: 250px;
     font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .coverContainer {
+    padding: 10px 12px;
+  }
+  .mainButton {
+    min-width: 200px;
+    width: 88vw;
+  }
+  .modeButton {
+    min-width: 210px;
+    width: 90vw;
+  }
+  .backButton {
+    min-width: 160px;
+  }
+}
+
+/* Landscape mobile phone viewports */
+@media (max-height: 480px) and (orientation: landscape) {
+  .buttonGroup {
+    gap: 6px;
+  }
+  .mainButton {
+    width: min(240px, 60vw, calc(28vh * (804 / 454)));
+  }
+  .modeButton {
+    width: min(240px, 60vw, calc(28vh * (804 / 454)));
+  }
+  .backButton {
+    width: min(170px, 45vw, calc(20vh * (804 / 454)));
+    margin-top: 2px;
   }
 }
 

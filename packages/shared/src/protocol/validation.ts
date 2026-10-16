@@ -14,9 +14,12 @@ export const PlayerInputSchema = z.object({
   sequence: numeric.pipe(z.number().int().nonnegative()),
   timestamp: numeric.pipe(z.number()),
   moveX: numeric.pipe(z.number().min(-1).max(1)),
+  moveY: numeric.pipe(z.number().min(-1).max(1)).optional(),
   jump: z.boolean(),
   attack: z.boolean(),
-  attackType: z.enum(['light', 'heavy', 'thrust', 'aerial', 'dash', 'sweep']).optional(),
+  attackType: z
+    .enum(['light', 'heavy', 'thrust', 'aerial', 'dash', 'sweep', 'combo'])
+    .optional(),
   block: z.boolean(),
   parry: z.boolean(),
   dash: z.boolean().optional(),

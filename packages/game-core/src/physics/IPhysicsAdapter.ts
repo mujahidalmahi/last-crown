@@ -19,7 +19,8 @@ export interface IPhysicsAdapter {
     walkSpeed: number,
     jumpVelocity: number,
     deltaSec: number,
-    arena: ArenaConfig
+    arena: ArenaConfig,
+    moveInputY?: number
   ): PhysicsSimulationResult;
 
   applyImpulse(currentVelocity: Vector2, impulse: Vector2): Vector2;

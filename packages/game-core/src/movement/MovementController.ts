@@ -68,10 +68,12 @@ export class MovementController {
     jumpVelocity: number,
     deltaSec: number,
     arena: ArenaConfig,
-    physics: IPhysicsAdapter
+    physics: IPhysicsAdapter,
+    moveInputY?: number
   ): void {
     const effectiveMoveX = canMove ? moveInputX : 0;
     const effectiveJump = canMove ? jumpRequested : false;
+    const effectiveMoveY = canMove ? moveInputY : 0;
 
     if (effectiveMoveX > 0) {
       this._facing = 'right';
@@ -88,7 +90,8 @@ export class MovementController {
       walkSpeed,
       jumpVelocity,
       deltaSec,
-      arena
+      arena,
+      effectiveMoveY
     );
 
     this._position = sim.position;

@@ -480,10 +480,120 @@
   color: #34d399;
 }
 
+.rosterItemNotReady {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
 .rosterItemWaiting {
   background: rgba(148, 163, 184, 0.06);
   border: 1px dashed #475569;
   color: #94a3b8;
+}
+
+.statusBadgeReady {
+  background-color: rgba(16, 185, 129, 0.2);
+  border: 1px solid #10b981;
+  color: #34d399;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 7.5px;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.statusBadgeNotReady {
+  background-color: rgba(239, 68, 68, 0.2);
+  border: 1px solid #ef4444;
+  color: #fca5a5;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 7.5px;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.statusBadgeWaiting {
+  background-color: rgba(148, 163, 184, 0.1);
+  border: 1px dashed #64748b;
+  color: #94a3b8;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 7.5px;
+  letter-spacing: 0.05em;
+}
+
+.readyActionContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.readyToggleBtn {
+  width: 100%;
+  background: linear-gradient(180deg, #d4af37 0%, #a67c00 100%);
+  color: #070b12;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px, 1.1vw, 11px);
+  font-weight: 900;
+  border: 2px solid #ffd700;
+  border-radius: 4px;
+  padding: 12px 20px;
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.35);
+  transition: all 0.12s ease;
+  text-transform: uppercase;
+  image-rendering: pixelated;
+}
+
+.readyToggleBtn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15) drop-shadow(0 0 12px rgba(245, 196, 24, 0.7));
+}
+
+.readyToggleBtn:active {
+  transform: translateY(0);
+  filter: brightness(0.95);
+}
+
+.readyToggleBtnActive {
+  background: linear-gradient(180deg, #10b981 0%, #047857 100%);
+  border-color: #34d399;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+}
+
+.readyToggleBtnActive:hover {
+  filter: brightness(1.15) drop-shadow(0 0 12px rgba(52, 211, 153, 0.8));
+}
+
+.startingBanner {
+  width: 100%;
+  background: rgba(16, 185, 129, 0.2);
+  border: 2px solid #10b981;
+  color: #34d399;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px, 1vw, 10px);
+  text-align: center;
+  letter-spacing: 0.08em;
+  animation: pulse 0.7s infinite alternate;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.35);
+}
+
+.readyHint {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6.5px, 0.8vw, 8px);
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .leaveBtn {
@@ -514,3 +624,77 @@
   background: #000000;
   z-index: 1000;
 }
+
+/* ==============================================================================
+   Room / Chamber Mobile & Tablet Responsiveness
+   ============================================================================== */
+@media (max-width: 768px) {
+  .topNav {
+    left: 4%;
+    top: 1.5%;
+  }
+  .waitingCard {
+    padding: 16px 18px;
+    gap: 12px;
+  }
+  .codeBox {
+    padding: 10px 16px;
+    font-size: clamp(14px, 4vw, 22px);
+  }
+  .copyButtonGroup {
+    gap: 8px;
+  }
+  .copyBtn {
+    padding: 6px 10px;
+    font-size: 7.5px;
+  }
+  .readyToggleBtn {
+    padding: 10px 16px;
+    font-size: 8.5px;
+  }
+}
+
+@media (max-width: 480px) {
+  .topNav {
+    left: 2%;
+    top: 1%;
+    gap: 4px;
+  }
+  .mainHallBtn,
+  .arenaBadge,
+  .statsBadge {
+    padding: 3px 6px;
+    font-size: 6px;
+  }
+  .waitingCard {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .waitingTitle {
+    font-size: 11px;
+  }
+  .waitingSubtitle {
+    font-size: 7px;
+  }
+  .codeBox {
+    padding: 8px 12px;
+    letter-spacing: 0.16em;
+  }
+  .rosterItem {
+    padding: 6px 8px;
+    font-size: 6.5px;
+  }
+}
+
+@media (max-height: 480px) and (orientation: landscape) {
+  .stageWrapper {
+    width: min(98vw, calc(96vh * (1024 / 572)));
+  }
+  .waitingCard {
+    padding: 10px 16px;
+    gap: 8px;
+    max-height: 94vh;
+    overflow-y: auto;
+  }
+}
+

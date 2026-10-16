@@ -57,7 +57,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           }}
         >
           <span style={{ fontSize: '1rem' }}>🎙️</span>
-          <span>Voice Chat</span>
+          <span>{compact ? 'Voice' : 'Voice Chat'}</span>
         </button>
       </div>
     );
@@ -150,7 +150,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
               boxShadow: '0 0 6px #eab308',
             }}
           />
-          <span>Waiting for Rival to enable voice...</span>
+          <span>{compact ? 'Waiting for rival...' : 'Waiting for Rival to enable voice...'}</span>
         </div>
 
         {/* Cancel button */}
@@ -194,7 +194,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
         }}
       >
         <span style={{ animation: 'spin 1.2s linear infinite' }}>⏳</span>
-        <span>Connecting P2P Voice...</span>
+        <span>{compact ? 'Connecting...' : 'Connecting P2P Voice...'}</span>
         <button
           type="button"
           onClick={leaveVoice}

@@ -26,19 +26,108 @@ describe('BattleRoom Lifecycle and Simulation', () => {
     RoomRegistry.getInstance().clear();
     room = new BattleRoom();
     room.roomId = 'test-room-1';
-    room.onCreate({ isPrivate: true });
+    room.onCreate({ isPrivate: false });
   });
 
   afterEach(() => {
     room.onDispose();
   });
 
-  it('initializes room state and registers invite code', () => {
-    expect(room.state.matchState).toBe('waiting');
-    expect(room.state.inviteCode).toHaveLength(6);
-    expect(RoomRegistry.getInstance().getRoomByCode(room.state.inviteCode)?.roomId).toBe(
-      'test-room-1'
+  it('initializes room state and registers invite code for private rooms', () => {
+    const privRoom = new BattleRoom();
+    privRoom.roomId = 'test-priv-room';
+    privRoom.onCreate({ isPrivate: true });
+    expect(privRoom.state.matchState).toBe('waiting');
+    expect(privRoom.state.inviteCode).toHaveLength(6);
+    expect(RoomRegistry.getInstance().getRoomByCode(privRoom.state.inviteCode)?.roomId).toBe(
+      'test-priv-room'
     );
+    privRoom.onDispose();
+  });
+
+  it('does not start match automatically in private custom rooms until both players approve ready', () => {
+    const privRoom = new BattleRoom();
+    privRoom.roomId = 'priv-duel-1';
+    privRoom.onCreate({ isPrivate: true });
+
+    const c1 = createMockClient('p1');
+    const c2 = createMockClient('p2');
+
+    privRoom.clients = [c1];
+    privRoom.onJoin(c1, { playerName: 'Player 1' });
+    expect(privRoom.state.matchState).toBe('waiting');
+    expect(privRoom.state.warriors.get('p1')?.isReady).toBe(false);
+
+    privRoom.clients = [c1, c2];
+    privRoom.onJoin(c2, { playerName: 'Player 2' });
+    // In private custom room, joining does NOT start the match automatically
+    expect(privRoom.state.matchState).toBe('waiting');
+    expect(privRoom.state.warriors.get('p2')?.isReady).toBe(false);
+
+    const onMessageHandlers = (
+      privRoom as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers;
+    const readyHandler = onMessageHandlers[ClientMessageType.READY];
+    expect(readyHandler).toBeDefined();
+
+    // Player 1 toggles ready
+    readyHandler(c1, {});
+    expect(privRoom.state.warriors.get('p1')?.isReady).toBe(true);
+    // Still waiting because player 2 has not approved
+    expect(privRoom.state.matchState).toBe('waiting');
+
+    // Player 1 toggles ready again to cancel
+    readyHandler(c1, {});
+    expect(privRoom.state.warriors.get('p1')?.isReady).toBe(false);
+    expect(privRoom.state.matchState).toBe('waiting');
+
+    // Player 1 readies up
+    readyHandler(c1, {});
+    expect(privRoom.state.warriors.get('p1')?.isReady).toBe(true);
+    expect(privRoom.state.matchState).toBe('waiting');
+
+    // Player 2 readies up -> Both are now ready! Match starts!
+    readyHandler(c2, {});
+    expect(privRoom.state.warriors.get('p2')?.isReady).toBe(true);
+    expect(privRoom.state.matchState).toBe('in_progress');
+    expect(privRoom.state.roundNumber).toBe(1);
+
+    privRoom.onDispose();
+  });
+
+  it('resets ready approval when a player leaves the private chamber lobby', async () => {
+    const privRoom = new BattleRoom();
+    privRoom.roomId = 'priv-duel-2';
+    privRoom.onCreate({ isPrivate: true });
+
+    const c1 = createMockClient('p1');
+    const c2 = createMockClient('p2');
+
+    privRoom.clients = [c1, c2];
+    privRoom.onJoin(c1, { playerName: 'Host' });
+    privRoom.onJoin(c2, { playerName: 'Guest' });
+
+    const onMessageHandlers = (
+      privRoom as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers;
+    const readyHandler = onMessageHandlers[ClientMessageType.READY];
+
+    readyHandler(c1, {});
+    expect(privRoom.state.warriors.get('p1')?.isReady).toBe(true);
+
+    // Guest leaves during lobby wait
+    privRoom.clients = [c1];
+    await privRoom.onLeave(c2, true);
+
+    // Host ready status must be reset to require fresh approval with any new challenger
+    expect(privRoom.state.warriors.get('p1')?.isReady).toBe(false);
+    expect(privRoom.state.matchState).toBe('waiting');
+
+    privRoom.onDispose();
   });
 
   it('initializes authoritative simulation when 2 players join and steps through round transitions', () => {

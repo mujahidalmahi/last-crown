@@ -312,6 +312,12 @@ export function useMultiplayerRoom() {
     }
   }, []);
 
+  const toggleReady = useCallback(() => {
+    if (roomRef.current) {
+      roomRef.current.send(ClientMessageType.READY, {});
+    }
+  }, []);
+
   const forfeitMatch = useCallback(() => {
     if (roomRef.current) {
       roomRef.current.send(ClientMessageType.FORFEIT_MATCH, {});
@@ -412,5 +418,6 @@ export function useMultiplayerRoom() {
     leaveRoom,
     requestBotOpponent,
     forfeitMatch,
+    toggleReady,
   };
 }

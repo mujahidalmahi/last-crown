@@ -1,0 +1,490 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* ==============================================================================
+   Desktop Guard: Strictly hide all mobile controls on desktop fine-pointer screens
+   ============================================================================== */
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  .mobileControlsContainer {
+    display: none !important;
+  }
+}
+
+/* Base Mobile Controls Root Wrapper */
+.mobileControlsContainer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 200;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  box-sizing: border-box;
+  padding: 0 max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+
+/* ==============================================================================
+   Left Zone: Movement D-Pad & Quick Dash
+   ============================================================================== */
+.leftThumbZone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(6px, 1.2vh, 12px);
+  pointer-events: auto;
+  margin-bottom: clamp(2px, 1vh, 12px);
+}
+
+/* Tactical Quick Dash Button above D-Pad */
+.dashButton {
+  position: relative;
+  width: clamp(48px, 11vw, 68px);
+  height: clamp(38px, 8.5vw, 48px);
+  background: radial-gradient(circle at 50% 30%, #334155 0%, #0f172a 100%);
+  border: 2px solid #94a3b8;
+  outline: 1px solid #475569;
+  border-radius: 8px;
+  color: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.25);
+  transition: transform 0.08s ease, filter 0.1s ease, border-color 0.1s ease;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dashButton:active,
+.dashButton.active {
+  transform: scale(0.92);
+  border-color: #38bdf8;
+  filter: brightness(1.25) drop-shadow(0 0 10px rgba(56, 189, 248, 0.7));
+  background: radial-gradient(circle at 50% 30%, #0369a1 0%, #082f49 100%);
+}
+
+.dashIcon {
+  font-size: clamp(14px, 3.2vw, 20px);
+  line-height: 1;
+}
+
+.dashLabel {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(6px, 1.3vw, 7.5px);
+  letter-spacing: 0.06em;
+  color: #cbd5e1;
+}
+
+/* Ergonomic Cross D-Pad Container */
+.dpadContainer {
+  position: relative;
+  width: clamp(124px, 26vw, 172px);
+  height: clamp(124px, 26vw, 172px);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* D-Pad Background Cross Shell */
+.dpadCrossBackdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.85) 0%, rgba(5, 8, 16, 0.95) 70%);
+  border: 2px solid rgba(212, 175, 55, 0.45);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), inset 0 0 14px rgba(0, 0, 0, 0.9);
+}
+
+/* Individual Directional Pads */
+.dpadDir {
+  position: absolute;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #475569;
+  color: #f1c40f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+  transition: transform 0.06s ease, background 0.1s ease, border-color 0.1s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dpadDir:active,
+.dpadDir.active {
+  background: linear-gradient(180deg, #b45309 0%, #78350f 100%);
+  border-color: #f59e0b;
+  color: #ffffff;
+  transform: scale(0.94);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.8);
+}
+
+/* Direction Pad Placements: Up / Down / Left / Right */
+.dpadUp {
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32%;
+  height: 33%;
+  border-radius: 8px 8px 3px 3px;
+}
+.dpadUp:active,
+.dpadUp.active {
+  transform: translateX(-50%) scale(0.94);
+}
+
+.dpadDown {
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32%;
+  height: 33%;
+  border-radius: 3px 3px 8px 8px;
+}
+.dpadDown:active,
+.dpadDown.active {
+  transform: translateX(-50%) scale(0.94);
+}
+
+.dpadLeft {
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 33%;
+  height: 32%;
+  border-radius: 8px 3px 3px 8px;
+}
+.dpadLeft:active,
+.dpadLeft.active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.dpadRight {
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 33%;
+  height: 32%;
+  border-radius: 3px 8px 8px 3px;
+}
+.dpadRight:active,
+.dpadRight.active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+/* Center Crown Medallion */
+.dpadCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: radial-gradient(circle, #242f42 0%, #0a0d14 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(8px, 1.8vw, 12px);
+  color: #f1c40f;
+  pointer-events: none;
+}
+
+.dirArrow {
+  font-size: clamp(12px, 2.4vw, 18px);
+  line-height: 1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+}
+
+/* ==============================================================================
+   Right Zone: Ergonomic Combat Action Cluster
+   ============================================================================== */
+.rightThumbZone {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  pointer-events: auto;
+  margin-bottom: clamp(2px, 1vh, 12px);
+}
+
+/* Action Pad Cluster Arc Container */
+.actionCluster {
+  position: relative;
+  width: clamp(170px, 36vw, 240px);
+  height: clamp(160px, 34vw, 220px);
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Generic Action Button Base */
+.actionBtn {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: none;
+  transition: transform 0.08s ease, filter 0.1s ease, border-color 0.1s ease;
+  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.actionBtn:active,
+.actionBtn.active {
+  transform: scale(0.91);
+}
+
+.btnIcon {
+  line-height: 1;
+}
+
+.btnLabel {
+  font-family: 'Press Start 2P', monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* 1. LIGHT ATTACK (Primary Combat Action - Largest, Bottom Center) */
+.btnLight {
+  bottom: 0%;
+  left: 36%;
+  width: clamp(56px, 12vw, 76px);
+  height: clamp(56px, 12vw, 76px);
+  background: radial-gradient(circle at 45% 35%, #10b981 0%, #064e3b 85%);
+  border: 2.5px solid #34d399;
+  outline: 1.5px solid #059669;
+  color: #ffffff;
+  z-index: 5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), 0 0 14px rgba(16, 185, 129, 0.45);
+}
+.btnLight:active,
+.btnLight.active {
+  border-color: #6ee7b7;
+  filter: brightness(1.25) drop-shadow(0 0 16px rgba(52, 211, 153, 0.85));
+  background: radial-gradient(circle at 45% 35%, #059669 0%, #022c22 85%);
+}
+.btnLight .btnIcon {
+  font-size: clamp(18px, 4.2vw, 26px);
+}
+.btnLight .btnLabel {
+  font-size: clamp(6px, 1.3vw, 7.5px);
+  color: #ecfdf5;
+}
+
+/* 2. HEAVY STRIKE (Top Center) */
+.btnHeavy {
+  top: 0%;
+  left: 38%;
+  width: clamp(46px, 9.5vw, 62px);
+  height: clamp(46px, 9.5vw, 62px);
+  background: radial-gradient(circle at 45% 35%, #f97316 0%, #7c2d12 85%);
+  border: 2px solid #fb923c;
+  outline: 1px solid #c2410c;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 12px rgba(249, 115, 22, 0.4);
+}
+.btnHeavy:active,
+.btnHeavy.active {
+  border-color: #fed7aa;
+  filter: brightness(1.25) drop-shadow(0 0 16px rgba(249, 115, 22, 0.85));
+  background: radial-gradient(circle at 45% 35%, #c2410c 0%, #431407 85%);
+}
+.btnHeavy .btnIcon {
+  font-size: clamp(14px, 3.2vw, 20px);
+}
+.btnHeavy .btnLabel {
+  font-size: clamp(5.5px, 1.1vw, 6.5px);
+  color: #fff7ed;
+}
+
+/* 3. FORWARD THRUST (Far Right) */
+.btnThrust {
+  top: 32%;
+  right: 0%;
+  width: clamp(46px, 9.5vw, 62px);
+  height: clamp(46px, 9.5vw, 62px);
+  background: radial-gradient(circle at 45% 35%, #06b6d4 0%, #164e63 85%);
+  border: 2px solid #22d3ee;
+  outline: 1px solid #0891b2;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 12px rgba(6, 182, 212, 0.4);
+}
+.btnThrust:active,
+.btnThrust.active {
+  border-color: #a5f3fc;
+  filter: brightness(1.25) drop-shadow(0 0 16px rgba(34, 211, 238, 0.85));
+  background: radial-gradient(circle at 45% 35%, #0891b2 0%, #083344 85%);
+}
+.btnThrust .btnIcon {
+  font-size: clamp(14px, 3.2vw, 20px);
+}
+.btnThrust .btnLabel {
+  font-size: clamp(5.5px, 1.1vw, 6.5px);
+  color: #ecfeff;
+}
+
+/* 4. BLOCK / GUARD (Left Wing - Large Shield Shape) */
+.btnBlock {
+  top: 24%;
+  left: 0%;
+  width: clamp(50px, 10.5vw, 66px);
+  height: clamp(50px, 10.5vw, 66px);
+  background: radial-gradient(circle at 45% 35%, #3b82f6 0%, #1e3a8a 85%);
+  border: 2.5px solid #60a5fa;
+  outline: 1px solid #1d4ed8;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 14px rgba(59, 130, 246, 0.45);
+}
+.btnBlock:active,
+.btnBlock.active {
+  border-color: #bfdbfe;
+  filter: brightness(1.25) drop-shadow(0 0 16px rgba(96, 165, 250, 0.9));
+  background: radial-gradient(circle at 45% 35%, #1d4ed8 0%, #172554 85%);
+}
+.btnBlock .btnIcon {
+  font-size: clamp(16px, 3.6vw, 22px);
+}
+.btnBlock .btnLabel {
+  font-size: clamp(5.5px, 1.1vw, 6.5px);
+  color: #eff6ff;
+}
+
+/* 5. PARRY & RIPOSTE (Lower Left) */
+.btnParry {
+  bottom: 0%;
+  left: 0%;
+  width: clamp(44px, 9vw, 58px);
+  height: clamp(44px, 9vw, 58px);
+  background: radial-gradient(circle at 45% 35%, #a855f7 0%, #581c87 85%);
+  border: 2px solid #c084fc;
+  outline: 1px solid #7e22ce;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 12px rgba(168, 85, 247, 0.4);
+}
+.btnParry:active,
+.btnParry.active {
+  border-color: #f3e8ff;
+  filter: brightness(1.25) drop-shadow(0 0 16px rgba(192, 132, 252, 0.9));
+  background: radial-gradient(circle at 45% 35%, #7e22ce 0%, #3b0764 85%);
+}
+.btnParry .btnIcon {
+  font-size: clamp(13px, 3vw, 18px);
+}
+.btnParry .btnLabel {
+  font-size: clamp(5px, 1vw, 6px);
+  color: #faf5ff;
+}
+
+/* ==============================================================================
+   Portrait Console Mode (when mobile device is held vertically)
+   ============================================================================== */
+@media (max-width: 600px) and (orientation: portrait) {
+  .mobileControlsContainer {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 240px;
+    background: linear-gradient(180deg, #070a10 0%, #030508 100%);
+    border-top: 2px solid var(--border-gold);
+    box-shadow: inset 0 8px 24px rgba(0, 0, 0, 0.95);
+    padding: 14px 16px 20px 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .leftThumbZone {
+    margin-bottom: 0;
+  }
+
+  .rightThumbZone {
+    margin-bottom: 0;
+  }
+
+  .dpadContainer {
+    width: 140px;
+    height: 140px;
+  }
+
+  .actionCluster {
+    width: 175px;
+    height: 160px;
+  }
+}
+
+/* ==============================================================================
+   Small Mobile Phones (< 360px wide or < 360px high in landscape)
+   ============================================================================== */
+@media (max-width: 360px), (max-height: 360px) {
+  .dpadContainer {
+    width: 110px;
+    height: 110px;
+  }
+  .dashButton {
+    width: 44px;
+    height: 34px;
+  }
+  .actionCluster {
+    width: 150px;
+    height: 140px;
+  }
+  .btnLight {
+    width: 50px;
+    height: 50px;
+  }
+  .btnHeavy, .btnThrust, .btnBlock {
+    width: 42px;
+    height: 42px;
+  }
+  .btnParry {
+    width: 38px;
+    height: 38px;
+  }
+  .btnLabel {
+    font-size: 5px !important;
+  }
+}
+
+/* ==============================================================================
+   Tablets (601px - 1024px)
+   ============================================================================== */
+@media (min-width: 601px) and (max-width: 1024px) {
+  .mobileControlsContainer {
+    padding: 0 max(24px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
+  }
+  .dpadContainer {
+    width: 168px;
+    height: 168px;
+  }
+  .dashButton {
+    width: 64px;
+    height: 48px;
+  }
+  .actionCluster {
+    width: 230px;
+    height: 210px;
+  }
+  .btnLight {
+    width: 76px;
+    height: 76px;
+  }
+  .btnHeavy, .btnThrust, .btnBlock {
+    width: 62px;
+    height: 62px;
+  }
+  .btnParry {
+    width: 56px;
+    height: 56px;
+  }
+}

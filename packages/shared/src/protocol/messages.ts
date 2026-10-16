@@ -16,6 +16,7 @@ export interface PlayerInputMessage {
   sequence: number;
   timestamp: number;
   moveX: number; // -1, 0, 1
+  moveY?: number; // -1 (down/crouch/fast-fall), 0, 1 (up)
   jump: boolean;
   attack: boolean;
   attackType?: AttackType;
@@ -33,6 +34,7 @@ export const ServerMessageType = {
   PONG: 'PONG',
   MATCH_START: 'MATCH_START',
   COMBAT_EVENT: 'COMBAT_EVENT',
+  ROUND_START: 'ROUND_START',
   ROUND_END: 'ROUND_END',
   MATCH_END: 'MATCH_END',
   ERROR: 'ERROR',
@@ -53,6 +55,17 @@ export interface PongMessage {
 export interface CombatEventMessage {
   tick: number;
   result: HitResult;
+}
+
+export interface RoundStartMessage {
+  roundNumber: number;
+  isSuddenDeath?: boolean;
+}
+
+export interface RoundEndMessage {
+  roundNumber: number;
+  winnerId: string | null;
+  isSuddenDeath?: boolean;
 }
 
 export interface MatchEndMessage {

@@ -505,6 +505,163 @@ export class SoundManager {
     }
   }
 
+  public playCounterHit(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // High-impact punchy counter-hit sound (crunchy square + sub kick)
+      const subOsc = ctx.createOscillator();
+      const subGain = ctx.createGain();
+      subOsc.type = 'triangle';
+      subOsc.frequency.setValueAtTime(260, now);
+      subOsc.frequency.exponentialRampToValueAtTime(45, now + 0.22);
+      subGain.gain.setValueAtTime(0.6 * this.volume, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      subOsc.connect(subGain);
+      subGain.connect(ctx.destination);
+      subOsc.start(now);
+      subOsc.stop(now + 0.24);
+
+      // Crunchy harmonic crack
+      const crackOsc = ctx.createOscillator();
+      const crackGain = ctx.createGain();
+      crackOsc.type = 'sawtooth';
+      crackOsc.frequency.setValueAtTime(780, now);
+      crackOsc.frequency.exponentialRampToValueAtTime(140, now + 0.16);
+      crackGain.gain.setValueAtTime(0.45 * this.volume, now);
+      crackGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      crackOsc.connect(crackGain);
+      crackGain.connect(ctx.destination);
+      crackOsc.start(now);
+      crackOsc.stop(now + 0.18);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playFastFallWhoosh(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(420, now);
+      osc.frequency.exponentialRampToValueAtTime(110, now + 0.18);
+      gain.gain.setValueAtTime(0.35 * this.volume, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playHeartbeatPulse(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // Double lub-dub thump
+      [0, 0.14].forEach((delay, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        const startFreq = idx === 0 ? 88 : 72;
+        osc.frequency.setValueAtTime(startFreq, now + delay);
+        osc.frequency.exponentialRampToValueAtTime(32, now + delay + 0.12);
+        gain.gain.setValueAtTime(0.4 * this.volume, now + delay);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.12);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + delay);
+        osc.stop(now + delay + 0.14);
+      });
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playCrowdCheer(intensity: 'small' | 'roar' = 'small'): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      const duration = intensity === 'roar' ? 1.6 : 0.8;
+      const bufferSize = Math.floor(ctx.sampleRate * duration);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(intensity === 'roar' ? 720 : 540, now);
+      filter.Q.setValueAtTime(1.8, now);
+
+      const gain = ctx.createGain();
+      const peakVol = (intensity === 'roar' ? 0.35 : 0.18) * this.volume;
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(peakVol, now + 0.18);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start(now);
+      noise.stop(now + duration);
+    } catch {
+      // Audio error handling
+    }
+  }
+
+  public playSuddenDeathGong(): void {
+    if (this.isMuted || this.volume <= 0) return;
+    const ctx = this.initContext();
+    if (!ctx) return;
+
+    try {
+      const now = ctx.currentTime;
+      // Resonant deep brass gong
+      [110, 165, 275, 410].forEach((freq, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.96, now + 2.5);
+
+        const oscGain = (0.35 / (idx + 1)) * this.volume;
+        gain.gain.setValueAtTime(oscGain, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 2.6);
+      });
+    } catch {
+      // Audio error handling
+    }
+  }
+
   public destroy(): void {
     if (typeof window !== 'undefined' && this.boundSettingsListener) {
       window.removeEventListener('storage', this.boundSettingsListener);

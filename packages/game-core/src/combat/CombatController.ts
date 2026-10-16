@@ -194,7 +194,10 @@ export class CombatController {
           this._attackTimerMs = this._currentAttack.activeMs;
         } else if (this._attackPhase === 'active') {
           this._attackPhase = 'recovery';
-          this._attackTimerMs = this._currentAttack.recoveryMs;
+          const whiffPenalty = !this._hasHitInCurrentAttack
+            ? BALANCE_CONFIG.combat.whiffRecoveryPenaltyMs
+            : 0;
+          this._attackTimerMs = this._currentAttack.recoveryMs + whiffPenalty;
         } else if (this._attackPhase === 'recovery') {
           this._attackPhase = 'none';
           this._currentAttack = null;
@@ -254,6 +257,7 @@ export class CombatController {
     let staminaDamage = 0;
     let stunMs = attack.hitstunMs;
     let isCritical = false;
+    let isCounterHit = false;
 
     // Check Parry First
     if (this.isParryingActive && isDefenderFacingAttacker) {
@@ -307,9 +311,14 @@ export class CombatController {
       resolution = 'hit';
       const isBackstab = !isDefenderFacingAttacker;
       const isRiposte = this._exhaustionTimerMs > 0 || this._hitstunTimerMs > 0;
-      isCritical = isBackstab || isRiposte;
+      isCounterHit = this._attackPhase === 'windup' || this._attackPhase === 'active';
+      isCritical = isBackstab || isRiposte || isCounterHit;
+
       if (isRiposte) {
         finalDamage = Math.floor(finalDamage * 1.5); // Brutal 1.5x riposte puncture
+      } else if (isCounterHit) {
+        finalDamage = Math.floor(finalDamage * BALANCE_CONFIG.combat.counterHitDamageMultiplier); // +25% counter bonus
+        stunMs += BALANCE_CONFIG.combat.counterHitStunBonusMs; // +100ms hitstun advantage
       } else if (isBackstab) {
         finalDamage = Math.floor(finalDamage * 1.3);
       }
@@ -339,6 +348,7 @@ export class CombatController {
       hitstunMs: stunMs,
       isCritical,
       isRiposte: isRiposteHit,
+      isCounterHit: isCounterHit && resolution === 'hit',
       attackId: attack.id,
       attackType: attack.type,
     };

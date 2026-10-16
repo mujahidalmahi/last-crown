@@ -1,4 +1,5 @@
 import { PlayerInputMessage, AttackType } from '@last-crown/shared';
+import { TouchInputBridge } from './TouchInputBridge';
 
 export class KeyboardInputAdapter {
   private keysPressed = new Set<string>();
@@ -132,12 +133,22 @@ export class KeyboardInputAdapter {
   public pollInput(): PlayerInputMessage {
     this.sequence++;
 
+    const touch = TouchInputBridge.poll();
+
     let moveX = 0;
-    if (this.keysPressed.has('KeyA') || this.keysPressed.has('ArrowLeft')) {
+    if (this.keysPressed.has('KeyA') || this.keysPressed.has('ArrowLeft') || touch.moveLeft) {
       moveX -= 1;
     }
-    if (this.keysPressed.has('KeyD') || this.keysPressed.has('ArrowRight')) {
+    if (this.keysPressed.has('KeyD') || this.keysPressed.has('ArrowRight') || touch.moveRight) {
       moveX += 1;
+    }
+
+    let moveY = 0;
+    if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown') || touch.moveDown) {
+      moveY += 1;
+    }
+    if (this.keysPressed.has('KeyW') || this.keysPressed.has('ArrowUp') || touch.moveUp) {
+      moveY -= 1;
     }
 
     // Space is the universal jump standard across all modern PC games!
@@ -145,7 +156,9 @@ export class KeyboardInputAdapter {
     const jump =
       this.keysPressed.has('Space') ||
       this.keysPressed.has('KeyW') ||
-      this.keysPressed.has('ArrowUp');
+      this.keysPressed.has('ArrowUp') ||
+      touch.jump ||
+      touch.moveUp;
 
     // Block mapping:
     // Modern: Shift (left/right) or KeyI (home row defense)
@@ -154,31 +167,33 @@ export class KeyboardInputAdapter {
       this.controlPreset === 'modern'
         ? this.keysPressed.has('KeyI') ||
           this.keysPressed.has('ShiftLeft') ||
-          this.keysPressed.has('ShiftRight')
+          this.keysPressed.has('ShiftRight') ||
+          touch.block
         : this.keysPressed.has('KeyK') ||
           this.keysPressed.has('ShiftLeft') ||
-          this.keysPressed.has('ShiftRight');
+          this.keysPressed.has('ShiftRight') ||
+          touch.block;
 
-    const dash = this.dashBuffer;
+    const dash = this.dashBuffer || touch.dashTrigger;
     this.dashBuffer = false;
 
     // Resolve attack and attackType cleanly
     let attack = false;
     let attackType: AttackType = 'light';
 
-    if (this.heavyAttackBuffer) {
+    if (this.heavyAttackBuffer || touch.heavyAttackTrigger) {
       attack = true;
       attackType = 'heavy';
       this.heavyAttackBuffer = false;
-    } else if (this.thrustBuffer) {
+    } else if (this.thrustBuffer || touch.thrustTrigger) {
       attack = true;
       attackType = 'thrust';
       this.thrustBuffer = false;
-    } else if (this.lightAttackBuffer) {
+    } else if (this.lightAttackBuffer || touch.lightAttackTrigger) {
       attack = true;
       if (dash) {
         attackType = 'dash';
-      } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown')) {
+      } else if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown') || touch.moveDown) {
         attackType = this.controlPreset === 'modern' ? 'sweep' : 'heavy';
       } else {
         attackType = 'light';
@@ -186,13 +201,14 @@ export class KeyboardInputAdapter {
       this.lightAttackBuffer = false;
     }
 
-    const parry = this.parryBuffer;
+    const parry = this.parryBuffer || touch.parryTrigger;
     this.parryBuffer = false;
 
     return {
       sequence: this.sequence,
       timestamp: Date.now(),
       moveX,
+      moveY,
       jump,
       attack,
       attackType,
@@ -210,5 +226,6 @@ export class KeyboardInputAdapter {
       window.removeEventListener('last_crown_settings_changed', this.onSettingsChangedHandler);
     }
     this.keysPressed.clear();
+    TouchInputBridge.reset();
   }
 }

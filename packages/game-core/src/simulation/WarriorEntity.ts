@@ -28,6 +28,14 @@ export class WarriorEntity {
   public roundsWon: number = 0;
   public isDecapitated: boolean = false;
 
+  get maxHealth(): number {
+    return this.preset.attributes.maxHealth;
+  }
+
+  get maxStamina(): number {
+    return this.preset.attributes.maxStamina;
+  }
+
   public readonly movement: MovementController;
   public readonly stateMachine: WarriorStateMachine;
   public readonly combat: CombatController;
@@ -222,6 +230,7 @@ export class WarriorEntity {
       this.stateMachine.state !== 'parrying';
 
     const moveX = input ? input.moveX : 0;
+    const moveY = input?.moveY;
     const jumpRequested = input ? input.jump : false;
 
     // Movement speed halved when exhausted
@@ -237,7 +246,8 @@ export class WarriorEntity {
       this.preset.attributes.jumpVelocity,
       deltaSec,
       arena,
-      physics
+      physics,
+      moveY
     );
 
     // Update state machine based on movement

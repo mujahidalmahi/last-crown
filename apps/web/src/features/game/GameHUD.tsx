@@ -8,6 +8,7 @@ import { GameSimulationSnapshot } from '@last-crown/game-core';
 import { VoiceChatState, useVoiceChat } from '../voice/useVoiceChat';
 import { VoiceControls } from '../voice/VoiceControls';
 import victoryStyles from './VictoryCard.module.css';
+import hudStyles from './GameHUD.module.css';
 
 export interface GameHUDProps {
   snapshot: GameSimulationSnapshot | null;
@@ -137,20 +138,34 @@ export const GameHUD: React.FC<GameHUDProps> = ({
       snapshot.matchState === 'in_progress'
     ) {
       lastRoundSeenRef.current = snapshot.roundNumber;
-      setRoundSplash(`ROUND ${snapshot.roundNumber}`);
-      const timer1 = setTimeout(() => {
-        setRoundSplash('DUEL!');
-      }, 900);
-      const timer2 = setTimeout(() => {
-        setRoundSplash(null);
-      }, 1800);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-      };
+      if (snapshot.isSuddenDeath) {
+        setRoundSplash('💀 SUDDEN DEATH 💀');
+        const timer1 = setTimeout(() => {
+          setRoundSplash('FINAL BLOOD!');
+        }, 1100);
+        const timer2 = setTimeout(() => {
+          setRoundSplash(null);
+        }, 2200);
+        return () => {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+        };
+      } else {
+        setRoundSplash(`ROUND ${snapshot.roundNumber}`);
+        const timer1 = setTimeout(() => {
+          setRoundSplash('DUEL!');
+        }, 900);
+        const timer2 = setTimeout(() => {
+          setRoundSplash(null);
+        }, 1800);
+        return () => {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+        };
+      }
     }
     return undefined;
-  }, [snapshot?.roundNumber, snapshot?.matchState]);
+  }, [snapshot?.roundNumber, snapshot?.matchState, snapshot?.isSuddenDeath]);
 
   // Reset match ID on new match or rematch
   useEffect(() => {
@@ -210,57 +225,42 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   const isP2Exhausted = !!p2.isExhausted;
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        padding: '16px 28px',
-        pointerEvents: 'none',
-        display: 'flex',
-        flexDirection: 'column',
-        userSelect: 'none',
-      }}
-    >
+    <div className={hudStyles.hudRoot}>
+      {/* Low Health Mortal Danger Pulsing Vignette */}
+      {p1HealthPercent <= 25 && p1HealthPercent > 0 && matchState === 'in_progress' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 5,
+            boxShadow:
+              'inset 0 0 60px rgba(231, 76, 60, 0.4), inset 0 0 120px rgba(192, 57, 43, 0.25)',
+            animation: 'pulse 1.2s infinite ease-in-out',
+          }}
+        />
+      )}
+
       {/* Top Bar: Gothic Health Bars & Center Medallion */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: '24px',
-        }}
-      >
+      <div className={hudStyles.topBar}>
         {/* P1 Stats (Player / Host) */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className={hudStyles.fighterStats}>
+          <div className={hudStyles.fighterHeader}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '1.2rem', filter: 'drop-shadow(0 0 6px #f1c40f)' }}>🛡️</span>
-              <span
-                style={{
-                  fontWeight: 900,
-                  color: '#f1c40f',
-                  fontSize: '1.15rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  textShadow: '0 2px 8px rgba(0, 0, 0, 0.9)',
-                }}
-              >
+              <span className={hudStyles.playerName} style={{ color: '#f1c40f' }}>
                 {p1.name}
               </span>
             </div>
             {/* Rounds Won Crowns */}
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div className={hudStyles.crownsWon}>
               {Array.from({ length: 2 }).map((_, i) => (
                 <span
                   key={i}
+                  className={hudStyles.crownIcon}
                   style={{
                     opacity: i < p1.roundsWon ? 1 : 0.2,
-                    fontSize: '1.3rem',
                     filter: i < p1.roundsWon ? 'drop-shadow(0 0 8px #f1c40f)' : 'grayscale(100%)',
-                    transition: 'all 0.3s ease',
                   }}
                 >
                   👑
@@ -270,17 +270,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </div>
 
           {/* Gothic Health Bar Shell */}
-          <div
-            style={{
-              position: 'relative',
-              height: '24px',
-              backgroundColor: '#0a0d14',
-              borderRadius: '4px',
-              overflow: 'hidden',
-              border: '2px solid #3d495c',
-              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)',
-            }}
-          >
+          <div className={hudStyles.healthBarShell}>
             {/* Red Ghost Damage Bar */}
             <div
               style={{
@@ -321,14 +311,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
           {/* Segmented Stamina Bar */}
           <div
+            className={hudStyles.staminaBarShell}
             style={{
-              position: 'relative',
-              height: '9px',
-              backgroundColor: '#0a0d14',
-              borderRadius: '2px',
-              overflow: 'hidden',
               border: isP1Exhausted ? '1px solid #e74c3c' : '1px solid #1e272e',
-              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)',
             }}
           >
             <div
@@ -433,39 +418,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
 
         {/* Center Round & Match Timer Medallion */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            backgroundColor: 'rgba(10, 14, 22, 0.92)',
-            border: '2px solid var(--border-gold)',
-            borderRadius: '10px',
-            padding: '6px 22px',
-            minWidth: '116px',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.85), 0 0 16px rgba(212, 175, 55, 0.15)',
-            position: 'relative',
-          }}
-        >
+        <div className={hudStyles.timerMedallion}>
           {/* Top Filigree Accent */}
-          <span
-            style={{
-              fontSize: '0.72rem',
-              color: 'var(--text-muted)',
-              textTransform: 'uppercase',
-              letterSpacing: '0.15em',
-              fontWeight: 800,
-            }}
-          >
+          <span className={hudStyles.roundLabel}>
             Round {roundNumber}
           </span>
           <span
+            className={hudStyles.timerDigits}
             style={{
-              fontSize: '2.2rem',
-              fontWeight: 900,
               color: timerSeconds <= 10 ? '#ff3838' : '#f1c40f',
-              lineHeight: 1.1,
-              fontVariantNumeric: 'tabular-nums',
               textShadow:
                 timerSeconds <= 10
                   ? '0 0 12px rgba(255, 56, 56, 0.8)'
@@ -481,21 +442,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             <button
               type="button"
               onClick={onTogglePause}
+              className={hudStyles.pauseBtn}
               style={{
-                marginTop: '6px',
                 backgroundColor: isPaused ? '#f1c40f' : 'rgba(21, 28, 40, 0.9)',
                 color: isPaused ? '#070b12' : '#f1c40f',
                 border: '1px solid var(--border-gold)',
-                borderRadius: '4px',
-                padding: '3px 12px',
-                fontSize: '0.72rem',
-                fontWeight: 900,
-                letterSpacing: '0.08em',
-                cursor: 'pointer',
-                pointerEvents: 'auto',
-                textTransform: 'uppercase',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.6)',
-                transition: 'all 0.15s ease',
               }}
               title="Pause duel (Hotkey: P or Escape)"
             >
@@ -505,18 +456,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
 
         {/* P2 Stats (Opponent / Bot) */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className={hudStyles.fighterStats}>
+          <div className={hudStyles.fighterHeader}>
             {/* Rounds Won Crowns */}
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div className={hudStyles.crownsWon}>
               {Array.from({ length: 2 }).map((_, i) => (
                 <span
                   key={i}
+                  className={hudStyles.crownIcon}
                   style={{
                     opacity: i < p2.roundsWon ? 1 : 0.2,
-                    fontSize: '1.3rem',
                     filter: i < p2.roundsWon ? 'drop-shadow(0 0 8px #f1c40f)' : 'grayscale(100%)',
-                    transition: 'all 0.3s ease',
                   }}
                 >
                   👑
@@ -524,16 +474,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               ))}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span
-                style={{
-                  fontWeight: 900,
-                  color: '#e74c3c',
-                  fontSize: '1.15rem',
-                  letterSpacing: '0.08em',
-                  textTransform: 'uppercase',
-                  textShadow: '0 2px 8px rgba(0, 0, 0, 0.9)',
-                }}
-              >
+              <span className={hudStyles.playerName} style={{ color: '#e74c3c' }}>
                 {p2.name}
               </span>
               {(colyseusRoom?.state?.isBotMatch || p2.name.includes('(AI)')) && (
@@ -555,17 +496,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </div>
 
           {/* Gothic Health Bar Shell (Mirrored) */}
-          <div
-            style={{
-              position: 'relative',
-              height: '24px',
-              backgroundColor: '#0a0d14',
-              borderRadius: '4px',
-              overflow: 'hidden',
-              border: '2px solid #3d495c',
-              boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)',
-            }}
-          >
+          <div className={hudStyles.healthBarShell}>
             {/* Red Ghost Damage Bar */}
             <div
               style={{
@@ -606,14 +537,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
           {/* Segmented Stamina Bar (Mirrored) */}
           <div
+            className={hudStyles.staminaBarShell}
             style={{
-              position: 'relative',
-              height: '9px',
-              backgroundColor: '#0a0d14',
-              borderRadius: '2px',
-              overflow: 'hidden',
               border: isP2Exhausted ? '1px solid #e74c3c' : '1px solid #1e272e',
-              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.8)',
             }}
           >
             <div
@@ -778,8 +704,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               fontWeight: 900,
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
-              color: '#f1c40f',
-              textShadow: '0 0 30px rgba(241, 196, 15, 0.8), 0 4px 16px #000000',
+              color:
+                roundSplash.includes('SUDDEN') || roundSplash.includes('BLOOD')
+                  ? '#ff3838'
+                  : '#f1c40f',
+              textShadow:
+                roundSplash.includes('SUDDEN') || roundSplash.includes('BLOOD')
+                  ? '0 0 35px rgba(255, 56, 56, 0.95), 0 4px 16px #000000'
+                  : '0 0 30px rgba(241, 196, 15, 0.8), 0 4px 16px #000000',
               margin: 0,
               animation: 'pulse 0.4s infinite alternate',
             }}
@@ -885,63 +817,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         })()}
 
       {/* Bottom Floating Utility Controls */}
-      <div
-        style={{
-          marginTop: 'auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          pointerEvents: 'none',
-          paddingBottom: '2px',
-        }}
-      >
-        {/* Bottom Left: Navigation & Controls Guide */}
-        <div style={{ display: 'flex', gap: '10px', pointerEvents: 'auto' }}>
+      {/* Bottom Floating Utility Controls */}
+      <div className={hudStyles.bottomUtilityBar}>
+        {/* Bottom Left: Navigation & Voice & Forfeit */}
+        <div className={hudStyles.utilityGroup}>
           <button
             type="button"
             onClick={onExit ? onExit : () => (window.location.href = '/')}
             title="Return to Main Hall"
-            style={{
-              backgroundColor: 'rgba(10, 14, 22, 0.78)',
-              color: '#cbd5e1',
-              border: '1px solid rgba(212, 175, 55, 0.4)',
-              borderRadius: '6px',
-              padding: '7px 13px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              backdropFilter: 'blur(4px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
-              transition: 'all 0.15s ease',
-            }}
+            className={hudStyles.utilityBtn}
           >
             ← {mode === 'multiplayer' ? 'Leave Chamber' : 'Main Hall'}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowControls(prev => !prev)}
-            title="Toggle Controls Guide (H)"
-            style={{
-              backgroundColor: 'rgba(10, 14, 22, 0.78)',
-              color: showControls ? '#f1c40f' : '#cbd5e1',
-              border: showControls ? '1px solid #f1c40f' : '1px solid rgba(212, 175, 55, 0.4)',
-              borderRadius: '6px',
-              padding: '7px 13px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              backdropFilter: 'blur(4px)',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
           </button>
           {mode === 'multiplayer' && colyseusRoom && <VoiceControls voice={voice} compact={true} />}
           {mode === 'multiplayer' && colyseusRoom && matchState === 'in_progress' && (
@@ -953,21 +839,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 }
               }}
               title="Surrender and forfeit this duel"
+              className={hudStyles.utilityBtn}
               style={{
                 backgroundColor: 'rgba(231, 76, 60, 0.25)',
                 color: '#f87171',
                 border: '1px solid rgba(231, 76, 60, 0.6)',
-                borderRadius: '6px',
-                padding: '7px 13px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                backdropFilter: 'blur(4px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
-                transition: 'all 0.15s ease',
               }}
             >
               🏳️ Forfeit
@@ -975,29 +851,26 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           )}
         </div>
 
-        {/* Bottom Right: Fullscreen Toggle */}
-        <div style={{ pointerEvents: 'auto' }}>
+        {/* Bottom Right: Controls Guide & Fullscreen Toggle */}
+        <div className={hudStyles.utilityGroup}>
+          <button
+            type="button"
+            onClick={() => setShowControls(prev => !prev)}
+            title="Toggle Controls Guide (H)"
+            className={hudStyles.utilityBtn}
+            style={{
+              color: showControls ? '#f1c40f' : '#cbd5e1',
+              borderColor: showControls ? '#f1c40f' : undefined,
+            }}
+          >
+            ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
+          </button>
           {onToggleFullscreen && (
             <button
               type="button"
               onClick={onToggleFullscreen}
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-              style={{
-                backgroundColor: 'rgba(10, 14, 22, 0.78)',
-                color: '#cbd5e1',
-                border: '1px solid rgba(212, 175, 55, 0.4)',
-                borderRadius: '6px',
-                padding: '7px 13px',
-                fontSize: '0.82rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                backdropFilter: 'blur(4px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
-                transition: 'all 0.15s ease',
-              }}
+              className={hudStyles.utilityBtn}
             >
               {isFullscreen ? '⛶ Windowed' : '⛶ Fullscreen'}
             </button>
@@ -1069,21 +942,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             padding: '20px',
           }}
         >
-          <div
-            style={{
-              backgroundColor: 'rgba(10, 14, 24, 0.96)',
-              border: '2px solid var(--border-gold)',
-              borderRadius: '16px',
-              padding: '28px 36px',
-              maxWidth: '680px',
-              width: '100%',
-              boxShadow: '0 20px 70px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.25)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '18px',
-              color: '#e2e8f0',
-            }}
-          >
+          <div className={hudStyles.pauseModalContainer}>
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2.2rem', filter: 'drop-shadow(0 0 10px #f1c40f)' }}>⚔️</div>
@@ -1337,26 +1196,12 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       )}
 
-      {/* Realistic Combat Controls Ribbon */}
+      {/* Realistic Combat Controls Ribbon - Floating cleanly above the bottom utility bar */}
       {matchState !== 'match_over' && (
         <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            display: 'flex',
-            gap: '12px',
-            backgroundColor: 'rgba(5, 8, 16, 0.88)',
-            border: '1px solid rgba(212, 175, 55, 0.35)',
-            borderRadius: '20px',
-            padding: '6px 18px',
-            fontSize: '0.76rem',
-            color: '#a0aec0',
-            pointerEvents: 'none',
-            whiteSpace: 'nowrap',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.7)',
-          }}
+          onClick={() => setShowControls(true)}
+          title="Click or press H for full Combat Controls Reference"
+          className={hudStyles.controlsRibbon}
         >
           <span>
             <strong style={{ color: '#f1c40f' }}>A/D</strong> Move

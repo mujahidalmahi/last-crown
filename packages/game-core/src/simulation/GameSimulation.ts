@@ -19,6 +19,7 @@ export interface GameSimulationSnapshot {
   p1: WarriorSnapshot;
   p2: WarriorSnapshot;
   activeHitboxes: HitboxInstance[];
+  isSuddenDeath?: boolean;
 }
 
 export class GameSimulation {
@@ -32,8 +33,13 @@ export class GameSimulation {
   private _roundTimerSec: number = BALANCE_CONFIG.rules.roundDurationSeconds;
   private _roundTransitionTimerMs: number = 0;
   private _winnerId: string | null = null;
+  private _isSuddenDeath: boolean = false;
   private _combatEventListeners: ((result: HitResult) => void)[] = [];
   private _roundStartListeners: ((roundNumber: number) => void)[] = [];
+
+  get isSuddenDeath(): boolean {
+    return this._isSuddenDeath;
+  }
 
   constructor(
     p1Id: string,
@@ -316,6 +322,12 @@ export class GameSimulation {
         defender.combat.resetCombo();
       } else {
         attacker.combat.resetCombo();
+        // Recoil pushback on attacker when striking a blocking defender
+        const attackerFacingSign = attacker.movement.facing === 'right' ? 1 : -1;
+        attacker.movement.applyImpulse(
+          { x: -attackerFacingSign * BALANCE_CONFIG.combat.blockAttackerPushbackImpulse, y: -20 },
+          this._physics
+        );
       }
 
       // Check for lethal finishing blow
@@ -399,8 +411,13 @@ export class GameSimulation {
           this.p1.roundsWon >= BALANCE_CONFIG.rules.roundsToWin - 1 &&
           this.p2.roundsWon >= BALANCE_CONFIG.rules.roundsToWin - 1
         ) {
-          this._matchState = 'match_over';
-          this._winnerId = 'draw';
+          if (!this._isSuddenDeath) {
+            // Enter Sudden Death tiebreaker round!
+            this._isSuddenDeath = true;
+          } else {
+            this._matchState = 'match_over';
+            this._winnerId = 'draw';
+          }
         }
       }
     }
@@ -411,6 +428,21 @@ export class GameSimulation {
     this._roundTimerSec = BALANCE_CONFIG.rules.roundDurationSeconds;
     this.p1.resetRound(this.arena.spawnPointP1, 'right');
     this.p2.resetRound(this.arena.spawnPointP2, 'left');
+
+    if (this._isSuddenDeath) {
+      // In sudden death, both gladiators begin in mortal danger at critical health
+      const p1SuddenHealth = Math.max(
+        15,
+        Math.floor((this.p1.maxHealth * BALANCE_CONFIG.rules.suddenDeathHealthPercent) / 100)
+      );
+      const p2SuddenHealth = Math.max(
+        15,
+        Math.floor((this.p2.maxHealth * BALANCE_CONFIG.rules.suddenDeathHealthPercent) / 100)
+      );
+      this.p1.health = p1SuddenHealth;
+      this.p2.health = p2SuddenHealth;
+    }
+
     this._matchState = 'in_progress';
     for (const listener of this._roundStartListeners) {
       listener(this._roundNumber);
@@ -422,6 +454,7 @@ export class GameSimulation {
     this._roundTimerSec = BALANCE_CONFIG.rules.roundDurationSeconds;
     this._roundTransitionTimerMs = 0;
     this._winnerId = null;
+    this._isSuddenDeath = false;
     this.p1.roundsWon = 0;
     this.p2.roundsWon = 0;
     this.p1.resetRound(this.arena.spawnPointP1, 'right');
@@ -447,6 +480,7 @@ export class GameSimulation {
       p1: this.p1.toSnapshot(),
       p2: this.p2.toSnapshot(),
       activeHitboxes,
+      isSuddenDeath: this._isSuddenDeath,
     };
   }
 }

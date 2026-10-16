@@ -346,6 +346,56 @@ export class CombatEffects {
   }
 
   /**
+   * Vibrant fiery counter-hit burst with shockwave, ember spray & screen crunch
+   */
+  public triggerCounterHit(pos: Vector2): void {
+    // 1. Radiant orange-gold shockwave ring
+    const ring = this.scene.add.graphics();
+    ring.lineStyle(4, 0xff793f, 1);
+    ring.strokeCircle(pos.x, pos.y, 22);
+
+    this.scene.tweens.add({
+      targets: ring,
+      scaleX: 3.8,
+      scaleY: 3.8,
+      alpha: 0,
+      duration: 280,
+      ease: 'Cubic.easeOut',
+      onComplete: () => ring.destroy(),
+    });
+
+    // 2. High-speed fiery spark bursts
+    for (let i = 0; i < 18; i++) {
+      const spark = this.scene.add.rectangle(
+        pos.x,
+        pos.y,
+        Math.random() * 5 + 3,
+        Math.random() * 3 + 2,
+        Math.random() > 0.4 ? 0xff793f : 0xfffa65
+      );
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 200 + 90;
+      const destX = pos.x + Math.cos(angle) * (speed * 0.28);
+      const destY = pos.y + Math.sin(angle) * (speed * 0.28);
+
+      this.scene.tweens.add({
+        targets: spark,
+        x: destX,
+        y: destY,
+        angle: Math.random() * 360,
+        alpha: 0,
+        scale: 0.15,
+        duration: Math.random() * 220 + 120,
+        ease: 'Quad.easeOut',
+        onComplete: () => spark.destroy(),
+      });
+    }
+
+    this.showFloatingText(pos, '⚡ COUNTER!', '#ff793f', '24px', true);
+    this.scene.cameras.main.shake(140, 0.010);
+  }
+
+  /**
    * Ground slam dust wave and floor impact ripple for Helm Splitter
    */
   public triggerGroundSlam(pos: Vector2): void {

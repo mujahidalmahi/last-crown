@@ -56,6 +56,8 @@ export class BattleScene extends Phaser.Scene {
   private wasP1Exhausted: boolean = false;
   private wasP2Exhausted: boolean = false;
   private wasP2Dashing: boolean = false;
+  private wasP1FastFalling: boolean = false;
+  private heartbeatTimerMs: number = 0;
   private lastInputSendTime: number = 0;
 
   // Round lifecycle tracking for effects cleanup
@@ -164,6 +166,12 @@ export class BattleScene extends Phaser.Scene {
         if (this.effects) {
           this.effects.resetRound();
         }
+        if (this.simulation?.isSuddenDeath) {
+          this.soundManager?.playSuddenDeathGong();
+          this.soundManager?.playCrowdCheer('roar');
+          this.cameras.main.flash(300, 180, 25, 25);
+          this.cameras.main.shake(220, 0.016);
+        }
       });
 
       // Render initial warrior poses immediately so both warriors are ready for fight on frame 1
@@ -186,6 +194,23 @@ export class BattleScene extends Phaser.Scene {
           this.config.onCombatEvent(result);
         }
       });
+
+      room.onMessage(
+        ServerMessageType.ROUND_START,
+        (data: { roundNumber: number; isSuddenDeath?: boolean }) => {
+          this.currentRoundNumber = data.roundNumber;
+          this.hitStopRemainingMs = 0;
+          if (this.effects) {
+            this.effects.resetRound();
+          }
+          if (data.isSuddenDeath) {
+            this.soundManager?.playSuddenDeathGong();
+            this.soundManager?.playCrowdCheer('roar');
+            this.cameras.main.flash(300, 180, 25, 25);
+            this.cameras.main.shake(220, 0.016);
+          }
+        }
+      );
 
       room.onMessage(ServerMessageType.MATCH_START, () => {
         this.currentRoundNumber = 1;
@@ -309,6 +334,14 @@ export class BattleScene extends Phaser.Scene {
       }
       this.wasP1Attacking = !!p1Input.attack;
 
+      const isFastFall = Boolean(
+        p1Input.moveY && p1Input.moveY > 0 && !this.simulation.p1.movement.isGrounded
+      );
+      if (isFastFall && !this.wasP1FastFalling && this.soundManager) {
+        this.soundManager.playFastFallWhoosh();
+      }
+      this.wasP1FastFalling = isFastFall;
+
       if (p1Input.dash) {
         if (this.soundManager) this.soundManager.playDashWhoosh();
         if (this.effects)
@@ -376,6 +409,17 @@ export class BattleScene extends Phaser.Scene {
       }
       this.wasP1Attacking = !!localInput.attack;
 
+      const isFastFall = Boolean(
+        localInput.moveY &&
+          localInput.moveY > 0 &&
+          this.lastRemoteSnapshot?.p1 &&
+          !this.lastRemoteSnapshot.p1.isGrounded
+      );
+      if (isFastFall && !this.wasP1FastFalling && this.soundManager) {
+        this.soundManager.playFastFallWhoosh();
+      }
+      this.wasP1FastFalling = isFastFall;
+
       if (localInput.dash) {
         if (this.soundManager) this.soundManager.playDashWhoosh();
         if (this.effects && this.lastRemoteSnapshot) {
@@ -403,6 +447,24 @@ export class BattleScene extends Phaser.Scene {
           this.p2Renderer.render(this.lastRemoteSnapshot.p2);
         }
       }
+    }
+
+    // Adrenaline-pumping heartbeat pulse when in mortal danger (HP <= 25%)
+    let localHealthRatio = 1;
+    if (this.simulation) {
+      localHealthRatio = this.simulation.p1.health / this.simulation.p1.maxHealth;
+    } else if (this.lastRemoteSnapshot?.p1) {
+      localHealthRatio =
+        this.lastRemoteSnapshot.p1.health / (this.lastRemoteSnapshot.p1.maxHealth || 100);
+    }
+    if (localHealthRatio > 0 && localHealthRatio <= 0.25) {
+      this.heartbeatTimerMs -= delta;
+      if (this.heartbeatTimerMs <= 0) {
+        this.heartbeatTimerMs = 1100;
+        this.soundManager?.playHeartbeatPulse();
+      }
+    } else {
+      this.heartbeatTimerMs = 0;
     }
 
     // 5. Update Visual Combat Effects (severed heads, arterial blood geysers, expanding pools)
@@ -659,6 +721,7 @@ export class BattleScene extends Phaser.Scene {
           () => this.soundManager?.playHeadThud()
         );
         this.soundManager.playDecapitationSlash();
+        this.soundManager.playCrowdCheer('roar');
         this.hitStopRemainingMs = 180; // Dramatic mortal decapitation hit-stop freeze
 
         // Cinematic slow-motion camera zoom punch and crimson flash
@@ -682,6 +745,14 @@ export class BattleScene extends Phaser.Scene {
         this.effects.triggerHitImpact({ x: impactX, y: impactY }, true, result.damage);
         this.hitStopRemainingMs = 90;
         this.cameras.main.shake(120, 0.012);
+      } else if (result.isCounterHit) {
+        // High-damage counter-hit interrupt on attacking defender
+        this.effects.triggerCounterHit({ x: impactX, y: impactY });
+        this.soundManager.playCounterHit();
+        this.soundManager.playCrowdCheer('small');
+        this.effects.triggerHitImpact({ x: impactX, y: impactY }, true, result.damage);
+        this.hitStopRemainingMs = 100; // Heavy counter hit-stop crunch
+        this.cameras.main.shake(150, 0.014);
       } else {
         this.effects.triggerHitImpact({ x: impactX, y: impactY }, result.isCritical, result.damage);
         if (result.comboCount && result.comboCount >= 2) {

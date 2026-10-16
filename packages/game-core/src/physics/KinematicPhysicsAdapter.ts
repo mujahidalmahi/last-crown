@@ -12,7 +12,8 @@ export class KinematicPhysicsAdapter implements IPhysicsAdapter {
     walkSpeed: number,
     jumpVelocity: number,
     deltaSec: number,
-    arena: ArenaConfig
+    arena: ArenaConfig,
+    moveInputY?: number
   ): PhysicsSimulationResult {
     let vx = velocity.x;
     let vy = velocity.y;
@@ -57,15 +58,25 @@ export class KinematicPhysicsAdapter implements IPhysicsAdapter {
       grounded = false;
     }
 
-    // Gravity calculation & variable jump cut (short-hop on quick release)
+    // Gravity calculation, variable jump cut & tactical fast-fall
     if (!grounded) {
       let currentGravity = BALANCE_CONFIG.movement.gravity;
+      let effectiveMaxFall = BALANCE_CONFIG.movement.maxFallSpeed;
+
+      // Variable jump height: release early to short-hop
       if (vy < -50 && !jumpRequested) {
         currentGravity *= BALANCE_CONFIG.movement.jumpReleaseGravityScale;
       }
+
+      // Fast-fall: pressing down in midair accelerates descent for sudden aerial landings/mixups
+      if (moveInputY !== undefined && moveInputY > 0) {
+        currentGravity *= BALANCE_CONFIG.movement.fastFallSpeedMultiplier;
+        effectiveMaxFall *= BALANCE_CONFIG.movement.fastFallSpeedMultiplier;
+      }
+
       vy += currentGravity * deltaSec;
-      if (vy > BALANCE_CONFIG.movement.maxFallSpeed) {
-        vy = BALANCE_CONFIG.movement.maxFallSpeed;
+      if (vy > effectiveMaxFall) {
+        vy = effectiveMaxFall;
       }
     }
 

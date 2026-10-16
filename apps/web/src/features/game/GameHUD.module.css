@@ -1,0 +1,318 @@
+/* ==============================================================================
+   GameHUD Responsive CSS Module
+   Base styles preserve desktop UI 100% while providing seamless scaling for
+   all phone sizes (small, smaller, medium, big) and tablets.
+   ============================================================================== */
+
+.hudRoot {
+  position: absolute;
+  inset: 0;
+  padding: 16px 28px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  box-sizing: border-box;
+  z-index: 20;
+}
+
+/* Top Stats & Medallion Header */
+.topBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  width: 100%;
+}
+
+.fighterStats {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fighterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.playerName {
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crownsWon {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.crownIcon {
+  font-size: 1.3rem;
+  transition: all 0.3s ease;
+}
+
+/* Health Bar Shell */
+.healthBarShell {
+  position: relative;
+  height: 24px;
+  background-color: #0a0d14;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid #3d495c;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Stamina Bar Shell */
+.staminaBarShell {
+  position: relative;
+  height: 9px;
+  background-color: #0a0d14;
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Center Round & Match Timer Medallion */
+.timerMedallion {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(10, 14, 22, 0.92);
+  border: 2px solid var(--border-gold);
+  border-radius: 10px;
+  padding: 6px 22px;
+  min-width: 116px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 16px rgba(212, 175, 55, 0.15);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.roundLabel {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.timerDigits {
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.pauseBtn {
+  margin-top: 6px;
+  border-radius: 4px;
+  padding: 3px 12px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  pointer-events: auto;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+/* Bottom Utility Bar (Desktop Base) */
+.bottomUtilityBar {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  padding-bottom: 2px;
+  width: 100%;
+}
+
+.utilityGroup {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.utilityBtn {
+  background-color: rgba(10, 14, 22, 0.78);
+  color: #cbd5e1;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.utilityBtn:hover {
+  background-color: rgba(20, 28, 44, 0.9);
+  color: #f1c40f;
+  border-color: #f1c40f;
+}
+
+/* ==============================================================================
+   Mobile & Tablet Responsive Adaptations (NO IMPACT ON DESKTOP)
+   ============================================================================== */
+@media (max-width: 1024px), (hover: none), (pointer: coarse) {
+  .hudRoot {
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
+  }
+
+  .topBar {
+    gap: clamp(6px, 1.5vw, 16px);
+  }
+
+  .playerName {
+    font-size: clamp(0.72rem, 1.8vw, 1rem);
+  }
+
+  .crownIcon {
+    font-size: clamp(0.9rem, 2vw, 1.15rem);
+  }
+
+  .healthBarShell {
+    height: clamp(14px, 2.6vh, 20px);
+  }
+
+  .staminaBarShell {
+    height: clamp(5px, 1.1vh, 7.5px);
+  }
+
+  .timerMedallion {
+    min-width: clamp(58px, 11vw, 96px);
+    padding: 3px clamp(6px, 1.2vw, 14px);
+    border-radius: 6px;
+  }
+
+  .roundLabel {
+    font-size: clamp(0.5rem, 1vw, 0.65rem);
+  }
+
+  .timerDigits {
+    font-size: clamp(1.2rem, 3.2vw, 1.8rem);
+  }
+
+  .pauseBtn {
+    padding: 2px 8px;
+    font-size: clamp(0.55rem, 1vw, 0.65rem);
+    margin-top: 3px;
+  }
+
+  /* Reposition utility bar to a compact top floating strip so bottom is 100% free for gamepad! */
+  .bottomUtilityBar {
+    position: absolute;
+    top: clamp(48px, 9vh, 64px);
+    left: max(10px, env(safe-area-inset-left));
+    right: max(10px, env(safe-area-inset-right));
+    margin-top: 0;
+    width: auto;
+  }
+
+  .utilityBtn {
+    padding: 4px 8px;
+    font-size: clamp(0.65rem, 1.2vw, 0.75rem);
+    border-radius: 4px;
+    background-color: rgba(10, 14, 22, 0.88);
+  }
+}
+
+/* ==============================================================================
+   Smaller Mobile Phones (< 360px wide or < 360px height in landscape)
+   ============================================================================== */
+@media (max-width: 360px), (max-height: 360px) {
+  .hudRoot {
+    padding: 4px 6px;
+  }
+  .topBar {
+    gap: 4px;
+  }
+  .playerName {
+    font-size: 0.65rem;
+  }
+  .healthBarShell {
+    height: 12px;
+  }
+  .staminaBarShell {
+    height: 4px;
+  }
+  .timerMedallion {
+    min-width: 50px;
+    padding: 2px 4px;
+  }
+  .timerDigits {
+    font-size: 1.1rem;
+  }
+  .roundLabel {
+    font-size: 0.48rem;
+  }
+  .crownIcon {
+    font-size: 0.8rem;
+  }
+}
+
+.controlsRibbon {
+  position: absolute;
+  bottom: 48px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: rgba(5, 8, 16, 0.9);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 18px;
+  padding: 5px 16px;
+  font-size: 0.72rem;
+  color: #a0aec0;
+  pointer-events: auto;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  z-index: 40;
+  transition: all 0.15s ease;
+}
+
+.pauseModalContainer {
+  background-color: rgba(10, 14, 24, 0.96);
+  border: 2px solid var(--border-gold);
+  border-radius: 16px;
+  padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 36px);
+  max-width: 680px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 70px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 175, 55, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 2vh, 18px);
+  color: #e2e8f0;
+}
+
+/* Hide the keyboard controls ribbon on mobile touch screens */
+@media (max-width: 1024px), (hover: none), (pointer: coarse) {
+  .controlsRibbon {
+    display: none !important;
+  }
+}
+

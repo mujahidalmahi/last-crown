@@ -62,6 +62,7 @@ export default function RoomPage() {
     findQuickMatch,
     leaveRoom,
     requestBotOpponent,
+    toggleReady,
     queueStatus,
     opponentNotice,
   } = useMultiplayerRoom();
@@ -162,11 +163,24 @@ export default function RoomPage() {
     }
   };
 
-  const warriorCount = roomState?.warriors ? roomState.warriors.size : 0;
-  const isMatchReady =
-    warriorCount >= 2 || (roomState?.matchState && roomState.matchState !== 'waiting');
+  const isMatchReady = Boolean(roomState?.matchState && roomState.matchState !== 'waiting');
 
-  // Case 1: Active 2-Player Match in Progress
+  const warriorsList: { id: string; name: string; isReady: boolean }[] = [];
+  if (roomState?.warriors) {
+    roomState.warriors.forEach(w => {
+      warriorsList.push({
+        id: w.id,
+        name: w.name,
+        isReady: Boolean(w.isReady),
+      });
+    });
+  }
+
+  const myWarrior = warriorsList.find(w => w.id === room?.sessionId);
+  const isMyWarriorReady = myWarrior?.isReady ?? false;
+  const isBothReady = warriorsList.length === 2 && warriorsList.every(w => w.isReady);
+
+  // Case 1: Active Match in Progress (Server signaled in_progress or higher)
   if (isConnected && room && isMatchReady) {
     return (
       <div className={styles.matchViewport}>
@@ -280,17 +294,92 @@ export default function RoomPage() {
               </div>
             )}
 
+            {/* Dynamic Chamber Roster */}
             <div className={styles.rosterBox}>
-              <div className={styles.rosterTitle}>Chamber Roster (1/2)</div>
-              <div className={`${styles.rosterItem} ${styles.rosterItemReady}`}>
-                <span>👑 {playerName || 'Crown Warrior'}</span>
-                <span>READY</span>
+              <div className={styles.rosterTitle}>
+                Chamber Roster ({warriorsList.length}/2)
               </div>
-              <div className={`${styles.rosterItem} ${styles.rosterItemWaiting}`}>
-                <span>⚔️ Awaiting Challenger...</span>
-                <span>WAITING</span>
-              </div>
+
+              {/* Slot 1: Host / First Warrior */}
+              {warriorsList[0] ? (
+                <div
+                  className={`${styles.rosterItem} ${
+                    warriorsList[0].isReady ? styles.rosterItemReady : styles.rosterItemNotReady
+                  }`}
+                >
+                  <span>
+                    👑 {warriorsList[0].name} {warriorsList[0].id === room?.sessionId ? '(YOU)' : ''}
+                  </span>
+                  <span
+                    className={
+                      warriorsList[0].isReady ? styles.statusBadgeReady : styles.statusBadgeNotReady
+                    }
+                  >
+                    {warriorsList[0].isReady ? '✓ READY' : '⏳ NOT READY'}
+                  </span>
+                </div>
+              ) : (
+                <div className={`${styles.rosterItem} ${styles.rosterItemWaiting}`}>
+                  <span>👑 Awaiting Host...</span>
+                  <span className={styles.statusBadgeWaiting}>WAITING</span>
+                </div>
+              )}
+
+              {/* Slot 2: Challenger / Second Warrior */}
+              {warriorsList[1] ? (
+                <div
+                  className={`${styles.rosterItem} ${
+                    warriorsList[1].isReady ? styles.rosterItemReady : styles.rosterItemNotReady
+                  }`}
+                >
+                  <span>
+                    ⚔️ {warriorsList[1].name} {warriorsList[1].id === room?.sessionId ? '(YOU)' : ''}
+                  </span>
+                  <span
+                    className={
+                      warriorsList[1].isReady ? styles.statusBadgeReady : styles.statusBadgeNotReady
+                    }
+                  >
+                    {warriorsList[1].isReady ? '✓ READY' : '⏳ NOT READY'}
+                  </span>
+                </div>
+              ) : (
+                <div className={`${styles.rosterItem} ${styles.rosterItemWaiting}`}>
+                  <span>⚔️ Awaiting Challenger...</span>
+                  <span className={styles.statusBadgeWaiting}>WAITING</span>
+                </div>
+              )}
             </div>
+
+            {/* Custom Room Ready Controls */}
+            {inviteCode && (
+              <div className={styles.readyActionContainer}>
+                {isBothReady ? (
+                  <div className={styles.startingBanner}>
+                    ⚔️ BOTH WARRIORS READY! COMMENCING DUEL...
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className={`${styles.readyToggleBtn} ${
+                      isMyWarriorReady ? styles.readyToggleBtnActive : ''
+                    }`}
+                    onClick={toggleReady}
+                  >
+                    {isMyWarriorReady ? '✓ READY (CLICK TO CANCEL)' : '⚔️ READY FOR COMBAT'}
+                  </button>
+                )}
+                {!isBothReady && (
+                  <p className={styles.readyHint}>
+                    {warriorsList.length < 2
+                      ? 'Share your room code with a friend. Match will begin once both warriors confirm ready.'
+                      : isMyWarriorReady
+                        ? 'Awaiting your opponent to confirm readiness...'
+                        : 'Click READY FOR COMBAT when you are prepared to duel!'}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
               <VoiceControls voice={voice} compact={true} />
