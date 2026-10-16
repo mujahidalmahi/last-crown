@@ -13,6 +13,12 @@ export interface MultiplayerState {
   roomState: BattleRoomState | null;
   latencyMs: number;
   room: Room<BattleRoomState> | null;
+  queueStatus?: { secondsInQueue: number; secondsUntilBot: number } | null;
+  opponentNotice?: {
+    type: 'disconnected' | 'reconnected' | 'left' | 'forfeited';
+    message: string;
+    gracePeriodSec?: number;
+  } | null;
 }
 
 export function useMultiplayerRoom() {
@@ -25,6 +31,8 @@ export function useMultiplayerRoom() {
     roomState: null,
     latencyMs: 0,
     room: null,
+    queueStatus: null,
+    opponentNotice: null,
   });
 
   const clientRef = useRef<Client | null>(null);
@@ -90,6 +98,57 @@ export function useMultiplayerRoom() {
         setState(prev => ({ ...prev, latencyMs: rtt }));
       }
     });
+
+    // Match Queue Status (countdown until AI gladiator steps forward)
+    room.onMessage(
+      ServerMessageType.MATCH_QUEUE_STATUS,
+      (data: { secondsInQueue: number; secondsUntilBot: number }) => {
+        setState(prev => ({ ...prev, queueStatus: data }));
+      }
+    );
+
+    // Opponent Disconnected during match
+    room.onMessage(
+      ServerMessageType.PLAYER_DISCONNECTED,
+      (data: { sessionId: string; gracePeriodSec: number }) => {
+        setState(prev => ({
+          ...prev,
+          opponentNotice: {
+            type: 'disconnected',
+            message: `Opponent disconnected. Awaiting reconnection (${data.gracePeriodSec}s)...`,
+            gracePeriodSec: data.gracePeriodSec,
+          },
+        }));
+      }
+    );
+
+    // Opponent Reconnected
+    room.onMessage(ServerMessageType.PLAYER_RECONNECTED, () => {
+      setState(prev => ({
+        ...prev,
+        opponentNotice: {
+          type: 'reconnected',
+          message: 'Opponent reconnected! Resuming combat!',
+        },
+      }));
+      setTimeout(() => {
+        setState(prev => ({ ...prev, opponentNotice: null }));
+      }, 3000);
+    });
+
+    // Opponent Left or Forfeited
+    room.onMessage(
+      ServerMessageType.OPPONENT_LEFT,
+      (data: { sessionId: string; reason: string; message: string }) => {
+        setState(prev => ({
+          ...prev,
+          opponentNotice: {
+            type: data.reason === 'forfeit' ? 'forfeited' : 'left',
+            message: data.message,
+          },
+        }));
+      }
+    );
 
     // Periodic ping loop
     if (pingIntervalRef.current) {
@@ -247,6 +306,18 @@ export function useMultiplayerRoom() {
     [getClient, setupRoomListeners]
   );
 
+  const requestBotOpponent = useCallback(() => {
+    if (roomRef.current) {
+      roomRef.current.send(ClientMessageType.REQUEST_BOT_OPPONENT, {});
+    }
+  }, []);
+
+  const forfeitMatch = useCallback(() => {
+    if (roomRef.current) {
+      roomRef.current.send(ClientMessageType.FORFEIT_MATCH, {});
+    }
+  }, []);
+
   const leaveRoom = useCallback(() => {
     if (pingIntervalRef.current) {
       clearInterval(pingIntervalRef.current);
@@ -264,6 +335,8 @@ export function useMultiplayerRoom() {
       roomState: null,
       latencyMs: 0,
       room: null,
+      queueStatus: null,
+      opponentNotice: null,
     }));
   }, []);
 
@@ -282,7 +355,13 @@ export function useMultiplayerRoom() {
 
   const findQuickMatch = useCallback(
     async (playerName: string = 'Crown Challenger', warriorPreset: string = 'knight') => {
-      setState(prev => ({ ...prev, isConnecting: true, error: null }));
+      setState(prev => ({
+        ...prev,
+        isConnecting: true,
+        error: null,
+        queueStatus: null,
+        opponentNotice: null,
+      }));
       try {
         const client = getClient();
         const room = await client.joinOrCreate<BattleRoomState>('battle', {
@@ -303,6 +382,8 @@ export function useMultiplayerRoom() {
           roomState: room.state,
           latencyMs: 0,
           room,
+          queueStatus: null,
+          opponentNotice: null,
         });
 
         return { roomId: room.id };
@@ -329,5 +410,7 @@ export function useMultiplayerRoom() {
     joinPrivateRoom,
     findQuickMatch,
     leaveRoom,
+    requestBotOpponent,
+    forfeitMatch,
   };
 }

@@ -9,6 +9,10 @@ export class BattleRoomState extends Schema {
   @type('string') inviteCode: string = '';
   @type('string') arenaId: string = 'bastion_courtyard';
   @type('string') winnerId: string = '';
+  @type('string') endReason: string = 'normal';
+  @type('boolean') isBotMatch: boolean = false;
+  @type('boolean') isOpponentDisconnected: boolean = false;
+  @type('number') disconnectGraceRemainingSec: number = 0;
 
   @type({ map: WarriorNetworkState })
   warriors = new MapSchema<WarriorNetworkState>();

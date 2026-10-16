@@ -861,43 +861,57 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       }
 
       // 2. Incoming Offer (Responder handles offer)
-      if ((signal.type === 'offer' || signal.type === 'description') && signal.data) {
+      if (
+        (signal.type === 'offer' ||
+          (signal.type === 'description' &&
+            (signal.data as RTCSessionDescriptionInit)?.type === 'offer')) &&
+        signal.data
+      ) {
         setOpponentInVoice(true);
         const desc = signal.data as RTCSessionDescriptionInit;
 
-        if (desc.type === 'offer') {
-          console.log('[VoiceChat] Received offer from initiator:', from);
-          if (!isJoinedRef.current || !localStreamRef.current) {
-            console.log('[VoiceChat] Caching offer until local mic is enabled');
-            pendingOfferRef.current = { from, desc };
-            return;
-          }
-
-          await handleIncomingOffer(desc, from);
+        console.log('[VoiceChat] Received offer from initiator:', from);
+        if (!isJoinedRef.current || !localStreamRef.current) {
+          console.log('[VoiceChat] Caching offer until local mic is enabled');
+          pendingOfferRef.current = { from, desc };
           return;
         }
 
-        // 3. Incoming Answer (Initiator handles answer)
-        if (desc.type === 'answer') {
-          console.log('[VoiceChat] Received answer from responder:', from);
-          const pc = pcRef.current;
-          if (pc && pc.signalingState === 'have-local-offer') {
-            try {
-              await pc.setRemoteDescription(new RTCSessionDescription(desc));
+        await handleIncomingOffer(desc, from);
+        return;
+      }
 
-              // Drain queued ICE candidates
-              while (candidateQueueRef.current.length > 0) {
-                const candidate = candidateQueueRef.current.shift();
-                if (candidate) {
-                  await pc.addIceCandidate(candidate).catch(() => {});
-                }
+      // 3. Incoming Answer (Initiator handles answer)
+      if (
+        (signal.type === 'answer' ||
+          (signal.type === 'description' &&
+            (signal.data as RTCSessionDescriptionInit)?.type === 'answer')) &&
+        signal.data
+      ) {
+        const desc = signal.data as RTCSessionDescriptionInit;
+        console.log('[VoiceChat] Received answer from responder:', from);
+        const pc = pcRef.current;
+        if (
+          pc &&
+          (pc.signalingState === 'have-local-offer' || pc.signalingState === 'have-remote-offer')
+        ) {
+          try {
+            await pc.setRemoteDescription(new RTCSessionDescription(desc));
+
+            // Drain queued ICE candidates
+            while (candidateQueueRef.current.length > 0) {
+              const candidate = candidateQueueRef.current.shift();
+              if (candidate) {
+                await pc.addIceCandidate(candidate).catch(() => {});
               }
-            } catch (err) {
-              console.error('[VoiceChat] Initiator answer handling error:', err);
             }
+          } catch (err) {
+            console.error('[VoiceChat] Initiator answer handling error:', err);
           }
-          return;
+        } else {
+          console.warn('[VoiceChat] Received answer but PC signalingState is:', pc?.signalingState);
         }
+        return;
       }
 
       // 4. Incoming ICE Candidate

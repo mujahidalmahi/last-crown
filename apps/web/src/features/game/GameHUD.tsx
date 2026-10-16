@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Room } from 'colyseus.js';
-import { BattleRoomState, StatisticsManager } from '@last-crown/shared';
+import { BattleRoomState, StatisticsManager, ClientMessageType } from '@last-crown/shared';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
 import { VoiceChatState, useVoiceChat } from '../voice/useVoiceChat';
 import { VoiceControls } from '../voice/VoiceControls';
@@ -536,6 +536,20 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               >
                 {p2.name}
               </span>
+              {(colyseusRoom?.state?.isBotMatch || p2.name.includes('(AI)')) && (
+                <span
+                  style={{
+                    fontSize: '0.65rem',
+                    color: '#f1c40f',
+                    border: '1px solid #f1c40f',
+                    borderRadius: '3px',
+                    padding: '2px 5px',
+                    letterSpacing: '0.08em',
+                  }}
+                >
+                  AI
+                </span>
+              )}
               <span style={{ fontSize: '1.2rem', filter: 'drop-shadow(0 0 6px #e74c3c)' }}>⚔️</span>
             </div>
           </div>
@@ -711,7 +725,41 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       </div>
 
+      {/* Opponent Disconnected Grace Banner in Multiplayer */}
+      {mode === 'multiplayer' && colyseusRoom?.state?.isOpponentDisconnected && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '84px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: 'rgba(180, 30, 30, 0.95)',
+            border: '2px solid #f1c40f',
+            borderRadius: '6px',
+            padding: '8px 24px',
+            color: '#fff',
+            fontWeight: 900,
+            fontSize: '0.9rem',
+            letterSpacing: '0.08em',
+            textShadow: '0 2px 4px #000',
+            boxShadow: '0 0 20px rgba(231, 76, 60, 0.8)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            pointerEvents: 'auto',
+          }}
+        >
+          <span>⚠️</span>
+          <span>
+            OPPONENT DISCONNECTED — RECONNECT WINDOW:{' '}
+            {colyseusRoom.state.disconnectGraceRemainingSec}s
+          </span>
+        </div>
+      )}
+
       {/* Dramatic Round Announcement Splash */}
+
       {roundSplash && matchState === 'in_progress' && (
         <div
           style={{
@@ -746,12 +794,19 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         (() => {
           const isWin = winnerId === p1.id;
           const isDraw = winnerId === 'draw';
+          const endReason = colyseusRoom?.state?.endReason || 'normal';
 
           let titleLines: string[] = [];
           const titleVariant = isWin ? 'win' : isDraw ? 'draw' : 'defeat';
 
           if (isWin) {
-            titleLines = p2.isDecapitated ? ['DECAPITATION', 'VICTORY'] : ['VICTORY'];
+            if (endReason === 'opponent_forfeit') {
+              titleLines = ['FORFEIT', 'VICTORY'];
+            } else if (endReason === 'opponent_disconnect_timeout') {
+              titleLines = ['TIMEOUT', 'VICTORY'];
+            } else {
+              titleLines = p2.isDecapitated ? ['DECAPITATION', 'VICTORY'] : ['VICTORY'];
+            }
           } else if (isDraw) {
             titleLines = ['STALEMATE'];
           } else {
@@ -759,9 +814,13 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           }
 
           const subtitleText = isWin
-            ? p2.isDecapitated
-              ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
-              : 'The Crown Belongs To You!'
+            ? endReason === 'opponent_forfeit'
+              ? 'Your Opponent Fled The Arena In Shame! The Crown Belongs To You!'
+              : endReason === 'opponent_disconnect_timeout'
+                ? 'Opponent Disconnected. The Crown Champion Reigns Supreme!'
+                : p2.isDecapitated
+                  ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
+                  : 'The Crown Belongs To You!'
             : isDraw
               ? 'Both Champions Stood Equal In Blood & Steel.'
               : p1.isDecapitated
@@ -885,6 +944,35 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
           </button>
           {mode === 'multiplayer' && colyseusRoom && <VoiceControls voice={voice} compact={true} />}
+          {mode === 'multiplayer' && colyseusRoom && matchState === 'in_progress' && (
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Surrender and forfeit this duel?')) {
+                  colyseusRoom.send(ClientMessageType.FORFEIT_MATCH, {});
+                }
+              }}
+              title="Surrender and forfeit this duel"
+              style={{
+                backgroundColor: 'rgba(231, 76, 60, 0.25)',
+                color: '#f87171',
+                border: '1px solid rgba(231, 76, 60, 0.6)',
+                borderRadius: '6px',
+                padding: '7px 13px',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backdropFilter: 'blur(4px)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              🏳️ Forfeit
+            </button>
+          )}
         </div>
 
         {/* Bottom Right: Fullscreen Toggle */}

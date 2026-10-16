@@ -6,6 +6,8 @@ export const ClientMessageType = {
   PING: 'PING',
   READY: 'READY',
   VOICE_SIGNAL: 'VOICE_SIGNAL',
+  REQUEST_BOT_OPPONENT: 'REQUEST_BOT_OPPONENT',
+  FORFEIT_MATCH: 'FORFEIT_MATCH',
 } as const;
 
 export type ClientMessageType = (typeof ClientMessageType)[keyof typeof ClientMessageType];
@@ -35,6 +37,10 @@ export const ServerMessageType = {
   MATCH_END: 'MATCH_END',
   ERROR: 'ERROR',
   VOICE_SIGNAL: 'VOICE_SIGNAL',
+  PLAYER_DISCONNECTED: 'PLAYER_DISCONNECTED',
+  PLAYER_RECONNECTED: 'PLAYER_RECONNECTED',
+  OPPONENT_LEFT: 'OPPONENT_LEFT',
+  MATCH_QUEUE_STATUS: 'MATCH_QUEUE_STATUS',
 } as const;
 
 export type ServerMessageType = (typeof ServerMessageType)[keyof typeof ServerMessageType];
@@ -47,6 +53,32 @@ export interface PongMessage {
 export interface CombatEventMessage {
   tick: number;
   result: HitResult;
+}
+
+export interface MatchEndMessage {
+  winnerId: string;
+  reason?: 'normal' | 'opponent_forfeit' | 'opponent_disconnect_timeout' | 'opponent_left';
+  message?: string;
+}
+
+export interface PlayerDisconnectedMessage {
+  sessionId: string;
+  gracePeriodSec: number;
+}
+
+export interface PlayerReconnectedMessage {
+  sessionId: string;
+}
+
+export interface OpponentLeftMessage {
+  sessionId: string;
+  reason: 'forfeit' | 'disconnect_timeout' | 'host_left' | 'guest_left' | 'rematch_declined';
+  message: string;
+}
+
+export interface MatchQueueStatusMessage {
+  secondsInQueue: number;
+  secondsUntilBot: number;
 }
 
 export interface ErrorMessage {

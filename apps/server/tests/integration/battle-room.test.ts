@@ -354,4 +354,128 @@ describe('BattleRoom Lifecycle and Simulation', () => {
       signal: { type: 'ready' },
     });
   });
+
+  it('handles quickmatch queue and allows instant spawning of authoritative bot opponent', () => {
+    const qRoom = new BattleRoom();
+    qRoom.roomId = 'quickmatch-room';
+    qRoom.onCreate({ isPrivate: false });
+
+    const sent: Array<{ type: string | number; data: unknown }> = [];
+    const client1 = {
+      ...createMockClient('solo-player'),
+      send: (type: string | number, data: unknown) => sent.push({ type, data }),
+    } as unknown as Client;
+
+    qRoom.clients = [client1];
+    qRoom.onJoin(client1, { playerName: 'Solo Challenger', warriorPreset: 'knight' });
+
+    expect(qRoom.state.matchState).toBe('waiting');
+    expect(qRoom.state.isBotMatch).toBe(false);
+
+    // Trigger REQUEST_BOT_OPPONENT message handler
+    const onMessageHandlers = (
+      qRoom as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers;
+    const botRequestHandler = onMessageHandlers[ClientMessageType.REQUEST_BOT_OPPONENT];
+    expect(botRequestHandler).toBeDefined();
+
+    botRequestHandler(client1, {});
+
+    // State should immediately become in_progress against bot gladiator!
+    expect(qRoom.state.matchState).toBe('in_progress');
+    expect(qRoom.state.isBotMatch).toBe(true);
+    expect(qRoom.state.warriors.size).toBe(2);
+
+    const botWarrior = qRoom.state.warriors.get('bot_champion');
+    expect(botWarrior).toBeDefined();
+    expect(botWarrior?.isBot).toBe(true);
+
+    // Step simulation and verify bot moves and generates authoritative inputs
+    const internals = qRoom as unknown as BattleRoomInternals;
+    for (let i = 0; i < 20; i++) {
+      internals.updateSimulation(SIMULATION_DELTA_MS);
+    }
+
+    expect(botWarrior!.x).toBeGreaterThan(0);
+    qRoom.onDispose();
+  });
+
+  it('handles explicit in-game match forfeit via FORFEIT_MATCH message', () => {
+    const dummyClient1 = createMockClient('session-1');
+    const dummyClient2 = createMockClient('session-2');
+
+    room.clients = [dummyClient1, dummyClient2];
+    room.onJoin(dummyClient1, { playerName: 'Player 1' });
+    room.onJoin(dummyClient2, { playerName: 'Player 2' });
+
+    expect(room.state.matchState).toBe('in_progress');
+
+    const onMessageHandlers = (
+      room as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers;
+    const forfeitHandler = onMessageHandlers[ClientMessageType.FORFEIT_MATCH];
+    expect(forfeitHandler).toBeDefined();
+
+    // Player 2 surrenders
+    forfeitHandler(dummyClient2, {});
+
+    expect(room.state.matchState).toBe('match_over');
+    expect(room.state.winnerId).toBe('session-1');
+    expect(room.state.endReason).toBe('opponent_forfeit');
+  });
+
+  it('handles unintentional mid-match disconnect with grace countdown and forfeit on timeout', async () => {
+    const dummyClient1 = createMockClient('session-1');
+    const dummyClient2 = createMockClient('session-2');
+
+    room.clients = [dummyClient1, dummyClient2];
+    room.onJoin(dummyClient1, { playerName: 'Player 1' });
+    room.onJoin(dummyClient2, { playerName: 'Player 2' });
+
+    // Mock allowReconnection that rejects (simulating reconnection failure/timeout)
+    room.allowReconnection = () => Promise.reject(new Error('Reconnection timeout'));
+
+    // Player 2 drops connection (consented = false)
+    await room.onLeave(dummyClient2, false);
+
+    expect(room.state.matchState).toBe('match_over');
+    expect(room.state.winnerId).toBe('session-1');
+    expect(room.state.endReason).toBe('opponent_disconnect_timeout');
+  });
+
+  it('handles immediate rematch against authoritative AI gladiator without waiting', () => {
+    const qRoom = new BattleRoom();
+    qRoom.roomId = 'bot-rematch-room';
+    qRoom.onCreate({ isPrivate: false });
+
+    const client1 = createMockClient('solo-player');
+    qRoom.clients = [client1];
+    qRoom.onJoin(client1, { playerName: 'Solo Challenger' });
+    qRoom.spawnBotOpponent();
+
+    expect(qRoom.state.matchState).toBe('in_progress');
+
+    // End match
+    qRoom.state.matchState = 'match_over';
+    qRoom.state.winnerId = 'solo-player';
+
+    const onMessageHandlers = (
+      qRoom as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers;
+    const readyHandler = onMessageHandlers[ClientMessageType.READY];
+
+    // Player signals ready for rematch against bot
+    readyHandler(client1, {});
+
+    expect(qRoom.state.matchState).toBe('in_progress');
+    expect(qRoom.state.winnerId).toBe('');
+    expect(qRoom.state.endReason).toBe('normal');
+    qRoom.onDispose();
+  });
 });

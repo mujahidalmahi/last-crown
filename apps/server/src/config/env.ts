@@ -34,6 +34,7 @@ const ServerEnvSchema = z.object({
   SERVER_ROOM_RECONNECT_TIMEOUT_SEC: z.coerce.number().int().positive().default(10),
   SERVER_ROOM_EMPTY_TIMEOUT_SEC: z.coerce.number().int().positive().default(30),
   SERVER_ROOM_MATCH_OVER_TIMEOUT_SEC: z.coerce.number().int().positive().default(180),
+  SERVER_QUICKMATCH_BOT_TIMEOUT_SEC: z.coerce.number().int().positive().default(10),
   SERVER_MAX_CONCURRENT_ROOMS: z.coerce.number().int().positive().default(500),
   SERVER_RATE_LIMIT_JOIN_MAX: z.coerce.number().int().positive().default(10),
   SERVER_RATE_LIMIT_JOIN_WINDOW_MS: z.coerce.number().int().positive().default(60000),

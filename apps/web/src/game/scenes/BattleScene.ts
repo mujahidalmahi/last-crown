@@ -442,7 +442,22 @@ export class BattleScene extends Phaser.Scene {
     const warriorsList: WarriorNetworkState[] = [];
     state.warriors.forEach(w => warriorsList.push(w));
 
-    if (warriorsList.length < 2) return;
+    if (warriorsList.length < 2) {
+      if (this.lastRemoteSnapshot && state.matchState === 'match_over') {
+        const snap: GameSimulationSnapshot = {
+          ...this.lastRemoteSnapshot,
+          matchState: 'match_over',
+          roundNumber: state.roundNumber,
+          timerSeconds: state.timerSeconds,
+          winnerId: state.winnerId || this.lastRemoteSnapshot.p1.id,
+        };
+        this.lastRemoteSnapshot = snap;
+        if (this.config.onSnapshot) {
+          this.config.onSnapshot(snap);
+        }
+      }
+      return;
+    }
 
     // Identify local player vs opponent by sessionId
     const mySessionId = this.config.colyseusRoom?.sessionId;

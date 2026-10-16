@@ -15,7 +15,7 @@ import {
   WarriorSnapshot,
   VoiceSignalClientMessage,
 } from '@last-crown/shared';
-import { GameSimulation } from '@last-crown/game-core';
+import { GameSimulation, WarriorBotAI } from '@last-crown/game-core';
 import { getArenaConfig } from '@last-crown/game-config';
 import { RoomRegistry } from '../matchmaking/RoomRegistry.js';
 import { serverEnv } from '../config/env.js';
@@ -43,6 +43,13 @@ export class BattleRoom extends Room<BattleRoomState> {
   private inviteCode: string = '';
   private creationTimeoutTimer: NodeJS.Timeout | null = null;
   private matchOverTimeoutTimer: NodeJS.Timeout | null = null;
+  private quickmatchBotTimer: NodeJS.Timeout | null = null;
+  private quickmatchQueueInterval: NodeJS.Timeout | null = null;
+  private reconnectGraceInterval: NodeJS.Timeout | null = null;
+  private secondsInQueue = 0;
+  private isPrivateMatch = true;
+  private isBotMatch = false;
+  private serverBotAI: WarriorBotAI | null = null;
   private tickErrorCount = 0;
 
   public onCreate(options: {
@@ -175,9 +182,47 @@ export class BattleRoom extends Room<BattleRoomState> {
       }
     );
 
+    // Immediate Bot Opponent Request (for skipping wait or testing)
+    this.onMessage(ClientMessageType.REQUEST_BOT_OPPONENT, () => {
+      if (this.state.matchState === 'waiting' && this.clients.length === 1 && !this.simulation) {
+        this.clearQuickmatchTimers();
+        this.spawnBotOpponent();
+      }
+    });
+
+    // In-game Match Forfeit / Surrender Request
+    this.onMessage(ClientMessageType.FORFEIT_MATCH, client => {
+      if (this.state.matchState === 'in_progress' || this.state.matchState === 'round_over') {
+        this.handleForfeit(client.sessionId);
+      }
+    });
+
     // Rematch Ready Handler
     this.onMessage(ClientMessageType.READY, client => {
       if (this.state.matchState === 'match_over' && this.simulation) {
+        if (this.isBotMatch) {
+          // Instant rematch against authoritative bot!
+          if (this.matchOverTimeoutTimer) {
+            clearTimeout(this.matchOverTimeoutTimer);
+            this.matchOverTimeoutTimer = null;
+          }
+          for (const meta of this.clientMetadata.values()) {
+            meta.lastInputSequence = 0;
+            meta.inputMessageCount = 0;
+          }
+          this.clientInputs.clear();
+          this.simulation.resetMatch();
+          this.serverBotAI?.reset();
+          this.state.matchState = 'in_progress';
+          this.state.winnerId = '';
+          this.state.endReason = 'normal';
+          this.broadcast(ServerMessageType.MATCH_START, {
+            roundNumber: 1,
+            isBot: true,
+          });
+          return;
+        }
+
         this.rematchReadyClients.add(client.sessionId);
         // Start rematch when all connected clients in the room signal ready
         if (this.rematchReadyClients.size >= this.clients.length) {
@@ -194,6 +239,7 @@ export class BattleRoom extends Room<BattleRoomState> {
           this.simulation.resetMatch();
           this.state.matchState = 'in_progress';
           this.state.winnerId = '';
+          this.state.endReason = 'normal';
           this.broadcast(ServerMessageType.MATCH_START, {
             roundNumber: 1,
           });
@@ -232,6 +278,7 @@ export class BattleRoom extends Room<BattleRoomState> {
     warriorState.x = spawnPoint.x;
     warriorState.y = spawnPoint.y;
     warriorState.facing = isHost ? 'right' : 'left';
+    warriorState.isBot = false;
     this.state.warriors.set(client.sessionId, warriorState);
 
     RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clients.length);
@@ -246,8 +293,17 @@ export class BattleRoom extends Room<BattleRoomState> {
       }
     }
 
+    // If this is a public quickmatch and only 1 player is connected, start bot matchmaking timer
+    if (!this.isPrivateMatch && this.clients.length === 1) {
+      this.startQuickmatchBotTimer();
+    } else if (this.clients.length >= 2) {
+      // 2nd human player joined! Cancel pending bot matchmaking
+      this.clearQuickmatchTimers();
+    }
+
     // Once 2 players join, initialize the authoritative GameSimulation
     if (this.clients.length === 2 && !this.simulation && this.clientMetadata.size >= 2) {
+      this.clearQuickmatchTimers();
       const clientsList = Array.from(this.clientMetadata.values());
       const p1 = clientsList[0]!;
       const p2 = clientsList[1]!;
@@ -273,6 +329,7 @@ export class BattleRoom extends Room<BattleRoomState> {
       });
 
       this.state.matchState = 'in_progress';
+      this.state.endReason = 'normal';
       this.broadcast(ServerMessageType.MATCH_START, {
         roundNumber: 1,
         p1Id: p1.id,
@@ -281,31 +338,330 @@ export class BattleRoom extends Room<BattleRoomState> {
     }
   }
 
+  private startQuickmatchBotTimer(): void {
+    this.clearQuickmatchTimers();
+    this.secondsInQueue = 0;
+    const botTimeoutSec = serverEnv.SERVER_QUICKMATCH_BOT_TIMEOUT_SEC;
+
+    // Send initial queue status
+    this.broadcast(ServerMessageType.MATCH_QUEUE_STATUS, {
+      secondsInQueue: 0,
+      secondsUntilBot: botTimeoutSec,
+    });
+
+    this.quickmatchQueueInterval = setInterval(() => {
+      this.secondsInQueue++;
+      const secondsUntilBot = Math.max(0, botTimeoutSec - this.secondsInQueue);
+      this.broadcast(ServerMessageType.MATCH_QUEUE_STATUS, {
+        secondsInQueue: this.secondsInQueue,
+        secondsUntilBot,
+      });
+    }, 1000);
+
+    this.quickmatchBotTimer = setTimeout(() => {
+      this.clearQuickmatchTimers();
+      if (this.clients.length === 1 && !this.simulation) {
+        this.spawnBotOpponent();
+      }
+    }, botTimeoutSec * 1000);
+  }
+
+  private clearQuickmatchTimers(): void {
+    if (this.quickmatchBotTimer) {
+      clearTimeout(this.quickmatchBotTimer);
+      this.quickmatchBotTimer = null;
+    }
+    if (this.quickmatchQueueInterval) {
+      clearInterval(this.quickmatchQueueInterval);
+      this.quickmatchQueueInterval = null;
+    }
+  }
+
+  public spawnBotOpponent(): void {
+    if (this.simulation || this.clients.length === 0) return;
+
+    this.clearQuickmatchTimers();
+    this.isBotMatch = true;
+    this.state.isBotMatch = true;
+
+    // Lock room from Colyseus matchmaking so no other player interrupts active bot match
+    if (this.presence) {
+      try {
+        this.lock().catch(() => {});
+      } catch {
+        // Ignored if lock fails or already locked
+      }
+    }
+
+    const humanMeta = Array.from(this.clientMetadata.values())[0];
+    if (!humanMeta) return;
+
+    const botPresets = ['knight', 'duelist', 'marauder'];
+    const botPreset = botPresets[Math.floor(Math.random() * botPresets.length)] || 'marauder';
+    const botNames = [
+      'Arena Gladiator (AI)',
+      'Iron Sentinel (AI)',
+      'Shadow Blade (AI)',
+      'Crown Guardian (AI)',
+    ];
+    const botName = botNames[Math.floor(Math.random() * botNames.length)] || 'Arena Gladiator (AI)';
+
+    const botSessionId = 'bot_champion';
+    const botMeta: ClientMetadata = {
+      id: botSessionId,
+      name: botName,
+      preset: botPreset,
+      isHost: false,
+      lastInputSequence: 0,
+      inputMessageCount: 0,
+      lastInputWindowReset: Date.now(),
+    };
+    this.clientMetadata.set(botSessionId, botMeta);
+
+    const arenaConfig = getArenaConfig(this.state.arenaId);
+    const botWarriorState = new WarriorNetworkState();
+    botWarriorState.id = botSessionId;
+    botWarriorState.name = botName;
+    botWarriorState.x = arenaConfig.spawnPointP2.x;
+    botWarriorState.y = arenaConfig.spawnPointP2.y;
+    botWarriorState.facing = 'left';
+    botWarriorState.isBot = true;
+    this.state.warriors.set(botSessionId, botWarriorState);
+
+    this.p1SessionId = humanMeta.id;
+    this.p2SessionId = botSessionId;
+    this.serverBotAI = new WarriorBotAI('adept');
+
+    this.simulation = new GameSimulation(
+      humanMeta.id,
+      humanMeta.name,
+      humanMeta.preset,
+      botSessionId,
+      botName,
+      botPreset,
+      this.state.arenaId
+    );
+
+    this.simulation.onCombatEvent((result: HitResult) => {
+      this.broadcast(ServerMessageType.COMBAT_EVENT, {
+        tick: Date.now(),
+        result,
+      });
+    });
+
+    this.state.matchState = 'in_progress';
+    this.state.endReason = 'normal';
+    this.broadcast(ServerMessageType.MATCH_START, {
+      roundNumber: 1,
+      p1Id: humanMeta.id,
+      p2Id: botSessionId,
+      isBot: true,
+      botName,
+    });
+  }
+
   public async onLeave(client: Client, consented?: boolean): Promise<void> {
     const warrior = this.state.warriors.get(client.sessionId);
     if (warrior) {
       warrior.isConnected = false;
     }
 
-    if (consented) {
-      // User explicitly left
+    // If human playing against a bot leaves:
+    if (this.isBotMatch) {
       this.cleanupClient(client.sessionId);
+      this.disconnect();
+      return;
+    }
+
+    if (consented) {
+      // User explicitly left: surrender / forfeit
+      this.handleForfeit(client.sessionId);
       return;
     }
 
     // Unintentional disconnect: provide grace period for reconnection
+    await this.handleUnintentionalDisconnect(client);
+  }
+
+  public handleForfeit(sessionId: string): void {
+    const isHost = this.clientMetadata.get(sessionId)?.isHost ?? false;
+
+    // Case 1: In-Game Forfeit / Surrender
+    if (this.state.matchState === 'in_progress' || this.state.matchState === 'round_over') {
+      const remainingClient = this.clients.find(c => c.sessionId !== sessionId);
+      const remainingId =
+        remainingClient?.sessionId ||
+        Array.from(this.clientMetadata.keys()).find(
+          id => id !== sessionId && id !== 'bot_champion'
+        ) ||
+        '';
+
+      this.state.matchState = 'match_over';
+      this.state.winnerId = remainingId;
+      this.state.endReason = 'opponent_forfeit';
+
+      this.broadcast(ServerMessageType.OPPONENT_LEFT, {
+        sessionId,
+        reason: 'forfeit',
+        message: 'Opponent forfeited and fled the arena. Victory awarded!',
+      });
+
+      this.broadcast(ServerMessageType.MATCH_END, {
+        winnerId: remainingId,
+        reason: 'opponent_forfeit',
+        message: 'Opponent fled the arena! Victory by Forfeit!',
+      });
+
+      this.cleanupClient(sessionId);
+
+      if (!this.matchOverTimeoutTimer) {
+        this.matchOverTimeoutTimer = setTimeout(() => {
+          this.disconnect();
+        }, serverEnv.SERVER_ROOM_MATCH_OVER_TIMEOUT_SEC * 1000);
+      }
+      return;
+    }
+
+    // Case 2: Post-Match Rematch Departure
+    if (this.state.matchState === 'match_over') {
+      this.rematchReadyClients.delete(sessionId);
+      const remainingClient = this.clients.find(c => c.sessionId !== sessionId);
+      if (remainingClient) {
+        remainingClient.send(ServerMessageType.OPPONENT_LEFT, {
+          sessionId,
+          reason: 'rematch_declined',
+          message: 'Opponent departed the hall.',
+        });
+      }
+      this.cleanupClient(sessionId);
+      return;
+    }
+
+    // Case 3: Waiting Chamber Lobby Departure
+    if (this.state.matchState === 'waiting') {
+      if (isHost && this.isPrivateMatch) {
+        const opponent = this.clients.find(c => c.sessionId !== sessionId);
+        if (opponent) {
+          opponent.send(ServerMessageType.OPPONENT_LEFT, {
+            sessionId,
+            reason: 'host_left',
+            message: 'Host closed the chamber.',
+          });
+        }
+        this.cleanupClient(sessionId);
+        this.disconnect();
+      } else {
+        const opponent = this.clients.find(c => c.sessionId !== sessionId);
+        if (opponent) {
+          opponent.send(ServerMessageType.OPPONENT_LEFT, {
+            sessionId,
+            reason: 'guest_left',
+            message: 'Challenger departed the chamber.',
+          });
+        }
+        this.cleanupClient(sessionId);
+        if (!this.isPrivateMatch && this.clients.length === 1) {
+          this.startQuickmatchBotTimer();
+        }
+      }
+    }
+  }
+
+  private disconnectedSessionId: string | null = null;
+
+  public async handleUnintentionalDisconnect(client: Client): Promise<void> {
+    const warrior = this.state.warriors.get(client.sessionId);
+
+    // If disconnected while waiting in lobby, treat as normal departure
+    if (this.state.matchState === 'waiting') {
+      this.handleForfeit(client.sessionId);
+      return;
+    }
+
+    const graceTimeoutSec = serverEnv.SERVER_ROOM_RECONNECT_TIMEOUT_SEC;
+    this.disconnectedSessionId = client.sessionId;
+    this.state.isOpponentDisconnected = true;
+    this.state.disconnectGraceRemainingSec = graceTimeoutSec;
+
+    this.broadcast(ServerMessageType.PLAYER_DISCONNECTED, {
+      sessionId: client.sessionId,
+      gracePeriodSec: graceTimeoutSec,
+    });
+
+    if (this.reconnectGraceInterval) {
+      clearInterval(this.reconnectGraceInterval);
+    }
+    this.reconnectGraceInterval = setInterval(() => {
+      if (this.state.disconnectGraceRemainingSec > 0) {
+        this.state.disconnectGraceRemainingSec--;
+      }
+    }, 1000);
+
     try {
-      await this.allowReconnection(client, serverEnv.SERVER_ROOM_RECONNECT_TIMEOUT_SEC);
+      await this.allowReconnection(client, graceTimeoutSec);
+
+      // Reconnection successful!
+      if (this.reconnectGraceInterval) {
+        clearInterval(this.reconnectGraceInterval);
+        this.reconnectGraceInterval = null;
+      }
+      this.disconnectedSessionId = null;
       if (warrior) {
         warrior.isConnected = true;
       }
+      this.state.isOpponentDisconnected = false;
+      this.state.disconnectGraceRemainingSec = 0;
+
       const meta = this.clientMetadata.get(client.sessionId);
       if (meta) {
         meta.lastInputSequence = 0;
         meta.inputMessageCount = 0;
       }
       this.clientInputs.delete(client.sessionId);
+
+      this.broadcast(ServerMessageType.PLAYER_RECONNECTED, {
+        sessionId: client.sessionId,
+      });
     } catch {
+      // Grace period expired without reconnection!
+      if (this.reconnectGraceInterval) {
+        clearInterval(this.reconnectGraceInterval);
+        this.reconnectGraceInterval = null;
+      }
+      this.disconnectedSessionId = null;
+      this.state.isOpponentDisconnected = false;
+      this.state.disconnectGraceRemainingSec = 0;
+
+      const remainingClient = this.clients.find(c => c.sessionId !== client.sessionId);
+      const remainingId =
+        remainingClient?.sessionId ||
+        Array.from(this.clientMetadata.keys()).find(id => id !== client.sessionId) ||
+        '';
+
+      if (this.state.matchState === 'in_progress' || this.state.matchState === 'round_over') {
+        this.state.matchState = 'match_over';
+        this.state.winnerId = remainingId;
+        this.state.endReason = 'opponent_disconnect_timeout';
+
+        this.broadcast(ServerMessageType.OPPONENT_LEFT, {
+          sessionId: client.sessionId,
+          reason: 'disconnect_timeout',
+          message: 'Opponent connection timed out. Victory awarded!',
+        });
+
+        this.broadcast(ServerMessageType.MATCH_END, {
+          winnerId: remainingId,
+          reason: 'opponent_disconnect_timeout',
+          message: 'Opponent connection timed out. Victory awarded!',
+        });
+
+        if (!this.matchOverTimeoutTimer) {
+          this.matchOverTimeoutTimer = setTimeout(() => {
+            this.disconnect();
+          }, serverEnv.SERVER_ROOM_MATCH_OVER_TIMEOUT_SEC * 1000);
+        }
+      }
+
       this.cleanupClient(client.sessionId);
     }
   }
@@ -334,31 +690,14 @@ export class BattleRoom extends Room<BattleRoomState> {
       });
     }
 
-    // Auto-dispose room immediately if all clients have left
-    if (this.clientMetadata.size === 0) {
+    // Auto-dispose room immediately if all human clients have left
+    const humanClientsCount = Array.from(this.clientMetadata.keys()).filter(
+      id => id !== 'bot_champion'
+    ).length;
+
+    if (humanClientsCount === 0) {
       this.disconnect();
       return;
-    }
-
-    if (
-      this.clientMetadata.size < 2 &&
-      (this.state.matchState === 'in_progress' || this.state.matchState === 'round_over')
-    ) {
-      this.state.matchState = 'match_over';
-      const remainingClient = Array.from(this.clientMetadata.keys())[0];
-      if (remainingClient) {
-        this.state.winnerId = remainingClient;
-      }
-      this.broadcast(ServerMessageType.MATCH_END, {
-        winnerId: this.state.winnerId,
-      });
-
-      // Start match-over inactivity cleanup timer
-      if (!this.matchOverTimeoutTimer) {
-        this.matchOverTimeoutTimer = setTimeout(() => {
-          this.disconnect();
-        }, serverEnv.SERVER_ROOM_MATCH_OVER_TIMEOUT_SEC * 1000);
-      }
     }
   }
 
@@ -375,8 +714,37 @@ export class BattleRoom extends Room<BattleRoomState> {
       const p1Id = this.p1SessionId;
       const p2Id = this.p2SessionId;
 
-      const p1Input = p1Id ? this.clientInputs.get(p1Id) || null : null;
-      const p2Input = p2Id ? this.clientInputs.get(p2Id) || null : null;
+      let p1Input = p1Id ? this.clientInputs.get(p1Id) || null : null;
+      let p2Input = p2Id ? this.clientInputs.get(p2Id) || null : null;
+
+      // Authoritative Bot input generation if P2 is an AI gladiator
+      if (this.isBotMatch && this.serverBotAI && p2Id === 'bot_champion') {
+        const snap = this.simulation.getSnapshot();
+        p2Input = this.serverBotAI.update(snap.p2, snap.p1, deltaTimeMs);
+      } else if (this.state.isOpponentDisconnected) {
+        // Enforce neutral defending stance for disconnected player during grace countdown
+        if (this.disconnectedSessionId === p1Id) {
+          p1Input = {
+            sequence: 0,
+            timestamp: Date.now(),
+            moveX: 0,
+            jump: false,
+            attack: false,
+            block: true,
+            parry: false,
+          };
+        } else if (this.disconnectedSessionId === p2Id) {
+          p2Input = {
+            sequence: 0,
+            timestamp: Date.now(),
+            moveX: 0,
+            jump: false,
+            attack: false,
+            block: true,
+            parry: false,
+          };
+        }
+      }
 
       const previousState = this.state.matchState;
 
@@ -481,6 +849,11 @@ export class BattleRoom extends Room<BattleRoomState> {
   }
 
   public onDispose(): void {
+    this.clearQuickmatchTimers();
+    if (this.reconnectGraceInterval) {
+      clearInterval(this.reconnectGraceInterval);
+      this.reconnectGraceInterval = null;
+    }
     if (this.creationTimeoutTimer) {
       clearTimeout(this.creationTimeoutTimer);
       this.creationTimeoutTimer = null;
@@ -494,6 +867,7 @@ export class BattleRoom extends Room<BattleRoomState> {
     }
     this.p1SessionId = null;
     this.p2SessionId = null;
+    this.serverBotAI = null;
     this.rematchReadyClients.clear();
     this.voiceClients.clear();
     this.clientMetadata.clear();

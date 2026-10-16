@@ -61,6 +61,9 @@ export default function RoomPage() {
     joinPrivateRoom,
     findQuickMatch,
     leaveRoom,
+    requestBotOpponent,
+    queueStatus,
+    opponentNotice,
   } = useMultiplayerRoom();
 
   const voice = useVoiceChat({ room });
@@ -209,6 +212,72 @@ export default function RoomPage() {
                   </button>
                 </div>
               </>
+            )}
+
+            {!inviteCode && (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  alignItems: 'center',
+                  width: '100%',
+                  margin: '8px 0',
+                }}
+              >
+                <div
+                  style={{
+                    backgroundColor: 'rgba(212, 175, 55, 0.12)',
+                    border: '1px solid rgba(212, 175, 55, 0.35)',
+                    borderRadius: '4px',
+                    padding: '8px 14px',
+                    color: '#f1c40f',
+                    fontSize: '11px',
+                    textAlign: 'center',
+                    width: '100%',
+                    letterSpacing: '0.05em',
+                  }}
+                >
+                  {queueStatus
+                    ? `Searching for rival... (${queueStatus.secondsInQueue}s) · AI Champion enters in ${queueStatus.secondsUntilBot}s`
+                    : 'Searching for an online challenger...'}
+                </div>
+                <button
+                  type="button"
+                  onClick={requestBotOpponent}
+                  className={styles.copyBtn}
+                  style={{
+                    width: '100%',
+                    backgroundColor: '#d4af37',
+                    color: '#070b12',
+                    fontWeight: 900,
+                  }}
+                  title="Skip queue and duel an authoritative AI Arena Champion immediately"
+                >
+                  ⚔️ Summon AI Champion Now
+                </button>
+              </div>
+            )}
+
+            {opponentNotice && (
+              <div
+                style={{
+                  backgroundColor:
+                    opponentNotice.type === 'forfeited' || opponentNotice.type === 'left'
+                      ? 'rgba(231, 76, 60, 0.2)'
+                      : 'rgba(241, 196, 15, 0.2)',
+                  border: '1px solid #e74c3c',
+                  borderRadius: '4px',
+                  padding: '8px 12px',
+                  color: '#f87171',
+                  fontSize: '11px',
+                  textAlign: 'center',
+                  width: '100%',
+                  margin: '4px 0',
+                }}
+              >
+                ⚠️ {opponentNotice.message}
+              </div>
             )}
 
             <div className={styles.rosterBox}>
