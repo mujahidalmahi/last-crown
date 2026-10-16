@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@last-crown/shared', '@last-crown/game-config', '@last-crown/game-core'],
+  transpilePackages: ['@last-crown/shared', '@last-crown/game-config', '@last-crown/game-core', 'qrcode'],
   webpack: config => {
     // Avoid bundling server-only or browser-unsafe modules in SSR
     config.resolve.fallback = {
