@@ -418,7 +418,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         setStatus('connected');
         setError(null);
       } else if (state === 'connecting' || iceState === 'checking') {
-        setStatus('connecting');
+        setStatus(prev => (prev === 'connected' ? 'connected' : 'connecting'));
       } else if (state === 'disconnected' || iceState === 'disconnected') {
         // Safari/iOS edge case: can get stuck in 'disconnected' without transitioning to 'failed'
         if (!disconnectTimerRef.current) {
@@ -471,6 +471,16 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     async (iceRestart: boolean = false) => {
       if (!isJoinedRef.current || !localStreamRef.current || !opponentSessionIdRef.current) {
         return;
+      }
+
+      // If already connected and this is not an explicit ICE restart, skip redundant offer
+      if (!iceRestart && pcRef.current) {
+        const curState = pcRef.current.connectionState;
+        const curIce = pcRef.current.iceConnectionState;
+        if (curState === 'connected' || curIce === 'connected' || curIce === 'completed') {
+          console.log('[VoiceChat] Connection already established, skipping redundant offer');
+          return;
+        }
       }
 
       if (isNegotiatingRef.current && !iceRestart) {
@@ -557,7 +567,20 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   const handleIncomingOffer = useCallback(
     async (desc: RTCSessionDescriptionInit, from: string) => {
       try {
-        setStatus('connecting');
+        const existingPc = pcRef.current;
+        if (existingPc) {
+          const curState = existingPc.connectionState;
+          const curIce = existingPc.iceConnectionState;
+          if (curState === 'connected' || curIce === 'connected' || curIce === 'completed') {
+            console.log(
+              '[VoiceChat] Incoming renegotiation received while connected; maintaining connected status'
+            );
+          } else {
+            setStatus('connecting');
+          }
+        } else {
+          setStatus('connecting');
+        }
         const pc = getOrCreatePeerConnection();
 
         if (pc.signalingState !== 'stable') {
@@ -608,15 +631,30 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       }
       connectingWatchdogRef.current = setTimeout(() => {
         connectingWatchdogRef.current = null;
-        if (isJoinedRef.current && status === 'connecting') {
-          console.warn(
-            '[VoiceChat] Connecting handshake watchdog expired (6s). Attempting self-healing...'
-          );
-          if (room && opponentSessionIdRef.current) {
-            if (room.sessionId > opponentSessionIdRef.current) {
-              initiateOfferRef.current?.(true);
-            } else {
-              sendSignal({ type: 'ready' });
+        if (isJoinedRef.current) {
+          const pc = pcRef.current;
+          if (pc) {
+            const curState = pc.connectionState;
+            const curIce = pc.iceConnectionState;
+            if (curState === 'connected' || curIce === 'connected' || curIce === 'completed') {
+              console.log(
+                '[VoiceChat] Watchdog timer expired but connection is active and connected. Syncing status.'
+              );
+              setStatus('connected');
+              return;
+            }
+          }
+
+          if (status === 'connecting') {
+            console.warn(
+              '[VoiceChat] Connecting handshake watchdog expired (6s). Attempting self-healing...'
+            );
+            if (room && opponentSessionIdRef.current) {
+              if (room.sessionId > opponentSessionIdRef.current) {
+                initiateOfferRef.current?.(true);
+              } else {
+                sendSignal({ type: 'ready' });
+              }
             }
           }
         }
@@ -690,6 +728,15 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
 
         // If opponent is already in voice and we are the designated initiator, start call
         if (opponentSessionIdRef.current && room.sessionId > opponentSessionIdRef.current) {
+          const pc = pcRef.current;
+          if (pc) {
+            const curState = pc.connectionState;
+            const curIce = pc.iceConnectionState;
+            if (curState === 'connected' || curIce === 'connected' || curIce === 'completed') {
+              console.log('[VoiceChat] Already connected, skipping initiateOffer in joinVoice');
+              return;
+            }
+          }
           await initiateOffer(false);
         }
       }
@@ -785,6 +832,18 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         setOpponentInVoice(true);
 
         if (isJoinedRef.current && localStreamRef.current) {
+          // If already connected with rival, do not re-negotiate on duplicate ready signals!
+          if (pcRef.current) {
+            const curState = pcRef.current.connectionState;
+            const curIce = pcRef.current.iceConnectionState;
+            if (curState === 'connected' || curIce === 'connected' || curIce === 'completed') {
+              console.log(
+                '[VoiceChat] Already connected with rival, ignoring duplicate ready signal'
+              );
+              return;
+            }
+          }
+
           // Deterministic role: higher sessionId initiates the offer
           if (room.sessionId > from) {
             if (pcRef.current && pcRef.current.signalingState !== 'stable') {
@@ -795,7 +854,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
               await initiateOffer(false);
             }
           } else {
-            setStatus('connecting');
+            setStatus(prev => (prev === 'connected' ? 'connected' : 'connecting'));
           }
         }
         return;
