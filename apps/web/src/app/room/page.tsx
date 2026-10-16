@@ -280,6 +280,7 @@ export default function RoomPage() {
             <PhaserGameContainer
               mode="multiplayer"
               colyseusRoom={room}
+              voiceState={voice}
               playerPreset="knight"
               onExit={leaveRoom}
             />

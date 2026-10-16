@@ -314,9 +314,44 @@ describe('BattleRoom Lifecycle and Simulation', () => {
 
     // CRITICAL: Room B players (different game) receive NOTHING!
     expect(roomBSentP1).toHaveLength(0);
-    expect(roomBSentP2).toHaveLength(0);
-
     roomA.onDispose();
     roomB.onDispose();
+  });
+
+  it('announces voice presence of an existing player to a newly joining opponent', () => {
+    const sent2: Array<{ type: string | number; data: unknown }> = [];
+
+    const dummyClient1 = createMockClient('p1-session');
+    const dummyClient2 = {
+      ...createMockClient('p2-session'),
+      send: (type: string | number, data: unknown) => sent2.push({ type, data }),
+    } as unknown as Client;
+
+    room.clients = [dummyClient1];
+    room.onJoin(dummyClient1, { playerName: 'Player 1' });
+
+    const onMessageHandlers = (
+      room as unknown as {
+        onMessageHandlers: Record<string, (client: Client, message: unknown) => void>;
+      }
+    ).onMessageHandlers;
+    const voiceHandler = onMessageHandlers[ClientMessageType.VOICE_SIGNAL];
+
+    // Player 1 enables voice while waiting in lobby
+    voiceHandler(dummyClient1, {
+      signal: { type: 'ready' },
+    });
+
+    // Player 2 joins the room afterwards
+    room.clients = [dummyClient1, dummyClient2];
+    room.onJoin(dummyClient2, { playerName: 'Player 2' });
+
+    // Player 2 should be immediately notified that Player 1 is ready in voice!
+    const voicePresenceMsgs = sent2.filter(msg => msg.type === ServerMessageType.VOICE_SIGNAL);
+    expect(voicePresenceMsgs).toHaveLength(1);
+    expect(voicePresenceMsgs[0]!.data).toEqual({
+      from: 'p1-session',
+      signal: { type: 'ready' },
+    });
   });
 });

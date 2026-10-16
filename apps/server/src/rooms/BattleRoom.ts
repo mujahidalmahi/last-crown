@@ -38,6 +38,7 @@ export class BattleRoom extends Room<BattleRoomState> {
   private clientMetadata = new Map<string, ClientMetadata>();
   private clientInputs = new Map<string, PlayerInputMessage>();
   private rematchReadyClients = new Set<string>();
+  private voiceClients = new Set<string>();
   private inviteCode: string = '';
   private creationTimeoutTimer: NodeJS.Timeout | null = null;
   private matchOverTimeoutTimer: NodeJS.Timeout | null = null;
@@ -129,11 +130,19 @@ export class BattleRoom extends Room<BattleRoomState> {
       ClientMessageType.VOICE_SIGNAL,
       (client, rawMessage: VoiceSignalClientMessage) => {
         if (!rawMessage || !rawMessage.signal) return;
+        const { signal } = rawMessage;
+
+        if (signal.type === 'ready') {
+          this.voiceClients.add(client.sessionId);
+        } else if (signal.type === 'leave') {
+          this.voiceClients.delete(client.sessionId);
+        }
+
         const opponent = this.clients.find(c => c.sessionId !== client.sessionId);
         if (opponent) {
           opponent.send(ServerMessageType.VOICE_SIGNAL, {
             from: client.sessionId,
-            signal: rawMessage.signal,
+            signal,
           });
         }
       }
@@ -199,6 +208,16 @@ export class BattleRoom extends Room<BattleRoomState> {
     this.state.warriors.set(client.sessionId, warriorState);
 
     RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clients.length);
+
+    // If an opponent in this chamber is already in voice chat, inform the joining player
+    for (const voiceSessionId of this.voiceClients) {
+      if (voiceSessionId !== client.sessionId) {
+        client.send(ServerMessageType.VOICE_SIGNAL, {
+          from: voiceSessionId,
+          signal: { type: 'ready' },
+        });
+      }
+    }
 
     // Once 2 players join, initialize the authoritative GameSimulation
     if (this.clients.length === 2 && !this.simulation && this.clientMetadata.size >= 2) {
@@ -268,6 +287,7 @@ export class BattleRoom extends Room<BattleRoomState> {
     this.clientMetadata.delete(sessionId);
     this.clientInputs.delete(sessionId);
     this.rematchReadyClients.delete(sessionId);
+    this.voiceClients.delete(sessionId);
     this.state.warriors.delete(sessionId);
     RoomRegistry.getInstance().updatePlayerCount(this.roomId, this.clientMetadata.size);
 
@@ -448,6 +468,7 @@ export class BattleRoom extends Room<BattleRoomState> {
     this.p1SessionId = null;
     this.p2SessionId = null;
     this.rematchReadyClients.clear();
+    this.voiceClients.clear();
     this.clientMetadata.clear();
     this.clientInputs.clear();
   }

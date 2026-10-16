@@ -18,6 +18,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
     isOpponentSpeaking,
     opponentInVoice,
     error,
+    remoteAudioRef,
     joinVoice,
     leaveVoice,
     toggleMute,
@@ -32,6 +33,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
   if (status === 'disconnected') {
     return (
       <div style={{ display: 'inline-flex', alignItems: 'center', pointerEvents: 'auto' }}>
+        <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
         <button
           type="button"
           onClick={joinVoice}
@@ -164,6 +166,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
         pointerEvents: 'auto',
       }}
     >
+      <audio ref={remoteAudioRef} autoPlay playsInline style={{ display: 'none' }} />
       {/* Local Microphone Toggle */}
       <button
         type="button"

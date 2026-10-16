@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { Room } from 'colyseus.js';
 import { BattleRoomState, StatisticsManager } from '@last-crown/shared';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
-import { useVoiceChat } from '../voice/useVoiceChat';
+import { VoiceChatState, useVoiceChat } from '../voice/useVoiceChat';
 import { VoiceControls } from '../voice/VoiceControls';
 
 export interface GameHUDProps {
   snapshot: GameSimulationSnapshot | null;
   mode?: 'singleplayer' | 'multiplayer';
   colyseusRoom?: Room<BattleRoomState> | null;
+  voiceState?: VoiceChatState;
   onRematch?: () => void;
   onExit?: () => void;
   isFullscreen?: boolean;
@@ -24,6 +25,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   snapshot,
   mode = 'singleplayer',
   colyseusRoom,
+  voiceState,
   onRematch,
   onExit,
   isFullscreen,
@@ -31,7 +33,10 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   isPaused = false,
   onTogglePause,
 }) => {
-  const voice = useVoiceChat({ room: mode === 'multiplayer' ? colyseusRoom : null });
+  const fallbackVoice = useVoiceChat({
+    room: mode === 'multiplayer' && !voiceState ? colyseusRoom : null,
+  });
+  const voice = voiceState || fallbackVoice;
   const currentMatchIdRef = useRef<string>(
     `match_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
   );
