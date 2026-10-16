@@ -742,84 +742,88 @@ export const GameHUD: React.FC<GameHUDProps> = ({
       )}
 
       {/* Post-Match Victory / Stalemate Medieval Stone Card */}
-      {matchState === 'match_over' && (() => {
-        const isWin = winnerId === p1.id;
-        const isDraw = winnerId === 'draw';
+      {matchState === 'match_over' &&
+        (() => {
+          const isWin = winnerId === p1.id;
+          const isDraw = winnerId === 'draw';
 
-        let titleLines: string[] = [];
-        const titleVariant = isWin ? 'win' : isDraw ? 'draw' : 'defeat';
+          let titleLines: string[] = [];
+          const titleVariant = isWin ? 'win' : isDraw ? 'draw' : 'defeat';
 
-        if (isWin) {
-          titleLines = p2.isDecapitated ? ['DECAPITATION', 'VICTORY'] : ['VICTORY'];
-        } else if (isDraw) {
-          titleLines = ['STALEMATE'];
-        } else {
-          titleLines = p1.isDecapitated ? ['DECAPITATED', 'DEFEAT'] : ['DEFEATED'];
-        }
+          if (isWin) {
+            titleLines = p2.isDecapitated ? ['DECAPITATION', 'VICTORY'] : ['VICTORY'];
+          } else if (isDraw) {
+            titleLines = ['STALEMATE'];
+          } else {
+            titleLines = p1.isDecapitated ? ['DECAPITATED', 'DEFEAT'] : ['DEFEATED'];
+          }
 
-        const subtitleText = isWin
-          ? p2.isDecapitated
-            ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
-            : 'The Crown Belongs To You!'
-          : isDraw
-            ? 'Both Champions Stood Equal In Blood & Steel.'
-            : p1.isDecapitated
-              ? 'Your Head Fell To The Arena Floor. Only One Shall Reign.'
-              : 'Only One Shall Reign.';
+          const subtitleText = isWin
+            ? p2.isDecapitated
+              ? 'The Crown Champion Severed The Opponent In Mortal Combat!'
+              : 'The Crown Belongs To You!'
+            : isDraw
+              ? 'Both Champions Stood Equal In Blood & Steel.'
+              : p1.isDecapitated
+                ? 'Your Head Fell To The Arena Floor. Only One Shall Reign.'
+                : 'Only One Shall Reign.';
 
-        return (
-          <div className={victoryStyles.victoryCardOverlay} role="dialog" aria-modal="true" aria-label="Match outcome">
-            <div className={victoryStyles.victoryCardStage}>
-              {/* Retro Pixel Victory Title */}
-              <div className={victoryStyles.titleContainer}>
-                {titleLines.map((line, idx) => (
-                  <h2
-                    key={idx}
-                    className={`${victoryStyles.victoryTitle} ${titleVariant === 'draw' ? victoryStyles.draw : titleVariant === 'defeat' ? victoryStyles.defeat : ''}`}
-                  >
-                    {line}
-                  </h2>
-                ))}
+          return (
+            <div
+              className={victoryStyles.victoryCardOverlay}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Match outcome"
+            >
+              <div className={victoryStyles.victoryCardStage}>
+                {/* Retro Pixel Victory Title */}
+                <div className={victoryStyles.titleContainer}>
+                  {titleLines.map((line, idx) => (
+                    <h2
+                      key={idx}
+                      className={`${victoryStyles.victoryTitle} ${titleVariant === 'draw' ? victoryStyles.draw : titleVariant === 'defeat' ? victoryStyles.defeat : ''}`}
+                    >
+                      {line}
+                    </h2>
+                  ))}
+                </div>
+
+                {/* Subtitle */}
+                <p className={victoryStyles.subtitle}>{subtitleText}</p>
+
+                {/* Fight Again Gold Pixel Button */}
+                {onRematch && (
+                  <button
+                    type="button"
+                    onClick={onRematch}
+                    className={victoryStyles.fightAgainBtn}
+                    aria-label="Fight Again"
+                    title="Fight Again"
+                  />
+                )}
+
+                {/* Castle Hall Stone Socket Link */}
+                {onExit ? (
+                  <button
+                    type="button"
+                    onClick={onExit}
+                    className={victoryStyles.castleHallLink}
+                    aria-label="Castle Hall"
+                    title="Return to Castle Hall"
+                    style={{ background: 'transparent', border: 'none' }}
+                  />
+                ) : (
+                  <Link
+                    href="/"
+                    className={victoryStyles.castleHallLink}
+                    aria-label="Castle Hall"
+                    title="Return to Castle Hall"
+                  />
+                )}
               </div>
-
-              {/* Subtitle */}
-              <p className={victoryStyles.subtitle}>
-                {subtitleText}
-              </p>
-
-              {/* Fight Again Gold Pixel Button */}
-              {onRematch && (
-                <button
-                  type="button"
-                  onClick={onRematch}
-                  className={victoryStyles.fightAgainBtn}
-                  aria-label="Fight Again"
-                  title="Fight Again"
-                />
-              )}
-
-              {/* Castle Hall Stone Socket Link */}
-              {onExit ? (
-                <button
-                  type="button"
-                  onClick={onExit}
-                  className={victoryStyles.castleHallLink}
-                  aria-label="Castle Hall"
-                  title="Return to Castle Hall"
-                  style={{ background: 'transparent', border: 'none' }}
-                />
-              ) : (
-                <Link
-                  href="/"
-                  className={victoryStyles.castleHallLink}
-                  aria-label="Castle Hall"
-                  title="Return to Castle Hall"
-                />
-              )}
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       {/* Bottom Floating Utility Controls */}
       <div
@@ -922,10 +926,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           aria-modal="true"
           aria-label="Combat Controls Reference"
         >
-          <div
-            className={victoryStyles.controlsCardStage}
-            onClick={e => e.stopPropagation()}
-          >
+          <div className={victoryStyles.controlsCardStage} onClick={e => e.stopPropagation()}>
             {/* Top-Right Stone 'X' Close Button */}
             <button
               type="button"

@@ -245,7 +245,7 @@ app.get('/api/ice-servers', async (_req: Request, res: Response) => {
   try {
     const iceServers = await IceServerService.getIceServers();
     res.json({ iceServers });
-  } catch (err) {
+  } catch {
     res.json({ iceServers: IceServerService.getDefaultIceServers() });
   }
 });

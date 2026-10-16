@@ -11,12 +11,7 @@ import {
 } from '@last-crown/shared';
 
 export type VoiceStatus =
-  | 'disconnected'
-  | 'requesting_permission'
-  | 'waiting_rival'
-  | 'connecting'
-  | 'connected'
-  | 'error';
+  'disconnected' | 'requesting_permission' | 'waiting_rival' | 'connecting' | 'connected' | 'error';
 
 export interface UseVoiceChatOptions {
   room?: Room<BattleRoomState> | null;
@@ -183,7 +178,9 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
           const data = await res.json();
           if (data && Array.isArray(data.iceServers) && data.iceServers.length > 0) {
             iceServersRef.current = { iceServers: data.iceServers };
-            console.info('[VoiceChat] Loaded dynamic ICE servers (Cloudflare Realtime TURN configured)');
+            console.info(
+              '[VoiceChat] Loaded dynamic ICE servers (Cloudflare Realtime TURN configured)'
+            );
           }
         }
       } catch {}
@@ -335,56 +332,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     }
   }, []);
 
-  // Deterministic call initiation: called ONLY by the designated initiator
-  const initiateOffer = useCallback(
-    async (iceRestart: boolean = false) => {
-      if (!isJoinedRef.current || !localStreamRef.current || !opponentSessionIdRef.current) {
-        return;
-      }
-
-      if (isNegotiatingRef.current && !iceRestart) {
-        console.log('[VoiceChat] Offer negotiation already active, skipping duplicate');
-        return;
-      }
-
-      try {
-        isNegotiatingRef.current = true;
-        setStatus('connecting');
-        const pc = getOrCreatePeerConnection();
-
-        if (pc.signalingState !== 'stable' && !iceRestart) {
-          console.log('[VoiceChat] PC not stable for offer generation:', pc.signalingState);
-          return;
-        }
-
-        console.log(
-          `[VoiceChat] Generating offer (iceRestart=${iceRestart}) as designated caller`
-        );
-        const offer = await pc.createOffer({
-          iceRestart,
-          offerToReceiveAudio: true,
-          offerToReceiveVideo: false,
-        });
-
-        // Tune SDP for mono 32kbps Opus with forward error correction
-        const tunedSdp = tuneOpusSDP(offer.sdp || '');
-        await pc.setLocalDescription({ type: offer.type, sdp: tunedSdp });
-
-        sendSignal({
-          type: 'offer',
-          data: { type: offer.type, sdp: tunedSdp },
-        });
-      } catch (err) {
-        console.error('[VoiceChat] Failed to create WebRTC offer:', err);
-      } finally {
-        setTimeout(() => {
-          isNegotiatingRef.current = false;
-        }, 500);
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [sendSignal]
-  );
+  const initiateOfferRef = useRef<((iceRestart?: boolean) => Promise<void>) | null>(null);
 
   // Reusable helper to get or create the PeerConnection instance without killing in-flight connections
   const getOrCreatePeerConnection = useCallback((): RTCPeerConnection => {
@@ -426,7 +374,9 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       if (!pcRef.current) return;
       const state = pcRef.current.connectionState;
       const iceState = pcRef.current.iceConnectionState;
-      console.log(`[VoiceChat] State check: connectionState=${state}, iceConnectionState=${iceState}`);
+      console.log(
+        `[VoiceChat] State check: connectionState=${state}, iceConnectionState=${iceState}`
+      );
 
       if (state === 'connected' || iceState === 'connected') {
         if (disconnectTimerRef.current) {
@@ -452,9 +402,15 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
                 curState === 'failed' ||
                 curIce === 'failed'
               ) {
-                console.warn('[VoiceChat] Stalled in disconnected state. Triggering ICE restart...');
-                if (room && opponentSessionIdRef.current && room.sessionId > opponentSessionIdRef.current) {
-                  initiateOffer(true);
+                console.warn(
+                  '[VoiceChat] Stalled in disconnected state. Triggering ICE restart...'
+                );
+                if (
+                  room &&
+                  opponentSessionIdRef.current &&
+                  room.sessionId > opponentSessionIdRef.current
+                ) {
+                  initiateOfferRef.current?.(true);
                 }
               }
             }
@@ -464,7 +420,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         if (isJoinedRef.current && opponentSessionIdRef.current) {
           setStatus('connecting');
           if (room && room.sessionId && room.sessionId > opponentSessionIdRef.current) {
-            initiateOffer(true);
+            initiateOfferRef.current?.(true);
           }
         } else {
           setStatus(isJoinedRef.current ? 'waiting_rival' : 'disconnected');
@@ -476,7 +432,59 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     pc.oniceconnectionstatechange = monitorConnectionState;
 
     return pc;
-  }, [sendSignal, attachRemoteStream, room, initiateOffer]);
+  }, [sendSignal, attachRemoteStream, room]);
+
+  // Deterministic call initiation: called ONLY by the designated initiator
+  const initiateOffer = useCallback(
+    async (iceRestart: boolean = false) => {
+      if (!isJoinedRef.current || !localStreamRef.current || !opponentSessionIdRef.current) {
+        return;
+      }
+
+      if (isNegotiatingRef.current && !iceRestart) {
+        console.log('[VoiceChat] Offer negotiation already active, skipping duplicate');
+        return;
+      }
+
+      try {
+        isNegotiatingRef.current = true;
+        setStatus('connecting');
+        const pc = getOrCreatePeerConnection();
+
+        if (pc.signalingState !== 'stable' && !iceRestart) {
+          console.log('[VoiceChat] PC not stable for offer generation:', pc.signalingState);
+          return;
+        }
+
+        console.log(`[VoiceChat] Generating offer (iceRestart=${iceRestart}) as designated caller`);
+        const offer = await pc.createOffer({
+          iceRestart,
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: false,
+        });
+
+        // Tune SDP for mono 32kbps Opus with forward error correction
+        const tunedSdp = tuneOpusSDP(offer.sdp || '');
+        await pc.setLocalDescription({ type: offer.type, sdp: tunedSdp });
+
+        sendSignal({
+          type: 'offer',
+          data: { type: offer.type, sdp: tunedSdp },
+        });
+      } catch (err) {
+        console.error('[VoiceChat] Failed to create WebRTC offer:', err);
+      } finally {
+        setTimeout(() => {
+          isNegotiatingRef.current = false;
+        }, 500);
+      }
+    },
+    [getOrCreatePeerConnection, sendSignal]
+  );
+
+  useEffect(() => {
+    initiateOfferRef.current = initiateOffer;
+  }, [initiateOffer]);
 
   // Page visibility recovery: detect when user returns to tab and repair stalled connection
   useEffect(() => {
@@ -489,7 +497,11 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
           const iceState = pc.iceConnectionState;
           if (state === 'disconnected' || iceState === 'disconnected' || state === 'failed') {
             console.log('[VoiceChat] Tab returned to foreground; repairing stalled connection...');
-            if (room && opponentSessionIdRef.current && room.sessionId > opponentSessionIdRef.current) {
+            if (
+              room &&
+              opponentSessionIdRef.current &&
+              room.sessionId > opponentSessionIdRef.current
+            ) {
               initiateOffer(true);
             }
           }

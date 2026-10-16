@@ -77,7 +77,10 @@ export class IceServerService {
             return this.cachedIceServers;
           }
         } else {
-          console.warn('[IceServerService] Cloudflare TURN API responded with status:', response.status);
+          console.warn(
+            '[IceServerService] Cloudflare TURN API responded with status:',
+            response.status
+          );
         }
       } catch (err) {
         console.error('[IceServerService] Error requesting Cloudflare TURN credentials:', err);

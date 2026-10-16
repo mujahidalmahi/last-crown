@@ -41,7 +41,9 @@ export async function GET() {
       );
 
       if (response.ok) {
-        const data = (await response.json()) as { iceServers?: any[] };
+        const data = (await response.json()) as {
+          iceServers?: { urls: string | string[]; username?: string; credential?: string }[];
+        };
         if (data && Array.isArray(data.iceServers) && data.iceServers.length > 0) {
           return NextResponse.json({
             iceServers: [

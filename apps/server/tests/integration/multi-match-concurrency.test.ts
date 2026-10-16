@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { BattleRoom } from '../../src/rooms/BattleRoom.js';
 import { RoomRegistry } from '../../src/matchmaking/RoomRegistry.js';
 import { SIMULATION_DELTA_MS, ClientMessageType } from '@last-crown/shared';
