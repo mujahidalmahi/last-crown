@@ -37,43 +37,56 @@ export interface VoiceChatState {
 
 export const VOICE_ICE_SERVERS: RTCConfiguration = {
   iceServers: [
-    // Cloudflare Public Anycast STUN
+    // Cloudflare Public Anycast STUN (ultra-fast, zero-latency)
     { urls: 'stun:stun.cloudflare.com:3478' },
-    // Google Public STUN
+    // Google Public Global STUN
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    // Free Public TURN (Metered Open Relay - handles restrictive NATs, 4G/5G, symmetric firewalls)
-    { urls: 'stun:openrelay.metered.ca:80' },
-    {
-      urls: 'turn:openrelay.metered.ca:80?transport=udp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:80?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turns:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
   ],
 };
 
-// Tune SDP to enforce mono, forward error correction (FEC), 32 kbps cap, and 10ms packetization
+// Tune SDP to enforce mono, forward error correction (FEC), 32 kbps cap, and 10ms packetization without corrupting other codecs
 export function tuneOpusSDP(sdp: string, targetBitrateBps: number = 32000): string {
   if (!sdp || !sdp.includes('opus')) return sdp;
-  return sdp.replace(
-    /(a=fmtp:\d+ .*)/g,
-    `$1;stereo=0;sprop-stereo=0;maxaveragebitrate=${targetBitrateBps};cbr=0;useinbandfec=1;minptime=10`
-  );
+
+  const opusMatch = sdp.match(/a=rtpmap:(\d+)\s+opus\/48000/i);
+  if (!opusMatch || !opusMatch[1]) return sdp;
+
+  const opusPt = opusMatch[1];
+  const fmtpRegex = new RegExp(`(a=fmtp:${opusPt}\\s+)([^\\r\\n]*)`, 'i');
+
+  if (fmtpRegex.test(sdp)) {
+    return sdp.replace(fmtpRegex, (_match, prefix, params) => {
+      const paramMap = new Map<string, string>();
+      params.split(';').forEach((p: string) => {
+        const parts = p.trim().split('=');
+        if (parts[0]) paramMap.set(parts[0].toLowerCase(), parts[1] || '');
+      });
+      paramMap.set('stereo', '0');
+      paramMap.set('sprop-stereo', '0');
+      paramMap.set('maxaveragebitrate', String(targetBitrateBps));
+      paramMap.set('cbr', '0');
+      paramMap.set('useinbandfec', '1');
+      paramMap.set('minptime', '10');
+
+      const newParams = Array.from(paramMap.entries())
+        .map(([k, v]) => (v ? `${k}=${v}` : k))
+        .join(';');
+      return `${prefix}${newParams}`;
+    });
+  } else {
+    const rtpmapRegex = new RegExp(
+      `(a=rtpmap:${opusPt}\\s+opus\\/48000\\/[^\\r\\n]+(?:\\r?\\n))`,
+      'i'
+    );
+    return sdp.replace(
+      rtpmapRegex,
+      `$1a=fmtp:${opusPt} stereo=0;sprop-stereo=0;maxaveragebitrate=${targetBitrateBps};cbr=0;useinbandfec=1;minptime=10\r\n`
+    );
+  }
 }
 
 function getOrCreateAudioElement(): HTMLAudioElement | null {
@@ -136,10 +149,12 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
   const candidateQueueRef = useRef<RTCIceCandidateInit[]>([]);
   const opponentSessionIdRef = useRef<string | null>(null);
+  const pendingOfferRef = useRef<{ from: string; desc: RTCSessionDescriptionInit } | null>(null);
   const isJoinedRef = useRef<boolean>(false);
   const isDeafenedRef = useRef<boolean>(false);
   const isNegotiatingRef = useRef<boolean>(false);
   const disconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectingWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const iceServersRef = useRef<RTCConfiguration>(VOICE_ICE_SERVERS);
 
   // Audio Analysers for voice activity detection
@@ -202,6 +217,12 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
   const cleanup = useCallback(() => {
     isJoinedRef.current = false;
     isNegotiatingRef.current = false;
+    pendingOfferRef.current = null;
+
+    if (connectingWatchdogRef.current) {
+      clearTimeout(connectingWatchdogRef.current);
+      connectingWatchdogRef.current = null;
+    }
 
     if (disconnectTimerRef.current) {
       clearTimeout(disconnectTimerRef.current);
@@ -378,10 +399,14 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         `[VoiceChat] State check: connectionState=${state}, iceConnectionState=${iceState}`
       );
 
-      if (state === 'connected' || iceState === 'connected') {
+      if (state === 'connected' || iceState === 'connected' || iceState === 'completed') {
         if (disconnectTimerRef.current) {
           clearTimeout(disconnectTimerRef.current);
           disconnectTimerRef.current = null;
+        }
+        if (connectingWatchdogRef.current) {
+          clearTimeout(connectingWatchdogRef.current);
+          connectingWatchdogRef.current = null;
         }
         setStatus('connected');
         setError(null);
@@ -515,6 +540,82 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
     };
   }, [room, initiateOffer]);
 
+  // Handle incoming WebRTC offer from initiator
+  const handleIncomingOffer = useCallback(
+    async (desc: RTCSessionDescriptionInit, from: string) => {
+      try {
+        setStatus('connecting');
+        const pc = getOrCreatePeerConnection();
+
+        if (pc.signalingState !== 'stable') {
+          console.warn('[VoiceChat] PC not stable for incoming offer:', pc.signalingState);
+          try {
+            await pc.setLocalDescription({ type: 'rollback' });
+          } catch {}
+        }
+
+        await pc.setRemoteDescription(new RTCSessionDescription(desc));
+
+        // Drain queued ICE candidates
+        while (candidateQueueRef.current.length > 0) {
+          const candidate = candidateQueueRef.current.shift();
+          if (candidate) {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+          }
+        }
+
+        // Create and send answer with tuned Opus SDP
+        const answer = await pc.createAnswer();
+        const tunedSdp = tuneOpusSDP(answer.sdp || '');
+        await pc.setLocalDescription({ type: answer.type, sdp: tunedSdp });
+
+        console.log('[VoiceChat] Sending tuned Opus answer to initiator:', from);
+        sendSignal({
+          type: 'answer',
+          data: { type: answer.type, sdp: tunedSdp },
+        });
+      } catch (err) {
+        console.error('[VoiceChat] Responder offer handling error:', err);
+      }
+    },
+    [getOrCreatePeerConnection, sendSignal]
+  );
+
+  // Connecting Handshake Watchdog: If stuck in 'connecting' for >6s, trigger recovery
+  useEffect(() => {
+    if (status === 'connecting') {
+      if (connectingWatchdogRef.current) {
+        clearTimeout(connectingWatchdogRef.current);
+      }
+      connectingWatchdogRef.current = setTimeout(() => {
+        connectingWatchdogRef.current = null;
+        if (isJoinedRef.current && status === 'connecting') {
+          console.warn(
+            '[VoiceChat] Connecting handshake watchdog expired (6s). Attempting self-healing...'
+          );
+          if (room && opponentSessionIdRef.current) {
+            if (room.sessionId > opponentSessionIdRef.current) {
+              initiateOfferRef.current?.(true);
+            } else {
+              sendSignal({ type: 'ready' });
+            }
+          }
+        }
+      }, 6000);
+    } else {
+      if (connectingWatchdogRef.current) {
+        clearTimeout(connectingWatchdogRef.current);
+        connectingWatchdogRef.current = null;
+      }
+    }
+    return () => {
+      if (connectingWatchdogRef.current) {
+        clearTimeout(connectingWatchdogRef.current);
+        connectingWatchdogRef.current = null;
+      }
+    };
+  }, [status, room, sendSignal]);
+
   // Join Voice Chat
   const joinVoice = useCallback(async () => {
     if (!room) {
@@ -553,12 +654,20 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         setStatus('waiting_rival');
       }
 
-      // Announce readiness to the room
-      sendSignal({ type: 'ready' });
+      // Process pending cached offer from rival if one arrived before mic was granted
+      if (pendingOfferRef.current) {
+        const cached = pendingOfferRef.current;
+        pendingOfferRef.current = null;
+        console.log('[VoiceChat] Processing pending offer from initiator:', cached.from);
+        await handleIncomingOffer(cached.desc, cached.from);
+      } else {
+        // Announce readiness to the room
+        sendSignal({ type: 'ready' });
 
-      // If opponent is already in voice and we are the designated initiator, start call
-      if (opponentSessionIdRef.current && room.sessionId > opponentSessionIdRef.current) {
-        await initiateOffer(false);
+        // If opponent is already in voice and we are the designated initiator, start call
+        if (opponentSessionIdRef.current && room.sessionId > opponentSessionIdRef.current) {
+          await initiateOffer(false);
+        }
       }
     } catch (err: unknown) {
       let errorMsg = 'Failed to access microphone';
@@ -576,7 +685,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       setStatus('error');
       cleanup();
     }
-  }, [room, setupAudioAnalysers, sendSignal, initiateOffer, cleanup]);
+  }, [room, setupAudioAnalysers, sendSignal, initiateOffer, handleIncomingOffer, cleanup]);
 
   // Leave Voice Chat
   const leaveVoice = useCallback(() => {
@@ -648,36 +757,12 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         if (desc.type === 'offer') {
           console.log('[VoiceChat] Received offer from initiator:', from);
           if (!isJoinedRef.current || !localStreamRef.current) {
-            console.log('[VoiceChat] Received offer but local user is not yet in voice');
+            console.log('[VoiceChat] Caching offer until local mic is enabled');
+            pendingOfferRef.current = { from, desc };
             return;
           }
 
-          try {
-            setStatus('connecting');
-            const pc = getOrCreatePeerConnection();
-            await pc.setRemoteDescription(new RTCSessionDescription(desc));
-
-            // Drain queued ICE candidates
-            while (candidateQueueRef.current.length > 0) {
-              const candidate = candidateQueueRef.current.shift();
-              if (candidate) {
-                await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
-              }
-            }
-
-            // Create and send answer with tuned Opus SDP
-            const answer = await pc.createAnswer();
-            const tunedSdp = tuneOpusSDP(answer.sdp || '');
-            await pc.setLocalDescription({ type: answer.type, sdp: tunedSdp });
-
-            console.log('[VoiceChat] Sending tuned Opus answer to initiator');
-            sendSignal({
-              type: 'answer',
-              data: { type: answer.type, sdp: tunedSdp },
-            });
-          } catch (err) {
-            console.error('[VoiceChat] Responder offer handling error:', err);
-          }
+          await handleIncomingOffer(desc, from);
           return;
         }
 
@@ -763,7 +848,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         unsubscribe();
       }
     };
-  }, [room, getOrCreatePeerConnection, initiateOffer, sendSignal]);
+  }, [room, getOrCreatePeerConnection, initiateOffer, handleIncomingOffer, sendSignal]);
 
   // Auto-join if requested
   useEffect(() => {

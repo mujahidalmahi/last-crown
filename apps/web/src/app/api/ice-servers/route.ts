@@ -57,35 +57,38 @@ export async function GET() {
     } catch {}
   }
 
-  // Default high-availability STUN + OpenRelay fallback (100% free, no credit card required)
-  return NextResponse.json({
-    iceServers: [
-      { urls: 'stun:stun.cloudflare.com:3478' },
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
-      { urls: 'stun:stun3.l.google.com:19302' },
-      { urls: 'stun:openrelay.metered.ca:80' },
+  // Default STUN servers + dynamic TURN if configured in environment
+  const iceServers: { urls: string | string[]; username?: string; credential?: string }[] = [
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+  ];
+
+  const turnUrl = process.env.TURN_URL || process.env.EXPRESSTURN_URL;
+  const turnUsername = process.env.TURN_USERNAME || process.env.EXPRESSTURN_USERNAME;
+  const turnCredential =
+    process.env.TURN_CREDENTIAL ||
+    process.env.TURN_PASSWORD ||
+    process.env.EXPRESSTURN_PASSWORD ||
+    process.env.EXPRESSTURN_CREDENTIAL;
+
+  if (turnUrl && turnUsername && turnCredential) {
+    const baseTurnHost = turnUrl.replace(/^(turn:|turns:|stun:)/, '').split('?')[0];
+    iceServers.push(
+      { urls: `stun:${baseTurnHost}` },
       {
-        urls: 'turn:openrelay.metered.ca:80?transport=udp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
+        urls: `turn:${baseTurnHost}?transport=udp`,
+        username: turnUsername,
+        credential: turnCredential,
       },
       {
-        urls: 'turn:openrelay.metered.ca:80?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-      {
-        urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-      {
-        urls: 'turns:openrelay.metered.ca:443?transport=tcp',
-        username: 'openrelayproject',
-        credential: 'openrelayproject',
-      },
-    ],
-  });
+        urls: `turn:${baseTurnHost}?transport=tcp`,
+        username: turnUsername,
+        credential: turnCredential,
+      }
+    );
+  }
+
+  return NextResponse.json({ iceServers });
 }

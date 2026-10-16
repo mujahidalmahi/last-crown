@@ -171,6 +171,7 @@ export default function RoomPage() {
           mode="multiplayer"
           colyseusRoom={room}
           playerPreset="knight"
+          voiceState={voice}
           onExit={leaveRoom}
         />
       </div>

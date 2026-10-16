@@ -17,7 +17,7 @@ describe('Voice Chat Feature', () => {
     expect(typeof useVoiceChat).toBe('function');
   });
 
-  it('configures redundant STUN and free TURN relays for NAT and firewall bypass', () => {
+  it('configures redundant STUN servers for NAT and firewall bypass', () => {
     expect(VOICE_ICE_SERVERS.iceServers).toBeDefined();
     const urls = VOICE_ICE_SERVERS.iceServers!.map(s =>
       typeof s.urls === 'string' ? s.urls : s.urls[0] || ''
@@ -26,9 +26,6 @@ describe('Voice Chat Feature', () => {
     // Validates Google & Cloudflare STUN
     expect(urls.some(u => u.includes('stun.l.google.com'))).toBe(true);
     expect(urls.some(u => u.includes('stun.cloudflare.com'))).toBe(true);
-
-    // Validates free public TURN relays for symmetric NAT traversal
-    expect(urls.some(u => u.includes('turn:openrelay.metered.ca'))).toBe(true);
   });
 
   it('tunes Opus SDP for mono voice, in-band FEC, and low-latency packetization', () => {
