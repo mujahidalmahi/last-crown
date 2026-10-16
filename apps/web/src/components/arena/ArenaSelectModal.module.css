@@ -1,0 +1,437 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+/* Fullscreen Backdrop Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(3, 5, 10, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: clamp(8px, 2vw, 24px);
+  box-sizing: border-box;
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Master 16:9 Frame Stage Container */
+.stageContainer {
+  position: relative;
+  width: min(96vw, calc(92vh * (16 / 9)), 980px);
+  aspect-ratio: 16 / 9;
+  background-color: #1e2430;
+  border-radius: 8px;
+  box-shadow:
+    0 0 0 4px #0c1017,
+    0 0 0 8px #2d3848,
+    0 16px 48px rgba(0, 0, 0, 0.95),
+    0 0 32px rgba(212, 175, 55, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* Outer Stone Border with Moss & Ivy */
+.stoneFrame {
+  position: absolute;
+  inset: 0;
+  border: clamp(14px, 2.5vw, 24px) solid #283342;
+  box-shadow:
+    inset 0 0 16px rgba(0, 0, 0, 0.9),
+    inset 0 0 0 2px #4a5a70;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Metallic Corner Rivets */
+.cornerRivetTL,
+.cornerRivetTR,
+.cornerRivetBL,
+.cornerRivetBR {
+  position: absolute;
+  width: clamp(10px, 1.6vw, 16px);
+  height: clamp(10px, 1.6vw, 16px);
+  background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
+  border-radius: 50%;
+  border: 1.5px solid #1e293b;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 25;
+}
+
+.cornerRivetTL {
+  top: 4px;
+  left: 4px;
+}
+.cornerRivetTR {
+  top: 4px;
+  right: 4px;
+}
+.cornerRivetBL {
+  bottom: 4px;
+  left: 4px;
+}
+.cornerRivetBR {
+  bottom: 4px;
+  right: 4px;
+}
+
+/* Wall Torches on Left & Right Pillars */
+.torchLeft,
+.torchRight {
+  position: absolute;
+  top: 44%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.torchLeft {
+  left: clamp(2px, 0.5vw, 6px);
+}
+
+.torchRight {
+  right: clamp(2px, 0.5vw, 6px);
+}
+
+.flameGlow {
+  font-size: clamp(18px, 2.6vw, 28px);
+  animation: torchFlicker 0.6s infinite alternate ease-in-out;
+  filter: drop-shadow(0 0 10px #f59e0b) drop-shadow(0 0 18px #ea580c);
+  line-height: 1;
+}
+
+.torchBracket {
+  width: clamp(6px, 1vw, 10px);
+  height: clamp(12px, 1.8vw, 18px);
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 2px;
+}
+
+@keyframes torchFlicker {
+  0% {
+    transform: scale(0.92) rotate(-2deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05) rotate(1deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.96) rotate(-1deg);
+    opacity: 0.95;
+  }
+}
+
+/* Main Parchment Map Background */
+.parchmentCanvas {
+  position: absolute;
+  inset: clamp(14px, 2.5vw, 24px);
+  background:
+    radial-gradient(ellipse at 50% 50%, #f4e8c6 0%, #ebd7aa 60%, #deb883 100%),
+    repeating-linear-gradient(45deg, rgba(160, 120, 60, 0.03) 0px, rgba(160, 120, 60, 0.03) 2px, transparent 2px, transparent 8px);
+  box-shadow: inset 0 0 32px rgba(80, 50, 20, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(8px, 1.5vh, 18px) clamp(16px, 3vw, 32px);
+  box-sizing: border-box;
+  z-index: 10;
+  overflow: hidden;
+}
+
+/* Subtle Map Topographical Sketches */
+.mapDecorations {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(139, 94, 60, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(139, 94, 60, 0.1) 0%, transparent 45%);
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Top Header Stone Plaque */
+.headerBanner {
+  position: relative;
+  background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+  border: 3px solid #10141e;
+  outline: 2px solid #4a5568;
+  border-radius: 4px;
+  padding: clamp(6px, 1vh, 10px) clamp(20px, 4vw, 42px);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.25),
+    0 4px 14px rgba(0, 0, 0, 0.65);
+  margin-top: 2px;
+  margin-bottom: clamp(6px, 1.2vh, 12px);
+  z-index: 15;
+}
+
+.headerTitle {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(14px, 2.4vw, 23px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #f6e05e;
+  text-transform: uppercase;
+  text-shadow:
+    -2px -2px 0 #1a202c,
+    2px -2px 0 #1a202c,
+    -2px 2px 0 #1a202c,
+    2px 2px 0 #1a202c,
+    0 3px 6px rgba(0, 0, 0, 0.95);
+  margin: 0;
+}
+
+/* 2x2 Arena Grid */
+.arenaGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(8px, 1.6vw, 18px);
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  z-index: 15;
+  box-sizing: border-box;
+}
+
+/* Individual Arena Slot */
+.arenaSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(3px, 0.8vh, 6px);
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Header Badge above Button */
+.badgeHeader {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.8vw, 8px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px, 1.1vw, 12px);
+  font-weight: 700;
+  color: #2d3748;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+  line-height: 1;
+}
+
+.badgeIcon {
+  font-size: clamp(13px, 1.7vw, 19px);
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Stone Frame Button */
+.stoneButton {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: clamp(52px, 10vh, 88px);
+  background-color: #1a202c;
+  border: clamp(3px, 0.5vw, 5px) solid #2d3748;
+  outline: 2px solid #10141e;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.9),
+    0 6px 16px rgba(0, 0, 0, 0.6);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform, border-color, box-shadow;
+  transition:
+    transform 0.14s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.stoneButton:hover {
+  transform: translate3d(0, -3px, 0) scale(1.015);
+  border-color: #f6e05e;
+  outline-color: #d69e2e;
+  box-shadow:
+    0 0 20px rgba(246, 224, 94, 0.65),
+    0 10px 24px rgba(0, 0, 0, 0.85);
+}
+
+.stoneButton:active {
+  transform: translate3d(0, 2px, 0) scale(0.985);
+  filter: brightness(0.9);
+}
+
+/* Background Playground Preview Image */
+.buttonBgImage {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: transform 0.3s ease, filter 0.2s ease;
+  filter: brightness(0.65) saturate(0.9);
+}
+
+.stoneButton:hover .buttonBgImage {
+  transform: scale(1.05);
+  filter: brightness(0.85) saturate(1.15);
+}
+
+/* Inner Carved Bevel */
+.buttonInnerFrame {
+  position: absolute;
+  inset: 4px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+  pointer-events: none;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7);
+}
+
+/* Corner Rivets on the stone buttons matching the reference image */
+.btnRivetTL,
+.btnRivetTR,
+.btnRivetBL,
+.btnRivetBR {
+  position: absolute;
+  width: clamp(7px, 1vw, 11px);
+  height: clamp(7px, 1vw, 11px);
+  background: radial-gradient(circle at 35% 35%, #cbd5e1 0%, #475569 65%, #0f172a 100%);
+  border-radius: 50%;
+  border: 1px solid #1e293b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  z-index: 6;
+  pointer-events: none;
+}
+
+.btnRivetTL {
+  top: 5px;
+  left: 5px;
+}
+.btnRivetTR {
+  top: 5px;
+  right: 5px;
+}
+.btnRivetBL {
+  bottom: 5px;
+  left: 5px;
+}
+.btnRivetBR {
+  bottom: 5px;
+  right: 5px;
+}
+
+/* Subtle Moss/Ivy Accents */
+.btnMossTL {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 10px;
+  background: radial-gradient(circle at 20% 20%, #4ade80 0%, #15803d 70%, transparent 100%);
+  border-radius: 4px;
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 7;
+}
+
+.btnMossBR {
+  position: absolute;
+  bottom: 1px;
+  right: 1px;
+  width: 16px;
+  height: 12px;
+  background: radial-gradient(circle at 70% 70%, #4ade80 0%, #166534 70%, transparent 100%);
+  border-radius: 4px;
+  opacity: 0.75;
+  pointer-events: none;
+  z-index: 7;
+}
+
+/* Center White Pixel Font Label */
+.buttonLabel {
+  position: relative;
+  z-index: 5;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(12px, 2vw, 20px);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  text-shadow:
+    -3px -3px 0 #000000,
+    3px -3px 0 #000000,
+    -3px 3px 0 #000000,
+    3px 3px 0 #000000,
+    0 4px 10px rgba(0, 0, 0, 0.95);
+  pointer-events: none;
+}
+
+/* Bottom Bar / Close Button */
+.bottomNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: clamp(4px, 1vh, 8px);
+  z-index: 15;
+}
+
+.backBtn {
+  background: linear-gradient(180deg, #742a2a 0%, #4a1515 100%);
+  color: #fed7d7;
+  border: 2px solid #9b2c2c;
+  outline: 1.5px solid #2d0d0d;
+  border-radius: 4px;
+  padding: clamp(5px, 0.8vh, 8px) clamp(16px, 2.5vw, 24px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(8px, 1.1vw, 11px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.backBtn:hover {
+  background: linear-gradient(180deg, #9b2c2c 0%, #631717 100%);
+  color: #ffffff;
+  transform: translate3d(0, -2px, 0);
+  box-shadow: 0 0 14px rgba(229, 62, 62, 0.6);
+}
+
+.backBtn:active {
+  transform: translate3d(0, 1px, 0);
+}

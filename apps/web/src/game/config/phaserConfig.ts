@@ -20,11 +20,23 @@ export function createPhaserConfig(parentElement: HTMLElement): Phaser.Types.Cor
         debug: false,
       },
     },
+    fps: {
+      min: 30,
+      target: 144,
+      forceSetTimeOut: false,
+      deltaHistory: 10,
+      smoothStep: true,
+    },
     scene: [BootScene, BattleScene],
     render: {
-      pixelArt: true,
-      antialias: false,
-      roundPixels: true,
+      pixelArt: false,
+      antialias: true,
+      antialiasGL: true,
+      roundPixels: false,
+      powerPreference: 'high-performance',
+      desynchronized: true,
+      batchSize: 4096,
+      clearBeforeRender: true,
     },
   };
 }

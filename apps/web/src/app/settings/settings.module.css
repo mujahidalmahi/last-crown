@@ -61,7 +61,10 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.1s ease;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform, background-color, box-shadow;
+  transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.14s ease, box-shadow 0.14s ease;
   text-decoration: none;
 }
 
@@ -70,7 +73,7 @@
   color: #ffffff;
   outline-color: #ffffff;
   box-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
-  transform: translateY(-1px);
+  transform: translate3d(0, -2px, 0);
 }
 
 .prefBadge {

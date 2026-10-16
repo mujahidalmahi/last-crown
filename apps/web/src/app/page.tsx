@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PixelButton } from '../components/ui/PixelButton';
+import { ArenaSelectModal } from '../components/arena/ArenaSelectModal';
 import { requestBrowserFullscreen, isBrowserFullscreen } from '../utils/fullscreen';
 import styles from './page.module.css';
 
@@ -12,6 +13,7 @@ export default function HomePage() {
   const router = useRouter();
   const [screen, setScreen] = useState<Screen>('cover1');
   const [isFadingToGame, setIsFadingToGame] = useState(false);
+  const [isArenaModalOpen, setIsArenaModalOpen] = useState(false);
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'reverse'>('forward');
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -104,12 +106,20 @@ export default function HomePage() {
     [router]
   );
 
+  const handleSelectArena = useCallback(
+    (arenaId: string) => {
+      setIsArenaModalOpen(false);
+      handleModeClick(`/play?arena=${arenaId}`);
+    },
+    [handleModeClick]
+  );
+
   const renderCover2 = () => (
     <div className={styles.coverContainer} role="region" aria-label="Game modes">
       <div className={styles.buttonGroup}>
         <PixelButton
           size="lg"
-          onClick={() => handleModeClick('/play')}
+          onClick={() => setIsArenaModalOpen(true)}
           className={styles.modeButton}
         >
           BATTLE AI WARRIOR
@@ -174,6 +184,14 @@ export default function HomePage() {
       {screen === 'cover1' && renderCover1()}
       {screen === 'cover2' && renderCover2()}
       {screen === 'transition' && renderTransition()}
+
+      {/* Map / Arena Selection Modal */}
+      <ArenaSelectModal
+        isOpen={isArenaModalOpen}
+        onSelect={handleSelectArena}
+        onClose={() => setIsArenaModalOpen(false)}
+        title="SELECT ARENA"
+      />
 
       {/* Fade Out Curtain for Mode Selection */}
       <div

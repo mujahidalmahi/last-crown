@@ -16,6 +16,8 @@ out/
 .env.test.local
 .env.production.local
 *.env
+env
+*.download
 
 # Vitest & Testing
 coverage/

@@ -56,8 +56,13 @@ export class BattleRoom extends Room<BattleRoomState> {
     isPrivate?: boolean;
     warriorPreset?: string;
     playerName?: string;
+    arenaId?: string;
   }): void {
     this.setState(new BattleRoomState());
+
+    if (options.arenaId) {
+      this.state.arenaId = options.arenaId;
+    }
 
     this.isPrivateMatch = options.isPrivate !== false;
     if (this.isPrivateMatch) {

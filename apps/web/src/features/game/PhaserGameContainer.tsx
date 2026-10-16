@@ -30,7 +30,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   mode = 'singleplayer',
   playerPreset = 'knight',
   opponentPreset = 'knight',
-  arenaId = 'bastion_courtyard',
+  arenaId = 'coloseum',
   colyseusRoom,
   voiceState,
   onRematch,
@@ -219,6 +219,13 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     const bootstrap = new GameBootstrap();
     bootstrapRef.current = bootstrap;
 
+    let lastSnapEmitTime = 0;
+    let lastRound = -1;
+    let lastMatchState = '';
+    let lastWinnerId: string | null = null;
+    let lastP1Exhausted = false;
+    let lastP2Exhausted = false;
+
     bootstrap.initialize(containerRef.current, {
       mode,
       playerPreset,
@@ -226,8 +233,29 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       arenaId,
       colyseusRoom,
       onSnapshot: (snap: GameSimulationSnapshot) => {
-        setSnapshot(snap);
         if (!isLoaded) setIsLoaded(true);
+
+        const now = performance.now();
+        const isCriticalChange =
+          snap.matchState !== lastMatchState ||
+          snap.roundNumber !== lastRound ||
+          snap.winnerId !== lastWinnerId ||
+          snap.p1.isDecapitated ||
+          snap.p2.isDecapitated ||
+          snap.p1.isExhausted !== lastP1Exhausted ||
+          snap.p2.isExhausted !== lastP2Exhausted;
+
+        // Throttle React state reconciler to 60 FPS (every ~16ms) to eliminate React fiber
+        // overhead from the main thread, leaving 100% of GPU & CPU frame budget for 144Hz WebGL!
+        if (isCriticalChange || now - lastSnapEmitTime >= 16) {
+          lastSnapEmitTime = now;
+          lastMatchState = snap.matchState;
+          lastRound = snap.roundNumber;
+          lastWinnerId = snap.winnerId;
+          lastP1Exhausted = snap.p1.isExhausted;
+          lastP2Exhausted = snap.p2.isExhausted;
+          setSnapshot(snap);
+        }
       },
     });
 

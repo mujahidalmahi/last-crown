@@ -44,6 +44,7 @@ export class BattleScene extends Phaser.Scene {
   private dualInputManager: DualPlayerInputManager | null = null;
 
   private arenaGraphics: Phaser.GameObjects.Graphics | null = null;
+  private arenaBgImage: Phaser.GameObjects.Image | null = null;
   private torchGlowLeft: Phaser.GameObjects.Arc | null = null;
   private torchGlowRight: Phaser.GameObjects.Arc | null = null;
   private emberParticles: Phaser.GameObjects.Graphics | null = null;
@@ -70,6 +71,13 @@ export class BattleScene extends Phaser.Scene {
   private lastRemoteSnapshot: GameSimulationSnapshot | null = null;
   private isPaused: boolean = false;
 
+  // Sub-frame smooth position interpolation for 144Hz buttery movement
+  private p1RenderX: number = 360;
+  private p1RenderY: number = 625;
+  private p2RenderX: number = 920;
+  private p2RenderY: number = 625;
+  private hasInitializedRenderPos: boolean = false;
+
   public setPaused(paused: boolean): void {
     this.isPaused = paused;
   }
@@ -85,6 +93,15 @@ export class BattleScene extends Phaser.Scene {
   public preload(): void {
     if (!this.textures.exists('playground')) {
       this.load.image('playground', '/assets/backgrounds/playground.jpg');
+    }
+    if (!this.textures.exists('playground2')) {
+      this.load.image('playground2', '/assets/backgrounds/playground2.jpg');
+    }
+    if (!this.textures.exists('playground3')) {
+      this.load.image('playground3', '/assets/backgrounds/playground3.jpg');
+    }
+    if (!this.textures.exists('playground4')) {
+      this.load.image('playground4', '/assets/backgrounds/playground4.jpg');
     }
   }
 
@@ -122,8 +139,12 @@ export class BattleScene extends Phaser.Scene {
       });
     }
 
+    // Determine effective arena ID (multiplayer room state or passed config, default coloseum)
+    const effectiveArenaId =
+      this.config.colyseusRoom?.state?.arenaId || this.config.arenaId || 'coloseum';
+
     // Instantiate warrior renderers using arena floor height
-    const arenaConfig = getArenaConfig(this.config.arenaId || 'bastion_courtyard');
+    const arenaConfig = getArenaConfig(effectiveArenaId);
     const arenaFloorY = arenaConfig.floorY;
     this.p1Renderer = new WarriorRenderer(this, true, arenaFloorY);
     this.p2Renderer = new WarriorRenderer(this, false, arenaFloorY);
@@ -137,7 +158,7 @@ export class BattleScene extends Phaser.Scene {
         'p2',
         'Iron Marauder',
         this.config.opponentPreset || 'knight',
-        this.config.arenaId || 'bastion_courtyard'
+        effectiveArenaId
       );
 
       // Load bot difficulty from settings if present
@@ -294,11 +315,20 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private drawArena(width: number, height: number): void {
-    // 1. Render playground colosseum arena backdrop from playground.jpg
-    if (this.textures.exists('playground')) {
-      const playgroundBg = this.add.image(width / 2, height / 2, 'playground');
-      playgroundBg.setDisplaySize(width, height);
-      playgroundBg.setDepth(-20);
+    const effectiveArenaId =
+      this.config.colyseusRoom?.state?.arenaId || this.config.arenaId || 'coloseum';
+    const arenaConfig = getArenaConfig(effectiveArenaId);
+    const bgKey = arenaConfig.backgroundKey || 'playground';
+
+    // 1. Render playground arena backdrop from selected playground image
+    if (this.textures.exists(bgKey)) {
+      this.arenaBgImage = this.add.image(width / 2, height / 2, bgKey);
+      this.arenaBgImage.setDisplaySize(width, height);
+      this.arenaBgImage.setDepth(-20);
+    } else if (this.textures.exists('playground')) {
+      this.arenaBgImage = this.add.image(width / 2, height / 2, 'playground');
+      this.arenaBgImage.setDisplaySize(width, height);
+      this.arenaBgImage.setDepth(-20);
     } else {
       this.arenaGraphics = this.add.graphics();
       this.arenaGraphics.fillGradientStyle(0x050810, 0x050810, 0x141a29, 0x141a29, 1);
@@ -306,7 +336,6 @@ export class BattleScene extends Phaser.Scene {
     }
 
     // 2. Colosseum pillar torches ambient flickering glow
-    // In playground.jpg: prominent iron torches are situated on the left & right stone columns
     this.torchGlowLeft = this.add.circle(150, 390, 110, 0xffa502, 0.2);
     this.torchGlowRight = this.add.circle(width - 150, 390, 110, 0xffa502, 0.2);
 
@@ -330,9 +359,9 @@ export class BattleScene extends Phaser.Scene {
 
     const deltaSec = delta / 1000;
 
-    // 2. Animate Torch Flickering Glow
+    // 2. Animate Torch Flickering Glow with organic frequency
     if (this.torchGlowLeft && this.torchGlowRight) {
-      const flicker = 0.14 + Math.sin(_time * 0.015) * 0.03 + Math.cos(_time * 0.027) * 0.02;
+      const flicker = 0.14 + Math.sin(_time * 0.005) * 0.03 + Math.cos(_time * 0.009) * 0.02;
       this.torchGlowLeft.setAlpha(flicker);
       this.torchGlowRight.setAlpha(flicker);
     }
@@ -356,21 +385,26 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    // Dynamic Cinematic Camera Tracking & Zoom
+    // Dynamic Cinematic Camera Tracking & Zoom (Frame-rate independent exponential smoothing)
     let p1X = 360;
     let p2X = 920;
     if (this.simulation) {
       p1X = this.simulation.p1.movement.position.x;
       p2X = this.simulation.p2.movement.position.x;
     } else if (this.lastRemoteSnapshot) {
-      p1X = this.lastRemoteSnapshot.p1.position.x;
-      p2X = this.lastRemoteSnapshot.p2.position.x;
+      p1X = this.p1RenderX;
+      p2X = this.p2RenderX;
     }
 
     const midX = (p1X + p2X) / 2;
     const { width } = this.scale;
     const targetScrollX = Phaser.Math.Clamp(midX - width / 2, -100, 100);
-    this.cameras.main.scrollX = Phaser.Math.Linear(this.cameras.main.scrollX, targetScrollX, 0.04);
+    const cameraScrollFactor = 1 - Math.exp(-6.0 * deltaSec);
+    this.cameras.main.scrollX = Phaser.Math.Linear(
+      this.cameras.main.scrollX,
+      targetScrollX,
+      cameraScrollFactor
+    );
 
     const fighterDist = Math.abs(p1X - p2X);
     let targetZoom = 1.0;
@@ -379,7 +413,12 @@ export class BattleScene extends Phaser.Scene {
     } else if (fighterDist > 550) {
       targetZoom = 0.96; // Zoom out to keep full spacing in frame
     }
-    this.cameras.main.zoom = Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.03);
+    const cameraZoomFactor = 1 - Math.exp(-4.5 * deltaSec);
+    this.cameras.main.zoom = Phaser.Math.Linear(
+      this.cameras.main.zoom,
+      targetZoom,
+      cameraZoomFactor
+    );
 
     // 4. Update Game Simulation
     if (this.config.mode === 'singleplayer' && this.simulation && this.botAI && this.inputAdapter) {
@@ -431,11 +470,11 @@ export class BattleScene extends Phaser.Scene {
       // Step local simulation
       this.simulation.step(p1Input, p2Input, deltaSec);
 
-      // Render updated warrior states
+      // Render updated warrior states at native refresh rate
       const snap = this.simulation.getSnapshot();
       this.handleRoundTransition(snap);
-      if (this.p1Renderer) this.p1Renderer.render(snap.p1);
-      if (this.p2Renderer) this.p2Renderer.render(snap.p2);
+      if (this.p1Renderer) this.p1Renderer.render(snap.p1, deltaSec);
+      if (this.p2Renderer) this.p2Renderer.render(snap.p2, deltaSec);
 
       // Edge detection for guard break exhaustion sounds & shatter fx
       if (snap.p1.isExhausted && !this.wasP1Exhausted) {
@@ -554,13 +593,32 @@ export class BattleScene extends Phaser.Scene {
         this.config.colyseusRoom.send(ClientMessageType.PLAYER_INPUT, localInput);
       }
 
-      // Render updated warrior states at 60fps
+      // Render updated warrior states with 144Hz sub-frame exponential interpolation
       if (this.lastRemoteSnapshot) {
+        const smoothRate = 1 - Math.exp(-24 * deltaSec);
+
         if (this.p1Renderer && this.lastRemoteSnapshot.p1) {
-          this.p1Renderer.render(this.lastRemoteSnapshot.p1);
+          const target = this.lastRemoteSnapshot.p1.position;
+          this.p1RenderX = Phaser.Math.Linear(this.p1RenderX, target.x, smoothRate);
+          this.p1RenderY = Phaser.Math.Linear(this.p1RenderY, target.y, smoothRate);
+
+          const smoothedP1: WarriorSnapshot = {
+            ...this.lastRemoteSnapshot.p1,
+            position: { x: this.p1RenderX, y: this.p1RenderY },
+          };
+          this.p1Renderer.render(smoothedP1, deltaSec);
         }
+
         if (this.p2Renderer && this.lastRemoteSnapshot.p2) {
-          this.p2Renderer.render(this.lastRemoteSnapshot.p2);
+          const target = this.lastRemoteSnapshot.p2.position;
+          this.p2RenderX = Phaser.Math.Linear(this.p2RenderX, target.x, smoothRate);
+          this.p2RenderY = Phaser.Math.Linear(this.p2RenderY, target.y, smoothRate);
+
+          const smoothedP2: WarriorSnapshot = {
+            ...this.lastRemoteSnapshot.p2,
+            position: { x: this.p2RenderX, y: this.p2RenderY },
+          };
+          this.p2Renderer.render(smoothedP2, deltaSec);
         }
       }
     }
@@ -656,11 +714,25 @@ export class BattleScene extends Phaser.Scene {
 
     if (!p1Nw || !p2Nw) return;
 
+    // Synchronize dynamic arena background if host selected a different playground
+    if (state.arenaId && this.arenaBgImage) {
+      const cfg = getArenaConfig(state.arenaId);
+      const targetKey = cfg.backgroundKey || 'playground';
+      if (this.textures.exists(targetKey) && this.arenaBgImage.texture.key !== targetKey) {
+        this.arenaBgImage.setTexture(targetKey);
+      }
+    }
+
     const p1Snap = this.networkStateToSnapshot(p1Nw);
     const p2Snap = this.networkStateToSnapshot(p2Nw);
 
-    if (this.p1Renderer) this.p1Renderer.render(p1Snap);
-    if (this.p2Renderer) this.p2Renderer.render(p2Snap);
+    if (!this.hasInitializedRenderPos) {
+      this.p1RenderX = p1Snap.position.x;
+      this.p1RenderY = p1Snap.position.y;
+      this.p2RenderX = p2Snap.position.x;
+      this.p2RenderY = p2Snap.position.y;
+      this.hasInitializedRenderPos = true;
+    }
 
     // Opponent attack sound cue
     const isP2Attacking = p2Snap.attackPhase === 'windup' || p2Snap.attackPhase === 'active';
@@ -726,6 +798,7 @@ export class BattleScene extends Phaser.Scene {
     this.currentRoundNumber = 1;
     this.previousMatchState = 'in_progress';
     this.hitStopRemainingMs = 0;
+    this.hasInitializedRenderPos = false;
     if (this.effects) {
       this.effects.resetRound();
     }

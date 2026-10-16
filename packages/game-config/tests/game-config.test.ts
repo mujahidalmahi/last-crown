@@ -42,4 +42,26 @@ describe('Game Config', () => {
     expect(BALANCE_CONFIG.combat.blockDamageReduction).toBeGreaterThan(0.5);
     expect(BALANCE_CONFIG.rules.roundsToWin).toBeGreaterThanOrEqual(1);
   });
+
+  it('maps all 4 custom arena playgrounds accurately', () => {
+    const coloseum = getArenaConfig('coloseum');
+    expect(coloseum.name).toBe('Coloseum');
+    expect(coloseum.backgroundKey).toBe('playground');
+    expect(coloseum.backgroundImage).toContain('playground.jpg');
+
+    const dragonland = getArenaConfig('dragonland');
+    expect(dragonland.name).toBe('DragonLand');
+    expect(dragonland.backgroundKey).toBe('playground2');
+    expect(dragonland.backgroundImage).toContain('playground2.jpg');
+
+    const stormforce = getArenaConfig('stormforce');
+    expect(stormforce.name).toBe('StormForce');
+    expect(stormforce.backgroundKey).toBe('playground3');
+    expect(stormforce.backgroundImage).toContain('playground3.jpg');
+
+    const seaside = getArenaConfig('seaside');
+    expect(seaside.name).toBe('seaSide');
+    expect(seaside.backgroundKey).toBe('playground4');
+    expect(seaside.backgroundImage).toContain('playground4.jpg');
+  });
 });

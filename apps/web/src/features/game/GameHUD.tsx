@@ -280,7 +280,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 left: 0,
                 width: `${p1GhostHealth}%`,
                 backgroundColor: '#e74c3c',
-                transition: 'width 0.45s cubic-bezier(0.25, 1, 0.5, 1)',
+                transition: 'width 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+                willChange: 'width',
+                transform: 'translateZ(0)',
               }}
             />
             {/* Active Vibrant Health Bar */}
@@ -294,6 +296,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 background: 'linear-gradient(90deg, #e67e22 0%, #2ecc71 100%)',
                 boxShadow: '0 0 10px rgba(46, 204, 113, 0.5)',
                 transition: 'width 0.08s linear',
+                willChange: 'width',
+                transform: 'translateZ(0)',
               }}
             />
             {/* Metallic Sheen Overlay */}
@@ -323,6 +327,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 backgroundColor: isP1Exhausted ? '#e74c3c' : '#00cec9',
                 boxShadow: isP1Exhausted ? '0 0 8px #e74c3c' : '0 0 6px rgba(0, 206, 201, 0.6)',
                 transition: 'width 0.08s linear',
+                willChange: 'width',
+                transform: 'translateZ(0)',
               }}
             />
             {/* Stamina Segments (25%, 50%, 75%) */}
@@ -504,7 +510,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 right: 0,
                 width: `${p2GhostHealth}%`,
                 backgroundColor: '#e74c3c',
-                transition: 'width 0.45s cubic-bezier(0.25, 1, 0.5, 1)',
+                transition: 'width 0.45s cubic-bezier(0.16, 1, 0.3, 1)',
+                willChange: 'width',
+                transform: 'translateZ(0)',
               }}
             />
             {/* Active Vibrant Health Bar */}
@@ -518,6 +526,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 background: 'linear-gradient(270deg, #e67e22 0%, #2ecc71 100%)',
                 boxShadow: '0 0 10px rgba(46, 204, 113, 0.5)',
                 transition: 'width 0.08s linear',
+                willChange: 'width',
+                transform: 'translateZ(0)',
               }}
             />
             {/* Metallic Sheen Overlay */}

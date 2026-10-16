@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 // Dynamic client-only import with ssr: false ensures Phaser never evaluates in Node SSR
@@ -41,6 +42,28 @@ const PhaserGameContainer = dynamic(
   }
 );
 
+function PlayContent() {
+  const searchParams = useSearchParams();
+  const arena = searchParams.get('arena') || 'coloseum';
+  return <PhaserGameContainer mode="singleplayer" arenaId={arena} />;
+}
+
 export default function PlayPage() {
-  return <PhaserGameContainer mode="singleplayer" />;
+  return (
+    <Suspense
+      fallback={
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: '#050810',
+          }}
+        />
+      }
+    >
+      <PlayContent />
+    </Suspense>
+  );
 }

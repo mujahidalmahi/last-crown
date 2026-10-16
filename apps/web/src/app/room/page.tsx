@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { useMultiplayerRoom } from '../../features/multiplayer/useMultiplayerRoom';
 import { useVoiceChat } from '../../features/voice/useVoiceChat';
 import { VoiceControls } from '../../features/voice/VoiceControls';
+import { ArenaSelectModal } from '../../components/arena/ArenaSelectModal';
 import { requestBrowserFullscreen } from '../../utils/fullscreen';
 import styles from './room.module.css';
 
@@ -73,6 +74,7 @@ export default function RoomPage() {
   const [playerName, setPlayerName] = useState('Crown Warrior');
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isArenaModalOpen, setIsArenaModalOpen] = useState(false);
   const [serverStats, setServerStats] = useState<{
     activeMatches: number;
     totalConnectedPlayers: number;
@@ -131,7 +133,12 @@ export default function RoomPage() {
     } catch {
       // Handled gracefully
     }
-    await createPrivateRoom(playerName.trim() || 'Crown Warrior', 'knight');
+    setIsArenaModalOpen(true);
+  };
+
+  const handleSelectArenaAndCreate = async (chosenArenaId: string) => {
+    setIsArenaModalOpen(false);
+    await createPrivateRoom(playerName.trim() || 'Crown Warrior', 'knight', chosenArenaId);
   };
 
   const handleJoin = async (e?: React.FormEvent) => {
@@ -190,6 +197,7 @@ export default function RoomPage() {
           playerPreset="knight"
           voiceState={voice}
           onExit={leaveRoom}
+          arenaId={roomState?.arenaId || room?.state?.arenaId || 'coloseum'}
         />
       </div>
     );
@@ -210,6 +218,27 @@ export default function RoomPage() {
                 ? 'Awaiting your opponent to enter the crucible. Share your 6-character code below:'
                 : 'Seeking a worthy challenger in the global queue...'}
             </p>
+
+            {inviteCode && (
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  backgroundColor: 'rgba(241, 196, 15, 0.15)',
+                  border: '1px solid rgba(241, 196, 15, 0.4)',
+                  borderRadius: '4px',
+                  padding: '4px 12px',
+                  color: '#f6e05e',
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: '9px',
+                  textTransform: 'uppercase',
+                  marginBottom: '8px',
+                }}
+              >
+                🏟️ Arena: {roomState?.arenaId || 'Coloseum'}
+              </div>
+            )}
 
             {inviteCode && (
               <>
@@ -510,6 +539,14 @@ export default function RoomPage() {
             <span className={styles.srOnly}>Enter With Code</span>
           </button>
         </main>
+
+        {/* Map / Arena Selection Modal for Private Room Host */}
+        <ArenaSelectModal
+          isOpen={isArenaModalOpen}
+          onSelect={handleSelectArenaAndCreate}
+          onClose={() => setIsArenaModalOpen(false)}
+          title="SELECT ARENA"
+        />
 
         {/* Error Notification Banner */}
         {error && (

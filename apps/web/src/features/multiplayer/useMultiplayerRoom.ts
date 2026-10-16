@@ -163,7 +163,11 @@ export function useMultiplayerRoom() {
   }, []);
 
   const createPrivateRoom = useCallback(
-    async (playerName: string = 'Host Warrior', warriorPreset: string = 'knight') => {
+    async (
+      playerName: string = 'Host Warrior',
+      warriorPreset: string = 'knight',
+      arenaId: string = 'coloseum'
+    ) => {
       setState(prev => ({ ...prev, isConnecting: true, error: null }));
       try {
         const httpUrl = getServerHttpUrl();
@@ -171,7 +175,7 @@ export function useMultiplayerRoom() {
         const res = await fetch(targetUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ isPrivate: true, playerName, warriorPreset }),
+          body: JSON.stringify({ isPrivate: true, playerName, warriorPreset, arenaId }),
         });
 
         if (!res.ok) {

@@ -138,11 +138,12 @@ app.post('/api/rooms/create', async (req: Request, res: Response) => {
       return;
     }
 
-    const { isPrivate, warriorPreset, playerName } = parseResult.data;
+    const { isPrivate, warriorPreset, playerName, arenaId } = parseResult.data;
     const room = await matchMaker.createRoom('battle', {
       isPrivate,
       warriorPreset,
       playerName,
+      arenaId,
     });
 
     const inviteCode =

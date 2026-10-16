@@ -28,6 +28,7 @@ export const CreateRoomSchema = z.object({
   isPrivate: z.boolean().default(true),
   warriorPreset: z.string().min(1).max(32).default('knight'),
   playerName: z.string().trim().min(1).max(24).default('Warrior 1'),
+  arenaId: z.string().min(1).max(64).optional().default('coloseum'),
 });
 
 export const JoinRoomSchema = z.object({

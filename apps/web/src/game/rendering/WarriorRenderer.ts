@@ -63,8 +63,10 @@ export class WarriorRenderer {
     }
   }
 
-  public render(snapshot: WarriorSnapshot): void {
-    this.animTimer += 0.05;
+  public render(snapshot: WarriorSnapshot, deltaSec: number = 0.016): void {
+    // Delta-time normalized animation clock (ensures smooth consistent cape sway, breathing,
+    // and aura pulses at 60Hz, 120Hz, 144Hz, and 240Hz)
+    this.animTimer += Math.max(0.001, Math.min(deltaSec, 0.1)) * 3.125;
     this.container.setPosition(snapshot.position.x, snapshot.position.y);
     this.nameText.setText(snapshot.name);
 
