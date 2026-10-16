@@ -37,14 +37,10 @@ export interface VoiceChatState {
 
 export const VOICE_ICE_SERVERS: RTCConfiguration = {
   iceServers: [
-    // Cloudflare Public Anycast STUN (ultra-fast, zero-latency)
+    // Cloudflare Public Anycast STUN
     { urls: 'stun:stun.cloudflare.com:3478' },
-    // Google Public Global STUN
+    // Google Public Global STUN (verified zero-failure)
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
   ],
 };
 
@@ -577,7 +573,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         while (candidateQueueRef.current.length > 0) {
           const candidate = candidateQueueRef.current.shift();
           if (candidate) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+            await pc.addIceCandidate(candidate).catch(() => {});
           }
         }
 
@@ -834,7 +830,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
               while (candidateQueueRef.current.length > 0) {
                 const candidate = candidateQueueRef.current.shift();
                 if (candidate) {
-                  await pc.addIceCandidate(new RTCIceCandidate(candidate)).catch(() => {});
+                  await pc.addIceCandidate(candidate).catch(() => {});
                 }
               }
             } catch (err) {
@@ -853,7 +849,7 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
 
           const pc = pcRef.current;
           if (pc && pc.remoteDescription && pc.remoteDescription.type) {
-            await pc.addIceCandidate(new RTCIceCandidate(candidateData)).catch(() => {});
+            await pc.addIceCandidate(candidateData).catch(() => {});
           } else {
             candidateQueueRef.current.push(candidateData);
           }
@@ -905,6 +901,12 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
       }
     };
   }, [room, getOrCreatePeerConnection, initiateOffer, handleIncomingOffer, sendSignal]);
+
+  // Proactively request active ICE servers from game server on room connect
+  useEffect(() => {
+    if (!room) return;
+    sendSignal({ type: 'ice_servers' });
+  }, [room, sendSignal]);
 
   // Auto-join if requested
   useEffect(() => {

@@ -88,10 +88,7 @@ export async function GET() {
 
   // Default STUN servers + dynamic TURN if configured in environment
   const iceServers: { urls: string | string[]; username?: string; credential?: string }[] = [
-    { urls: 'stun:stun.cloudflare.com:3478' },
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
   ];
 
   const turnUrl = process.env.TURN_URL || process.env.EXPRESSTURN_URL;
@@ -104,19 +101,11 @@ export async function GET() {
 
   if (turnUrl && turnUsername && turnCredential) {
     const baseTurnHost = turnUrl.replace(/^(turn:|turns:|stun:)/, '').split('?')[0];
-    iceServers.push(
-      { urls: `stun:${baseTurnHost}` },
-      {
-        urls: `turn:${baseTurnHost}?transport=udp`,
-        username: turnUsername,
-        credential: turnCredential,
-      },
-      {
-        urls: `turn:${baseTurnHost}?transport=tcp`,
-        username: turnUsername,
-        credential: turnCredential,
-      }
-    );
+    iceServers.push({
+      urls: [`turn:${baseTurnHost}`, `turn:${baseTurnHost}?transport=tcp`],
+      username: turnUsername,
+      credential: turnCredential,
+    });
   }
 
   return NextResponse.json({ iceServers });

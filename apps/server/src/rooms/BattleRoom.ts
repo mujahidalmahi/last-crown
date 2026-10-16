@@ -132,6 +132,16 @@ export class BattleRoom extends Room<BattleRoomState> {
       (client, rawMessage: VoiceSignalClientMessage) => {
         if (!rawMessage || !rawMessage.signal) return;
         const { signal } = rawMessage;
+        if (signal.type === 'ice_servers') {
+          client.send(ServerMessageType.VOICE_SIGNAL, {
+            from: 'server',
+            signal: {
+              type: 'ice_servers',
+              data: { iceServers: IceServerService.getDefaultIceServers() },
+            },
+          });
+          return;
+        }
 
         if (signal.type === 'ready') {
           this.voiceClients.add(client.sessionId);
