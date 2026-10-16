@@ -95,12 +95,14 @@ function getOrCreateAudioElement(): HTMLAudioElement | null {
     el.volume = 1.0;
     el.setAttribute('playsinline', 'true');
     el.setAttribute('webkit-playsinline', 'true');
-    el.style.position = 'absolute';
+    el.style.position = 'fixed';
+    el.style.bottom = '0';
+    el.style.left = '0';
     el.style.width = '1px';
     el.style.height = '1px';
-    el.style.overflow = 'hidden';
-    el.style.clip = 'rect(0 0 0 0)';
+    el.style.opacity = '0.01';
     el.style.pointerEvents = 'none';
+    el.style.zIndex = '-999';
     document.body.appendChild(el);
   }
   return el;
@@ -391,10 +393,24 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
 
     // Receive opponent audio stream (supports both event.streams and fallback to new MediaStream)
     pc.ontrack = event => {
-      console.log('[VoiceChat] Remote track received:', event.track.id, event.track.kind);
+      console.log(
+        '[VoiceChat] Remote track received:',
+        event.track.id,
+        event.track.kind,
+        'muted=',
+        event.track.muted
+      );
       const stream =
         event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track]);
       attachRemoteStream(stream);
+
+      event.track.onunmute = () => {
+        console.log('[VoiceChat] Remote track unmuted, playing audio stream');
+        const audio = getOrCreateAudioElement();
+        if (audio) {
+          playAudioSafely(audio);
+        }
+      };
     };
 
     // Connection lifecycle monitoring with Safari/iOS disconnected state self-healing
@@ -417,6 +433,12 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
         }
         setStatus('connected');
         setError(null);
+
+        // Ensure remote stream is playing through audio element upon connection
+        const audio = getOrCreateAudioElement();
+        if (audio && remoteStreamRef.current) {
+          playAudioSafely(audio);
+        }
       } else if (state === 'connecting' || iceState === 'checking') {
         setStatus(prev => (prev === 'connected' ? 'connected' : 'connecting'));
       } else if (state === 'disconnected' || iceState === 'disconnected') {
