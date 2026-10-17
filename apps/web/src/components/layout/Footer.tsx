@@ -1,112 +1,273 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
+import styles from './Footer.module.css';
 
 export const Footer: React.FC = () => {
+  const scrollToTop = () => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <footer
-      style={{
-        borderTop: '2px solid #1c1c24',
-        padding: '16px 24px',
-        textAlign: 'center',
-        fontSize: '0.52rem',
-        color: '#64748b',
-        marginTop: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '10px',
-        backgroundColor: '#000000',
-        zIndex: 5,
-        fontFamily: "'Press Start 2P', monospace",
-        lineHeight: 1.7,
-      }}
-    >
-      <nav
-        aria-label="Game quick links"
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}
-      >
-        <Link
-          href="/"
-          style={{
-            color: '#94a3b8',
-            textDecoration: 'none',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            transition: 'color 0.12s',
-          }}
-        >
-          Home
-        </Link>
-        <span aria-hidden="true" style={{ color: '#272730' }}>
-          •
-        </span>
-        <Link
-          href="/play"
-          style={{
-            color: '#94a3b8',
-            textDecoration: 'none',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            transition: 'color 0.12s',
-          }}
-        >
-          Play vs AI
-        </Link>
-        <span aria-hidden="true" style={{ color: '#272730' }}>
-          •
-        </span>
-        <Link
-          href="/local"
-          style={{
-            color: '#94a3b8',
-            textDecoration: 'none',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            transition: 'color 0.12s',
-          }}
-        >
-          Local 2-Player (Controllers)
-        </Link>
-        <span aria-hidden="true" style={{ color: '#272730' }}>
-          •
-        </span>
-        <Link
-          href="/room"
-          style={{
-            color: '#94a3b8',
-            textDecoration: 'none',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            transition: 'color 0.12s',
-          }}
-        >
-          1v1 Private Room
-        </Link>
-        <span aria-hidden="true" style={{ color: '#272730' }}>
-          •
-        </span>
-        <Link
-          href="/settings"
-          style={{
-            color: '#94a3b8',
-            textDecoration: 'none',
-            textTransform: 'uppercase',
-            letterSpacing: '0.04em',
-            transition: 'color 0.12s',
-          }}
-        >
-          Controls &amp; Settings
-        </Link>
-      </nav>
-      <p style={{ margin: 0, fontSize: '0.48rem', color: '#52525c' }}>
-        © 2026 <strong style={{ color: '#f1c40f' }}>LAST-CROWN</strong> — The winner takes it all.
-      </p>
+    <footer className={styles.footerWrapper} role="contentinfo" aria-label="Site Footer">
+      {/* --------------------------------------------------------------------
+          Giant Atmospheric Watermark: Last-Crown: The winner takes it all
+          -------------------------------------------------------------------- */}
+      <div className={styles.watermarkContainer} aria-hidden="true">
+        <span className={styles.watermarkText}>LAST-CROWN</span>
+        <span className={styles.watermarkSubtext}>THE WINNER TAKES IT ALL</span>
+        <img src="/crown-logo.png" alt="" className={styles.watermarkCrown} />
+      </div>
+
+      {/* --------------------------------------------------------------------
+          Top Filigree Ornamental Accent Bar
+          -------------------------------------------------------------------- */}
+      <div className={styles.topFiligreeBar} aria-hidden="true">
+        <div className={styles.filigreeLine} />
+        <div className={styles.filigreeCenter}>
+          <img src="/crown-logo.png" alt="" width={18} height={18} className={styles.filigreeIcon} />
+          <span>THE WINNER TAKES IT ALL</span>
+          <img src="/crown-logo.png" alt="" width={18} height={18} className={styles.filigreeIcon} />
+        </div>
+        <div className={styles.filigreeLine} />
+      </div>
+
+      {/* --------------------------------------------------------------------
+          Main Four-Column Content Grid
+          -------------------------------------------------------------------- */}
+      <div className={styles.footerMain}>
+        <div className={styles.footerGrid}>
+          {/* Column 1: Brand & Lore */}
+          <div className={styles.brandColumn}>
+            <Link href="/" className={styles.brandHeader}>
+              <img
+                src="/crown-logo.png"
+                alt="Last-Crown Logo"
+                width={38}
+                height={38}
+                className={styles.brandLogo}
+              />
+              <div className={styles.brandTitleGroup}>
+                <span className={styles.brandTitle}>LAST-CROWN</span>
+                <span className={styles.brandSubtitle}>The winner takes it all</span>
+              </div>
+            </Link>
+
+            <p className={styles.brandDesc}>
+              An authentic 2D medieval sword fighter running natively in modern web browsers.
+              Engineered with deterministic 60Hz physics, frame-perfect parrying,
+              server-authoritative Colyseus netcode, WebRTC peer voice chat, and instant QR phone
+              gamepads.
+            </p>
+          </div>
+
+          {/* Column 2: Combat & Game Modes */}
+          <div className={styles.navColumn}>
+            <h4 className={styles.columnHeading}>
+              <span aria-hidden="true">⚔️</span> Modes &amp; Play
+            </h4>
+            <ul className={styles.columnList}>
+              <li>
+                <Link href="/game" className={styles.footerLink}>
+                  The Game Hub
+                </Link>
+              </li>
+              <li>
+                <Link href="/play" className={styles.footerLink}>
+                  Solo Crucible (AI)
+                </Link>
+              </li>
+              <li>
+                <Link href="/local" className={styles.footerLink}>
+                  Couch Co-Op (2-Player)
+                </Link>
+              </li>
+              <li>
+                <Link href="/room" className={styles.footerLink}>
+                  Online 1v1 Room
+                </Link>
+              </li>
+              <li>
+                <Link href="/controller" className={styles.footerLink}>
+                  Phone Controller
+                </Link>
+              </li>
+              <li>
+                <Link href="/settings" className={styles.footerLink}>
+                  Armory &amp; Calibration
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 3: Arenas & Mechanics */}
+          <div className={styles.navColumn}>
+            <h4 className={styles.columnHeading}>
+              <span aria-hidden="true">🛡️</span> Arenas &amp; Depth
+            </h4>
+            <ul className={styles.columnList}>
+              <li>
+                <a href="#screenshots" className={styles.footerLink}>
+                  Bastion Courtyard
+                </a>
+              </li>
+              <li>
+                <a href="#screenshots" className={styles.footerLink}>
+                  DragonLand Caldera
+                </a>
+              </li>
+              <li>
+                <a href="#screenshots" className={styles.footerLink}>
+                  StormForce Ramparts
+                </a>
+              </li>
+              <li>
+                <a href="#screenshots" className={styles.footerLink}>
+                  SeaSide Pirate Haven
+                </a>
+              </li>
+              <li>
+                <a href="#mechanics" className={styles.footerLink}>
+                  180ms Parry Window
+                </a>
+              </li>
+              <li>
+                <a href="#mechanics" className={styles.footerLink}>
+                  Stamina Guard Breaks
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: Developers & Open Source */}
+          <div className={styles.navColumn}>
+            <h4 className={styles.columnHeading}>
+              <span aria-hidden="true">📜</span> Creators &amp; Code
+            </h4>
+            <ul className={styles.columnList}>
+              <li>
+                <a
+                  href="https://github.com/mujahidalmahi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.footerLink}
+                >
+                  Mujahid Al Mahi
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/ShahariarJibon"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.footerLink}
+                >
+                  Shahariar H. Jibon
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/mujahidalmahi/last-crown"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.footerLink}
+                >
+                  GitHub Repository ↗
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/mujahidalmahi/last-crown/blob/main/CONTRIBUTING.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.footerLink}
+                >
+                  Contributing Guide
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/mujahidalmahi/last-crown/blob/main/SECURITY.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.footerLink}
+                >
+                  Security Policy
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://github.com/mujahidalmahi/last-crown/blob/main/LICENSE"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.footerLink}
+                >
+                  MIT License
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* --------------------------------------------------------------------
+            Quick Action Bar: Direct Play, Controller & Back to Top
+            -------------------------------------------------------------------- */}
+        <div className={styles.quickActionBar}>
+          <div className={styles.quickActionText}>
+            <span aria-hidden="true">👑</span>
+            <span>Step into the crucible — zero downloads required</span>
+          </div>
+
+          <div className={styles.quickActionButtons}>
+            <Link href="/game" className={styles.playActionBtn}>
+              <span aria-hidden="true">⚔️</span>
+              <span>PLAY THE GAME</span>
+            </Link>
+
+            <Link href="/controller" className={styles.controllerActionBtn}>
+              <span aria-hidden="true">📱</span>
+              <span>PAIR PHONE</span>
+            </Link>
+
+            <button
+              type="button"
+              onClick={scrollToTop}
+              className={styles.backToTopBtn}
+              title="Return to top of page"
+            >
+              <span aria-hidden="true">▲</span>
+              <span>TOP</span>
+            </button>
+          </div>
+        </div>
+
+        {/* --------------------------------------------------------------------
+            Sub-Footer: Copyright, Authors & Tech Stack Badges
+            -------------------------------------------------------------------- */}
+        <div className={styles.subFooter}>
+          <div className={styles.subFooterMeta}>
+            <div className={styles.copyrightText}>
+              © 2026 <strong>LAST-CROWN</strong> — The winner takes it all. All rights reserved.
+            </div>
+
+            <div className={styles.creditsText}>
+              Forged with pride by <span>Mujahid Al Mahi</span> &amp;{' '}
+              <span>Shahariar Hossain Jibon</span>.
+            </div>
+          </div>
+
+          <div className={styles.techBadgesRow} aria-label="Technology Stack">
+            <span className={styles.techBadge}>Next.js 14</span>
+            <span className={styles.techBadge}>Phaser 3</span>
+            <span className={styles.techBadge}>Colyseus</span>
+            <span className={styles.techBadge}>WebRTC</span>
+            <span className={styles.techBadge}>TypeScript</span>
+          </div>
+        </div>
+      </div>
     </footer>
   );
 };

@@ -1,0 +1,453 @@
+/* ==========================================================================
+   Last-Crown Next-Level Retro Footer Styles
+   Theme: 16-Bit Medieval Gothic Arcade & Grand Watermark
+   ========================================================================== */
+
+.footerWrapper {
+  position: relative;
+  background-color: #05070c;
+  color: #94a3b8;
+  font-family: 'Press Start 2P', monospace;
+  border-top: 4px solid #283342;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.95);
+  overflow: hidden;
+  margin-top: auto;
+  z-index: 10;
+}
+
+/* --------------------------------------------------------------------------
+   Giant Atmospheric Watermark of Last-Crown: The winner takes it all
+   -------------------------------------------------------------------------- */
+.watermarkContainer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+  user-select: none;
+}
+
+.watermarkText {
+  font-size: clamp(3rem, 11vw, 9.5rem);
+  font-weight: 900;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(241, 196, 15, 0.05);
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  opacity: 0.75;
+  filter: blur(0.5px);
+  line-height: 1;
+}
+
+.watermarkSubtext {
+  font-size: clamp(1rem, 3.8vw, 2.8rem);
+  font-weight: 900;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(241, 196, 15, 0.04);
+  letter-spacing: 0.2em;
+  white-space: nowrap;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  opacity: 0.65;
+  margin-top: 10px;
+}
+
+.watermarkCrown {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(520px, 90vw);
+  height: auto;
+  opacity: 0.035;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Top Filigree Accent Bar
+   -------------------------------------------------------------------------- */
+.topFiligreeBar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: linear-gradient(180deg, #0c101a 0%, #06080e 100%);
+  border-bottom: 2px solid #1e293b;
+}
+
+.filigreeLine {
+  flex-grow: 1;
+  max-width: 450px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #334155 30%, #f1c40f 70%, transparent);
+}
+
+.filigreeCenter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f1c40f;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-shadow: 0 0 8px rgba(241, 196, 15, 0.5);
+}
+
+.filigreeIcon {
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 6px #f1c40f);
+}
+
+/* --------------------------------------------------------------------------
+   Footer Main Content Container
+   -------------------------------------------------------------------------- */
+.footerMain {
+  position: relative;
+  z-index: 2;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 56px 24px 36px;
+  box-sizing: border-box;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 36px;
+  margin-bottom: 48px;
+}
+
+/* Column 1: Brand & Lore */
+.brandColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.brandHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brandLogo {
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 10px rgba(241, 196, 15, 0.7));
+}
+
+.brandTitleGroup {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandTitle {
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: #f1c40f;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 3px 0 #000;
+}
+
+.brandSubtitle {
+  font-size: 0.52rem;
+  color: #cbd5e1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.brandDesc {
+  font-size: 0.55rem;
+  line-height: 1.85;
+  color: #94a3b8;
+  margin: 0;
+  max-width: 440px;
+}
+
+/* Link Columns */
+.navColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.columnHeading {
+  font-size: 0.68rem;
+  color: #f1c40f;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0 0 4px;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.columnList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.footerLink {
+  font-size: 0.52rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+  transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.footerLink:hover {
+  color: #f1c40f;
+  transform: translateX(3px);
+  text-shadow: 0 0 8px rgba(241, 196, 15, 0.6);
+}
+
+.footerLink::before {
+  content: '▸';
+  color: #64748b;
+  font-size: 0.5rem;
+  transition: color 0.12s;
+}
+
+.footerLink:hover::before {
+  color: #f1c40f;
+}
+
+/* --------------------------------------------------------------------------
+   Quick Action Banner
+   -------------------------------------------------------------------------- */
+.quickActionBar {
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px solid #283342;
+  border-radius: 6px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 36px;
+  box-shadow: 0 4px 0 #000;
+}
+
+.quickActionText {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.58rem;
+  color: #f1c40f;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quickActionButtons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.playActionBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.58rem;
+  background: linear-gradient(180deg, #f1c40f 0%, #b8860b 100%);
+  color: #07090e;
+  font-weight: 900;
+  padding: 10px 18px;
+  border: 2px solid #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 3px 0 #5c3818;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.playActionBtn:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 5px 0 #5c3818,
+    0 0 16px rgba(241, 196, 15, 0.8);
+}
+
+.controllerActionBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  background: #161e2e;
+  color: #38bdf8;
+  border: 2px solid #0284c7;
+  padding: 9px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: 0 3px 0 #000;
+  transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.controllerActionBtn:hover {
+  background: #0284c7;
+  color: #07090e;
+  transform: translateY(-2px);
+}
+
+.backToTopBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.52rem;
+  background: #111827;
+  color: #cbd5e1;
+  border: 2px solid #374151;
+  padding: 9px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 3px 0 #000;
+  transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.backToTopBtn:hover {
+  border-color: #f1c40f;
+  color: #f1c40f;
+  transform: translateY(-2px);
+}
+
+/* --------------------------------------------------------------------------
+   Sub-Footer Legal & Tech Stack Row
+   -------------------------------------------------------------------------- */
+.subFooter {
+  border-top: 1px solid #1e293b;
+  padding-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  font-size: 0.48rem;
+  color: #64748b;
+  line-height: 1.8;
+  text-align: center;
+}
+
+.subFooterMeta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.copyrightText strong {
+  color: #f1c40f;
+}
+
+.creditsText {
+  color: #94a3b8;
+}
+
+.creditsText span {
+  color: #f1c40f;
+}
+
+.techBadgesRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.techBadge {
+  background: #0d131f;
+  border: 1px solid #1e293b;
+  color: #64748b;
+  font-size: 0.44rem;
+  padding: 4px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Responsiveness
+   -------------------------------------------------------------------------- */
+@media (max-width: 992px) {
+  .footerGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+  .brandColumn {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .footerGrid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .brandColumn {
+    grid-column: span 1;
+  }
+  .quickActionBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .quickActionButtons {
+    flex-direction: column;
+    width: 100%;
+  }
+  .playActionBtn,
+  .controllerActionBtn,
+  .backToTopBtn {
+    width: 100%;
+    justify-content: center;
+  }
+  .subFooter {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  .techBadgesRow {
+    justify-content: center;
+  }
+}

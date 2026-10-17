@@ -66,7 +66,8 @@ const GAME_MODES: GameMode[] = [
     id: 'ai',
     badge: '1 PLAYER',
     title: 'SOLO CRUCIBLE',
-    summary: 'Duel adaptive AI bot champions across 4 arenas. Practice spacing, frame-perfect parries, and combos.',
+    summary:
+      'Duel adaptive AI bot champions across 4 arenas. Practice spacing, frame-perfect parries, and combos.',
     features: ['4 Sacred Arenas', 'Adaptive Bot AI', 'Instant Match Restart'],
     actionLabel: 'PLAY VS AI',
     href: '/game',
@@ -75,7 +76,8 @@ const GAME_MODES: GameMode[] = [
     id: 'local',
     badge: '2 PLAYERS • SAME SCREEN',
     title: 'COUCH BATTLE',
-    summary: 'Head-to-head combat on a single screen. Scan the on-screen QR code with your phone to use it as a wireless gamepad.',
+    summary:
+      'Head-to-head combat on a single screen. Scan the on-screen QR code with your phone to use it as a wireless gamepad.',
     features: ['Phone QR Gamepad', 'Zero App Downloads', 'USB & Bluetooth Gamepads'],
     actionLabel: 'LOCAL DUEL',
     href: '/local',
@@ -84,7 +86,8 @@ const GAME_MODES: GameMode[] = [
     id: 'online',
     badge: 'MULTIPLAYER • VOICE',
     title: 'ONLINE 1V1 ROOM',
-    summary: 'Private chamber matchmaking with deterministic 60Hz netcode and low-latency WebRTC peer voice chat.',
+    summary:
+      'Private chamber matchmaking with deterministic 60Hz netcode and low-latency WebRTC peer voice chat.',
     features: ['6-Letter Room Codes', 'Built-in Voice Chat', 'Server-Authoritative Netcode'],
     actionLabel: 'JOIN / HOST ROOM',
     href: '/room',
@@ -165,31 +168,36 @@ const DEV_LOG: DevLogEntry[] = [
     step: '01',
     phase: 'GENESIS',
     title: 'The Arcade Vision',
-    notes: 'Born from a love of 90s fighting arcade cabinets. The goal: a zero-install, competitive 2D sword fighter running natively in any modern browser with zero compromise on input latency.',
+    notes:
+      'Born from a love of 90s fighting arcade cabinets. The goal: a zero-install, competitive 2D sword fighter running natively in any modern browser with zero compromise on input latency.',
   },
   {
     step: '02',
     phase: 'ENGINE',
     title: 'Deterministic 60Hz Core',
-    notes: 'Built a headless physics engine in TypeScript from scratch. Integer-accurate AABB bounding boxes, deterministic fixed timesteps, and precise frame-data cancel windows.',
+    notes:
+      'Built a headless physics engine in TypeScript from scratch. Integer-accurate AABB bounding boxes, deterministic fixed timesteps, and precise frame-data cancel windows.',
   },
   {
     step: '03',
     phase: 'NETCODE',
     title: 'Real-time Multiplayer & Voice',
-    notes: 'Server-authoritative rooms on Colyseus for anti-cheat validation, paired with low-latency WebRTC peer audio so dueling friends can talk in real time.',
+    notes:
+      'Server-authoritative rooms on Colyseus for anti-cheat validation, paired with low-latency WebRTC peer audio so dueling friends can talk in real time.',
   },
   {
     step: '04',
     phase: 'CONTROLLER',
     title: 'Smartphone QR Companion',
-    notes: 'Eliminated the need for extra physical gamepads. Scan the screen QR code with your phone camera to instantly turn your device into a wireless haptic gamepad.',
+    notes:
+      'Eliminated the need for extra physical gamepads. Scan the screen QR code with your phone camera to instantly turn your device into a wireless haptic gamepad.',
   },
   {
     step: '05',
     phase: 'RELEASE',
     title: 'Open Source & Polish',
-    notes: 'Hardened with 103+ automated tests, full accessibility skip links, landscape mobile controls, and released 100% free and open-source on GitHub.',
+    notes:
+      'Hardened with 103+ automated tests, full accessibility skip links, landscape mobile controls, and released 100% free and open-source on GitHub.',
   },
 ];
 
@@ -207,7 +215,7 @@ export default function HomePage() {
         <div className={styles.navContainer}>
           <Link href="/" className={styles.brandLink}>
             <img
-              src="/icon.png"
+              src="/crown-logo.png"
               alt="Last-Crown Emblem"
               width={34}
               height={34}
@@ -289,7 +297,7 @@ export default function HomePage() {
         <div className={styles.heroContent}>
           <div className={styles.heroLogoContainer}>
             <img
-              src="/icon.png"
+              src="/crown-logo.png"
               alt="Last-Crown Gold Crown Emblem"
               width={96}
               height={96}
@@ -302,8 +310,8 @@ export default function HomePage() {
 
           <p className={styles.heroDescription}>
             A competitive 2D retro sword fighter running at 60 FPS in your browser. Duel adaptive AI
-            bot champions, challenge friends online with built-in voice chat, or scan a QR code to turn
-            your phone into a wireless gamepad.
+            bot champions, challenge friends online with built-in voice chat, or scan a QR code to
+            turn your phone into a wireless gamepad.
           </p>
 
           <div className={styles.heroCtaGroup}>
@@ -332,7 +340,8 @@ export default function HomePage() {
           <span className={styles.sectionTag}>// GAME MODES</span>
           <h2 className={styles.sectionTitle}>CHOOSE YOUR BATTLE</h2>
           <p className={styles.sectionSubtitle}>
-            Three ways to fight. Test your sword against adaptive AI, battle head-to-head on the couch, or host an online chamber.
+            Three ways to fight. Test your sword against adaptive AI, battle head-to-head on the
+            couch, or host an online chamber.
           </p>
         </div>
 
@@ -370,7 +379,8 @@ export default function HomePage() {
           <span className={styles.sectionTag}>// BATTLEGROUNDS</span>
           <h2 className={styles.sectionTitle}>SACRED ARENAS</h2>
           <p className={styles.sectionSubtitle}>
-            Five handcrafted 2D battlegrounds featuring distinct atmosphere, lighting, and terrain kinematics.
+            Five handcrafted 2D battlegrounds featuring distinct atmosphere, lighting, and terrain
+            kinematics.
           </p>
         </div>
 
@@ -425,7 +435,8 @@ export default function HomePage() {
           <span className={styles.sectionTag}>// COMBAT ENGINE</span>
           <h2 className={styles.sectionTitle}>MARTIAL CONTROLS & MOVES</h2>
           <p className={styles.sectionSubtitle}>
-            A deterministic 60Hz fighting system where spacing, feints, and razor-sharp parry timing dictate survival.
+            A deterministic 60Hz fighting system where spacing, feints, and razor-sharp parry timing
+            dictate survival.
           </p>
         </div>
 
@@ -523,7 +534,7 @@ export default function HomePage() {
       <section className={styles.ctaBanner} aria-label="Final Call to Action">
         <div className={styles.ctaContent}>
           <img
-            src="/icon.png"
+            src="/crown-logo.png"
             alt="Last-Crown Logo"
             width={72}
             height={72}
@@ -537,7 +548,6 @@ export default function HomePage() {
           </p>
           <div className={styles.heroCtaGroup} style={{ marginTop: '12px' }}>
             <Link href="/game" className={styles.heroPrimaryBtn}>
-              <span>👑</span>
               <span>START FIGHTING NOW</span>
             </Link>
             <a
