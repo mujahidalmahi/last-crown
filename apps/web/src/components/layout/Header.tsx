@@ -19,7 +19,16 @@ export const Header: React.FC = () => {
       }}
     >
       <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '1.4rem', filter: 'drop-shadow(0 0 8px #f1c40f)' }}>👑</span>
+        <img
+          src="/icon.png"
+          alt="Last-Crown Logo"
+          width={32}
+          height={32}
+          style={{
+            imageRendering: 'pixelated',
+            filter: 'drop-shadow(0 0 8px rgba(241, 196, 15, 0.6))',
+          }}
+        />
         <div>
           <span
             style={{

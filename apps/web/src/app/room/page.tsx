@@ -31,7 +31,13 @@ const PhaserGameContainer = dynamic(
           fontFamily: "'Press Start 2P', monospace",
         }}
       >
-        <span style={{ fontSize: '3rem', filter: 'drop-shadow(0 0 12px #f1c40f)' }}>⚔️</span>
+        <img
+          src="/icon.png"
+          alt="Last-Crown Logo"
+          width={64}
+          height={64}
+          style={{ imageRendering: 'pixelated', filter: 'drop-shadow(0 0 12px #f1c40f)' }}
+        />
         <p
           style={{
             color: '#f1c40f',
@@ -210,8 +216,23 @@ export default function RoomPage() {
         <div className={styles.scanlineOverlay} aria-hidden="true" />
         <div className={styles.stageWrapper}>
           <div className={styles.waitingCard} role="region" aria-label="Waiting Chamber">
-            <h2 className={styles.waitingTitle}>
-              {inviteCode ? '⚔️ Private Duel Chamber' : '⚔️ Public Matchmaking'}
+            <h2
+              className={styles.waitingTitle}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              <img
+                src="/icon.png"
+                alt=""
+                width={24}
+                height={24}
+                style={{ imageRendering: 'pixelated' }}
+              />
+              <span>{inviteCode ? 'Private Duel Chamber' : 'Public Matchmaking'}</span>
             </h2>
             <p className={styles.waitingSubtitle}>
               {inviteCode

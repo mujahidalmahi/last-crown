@@ -370,7 +370,23 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
               whiteSpace: 'nowrap',
             }}
           >
-            ⚔️ ENTER FULL SCREEN [F] ⚔️
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <img
+                src="/icon.png"
+                alt=""
+                width={16}
+                height={16}
+                style={{ imageRendering: 'pixelated' }}
+              />
+              <span>ENTER FULL SCREEN [F]</span>
+              <img
+                src="/icon.png"
+                alt=""
+                width={16}
+                height={16}
+                style={{ imageRendering: 'pixelated' }}
+              />
+            </span>
           </button>
         )}
 

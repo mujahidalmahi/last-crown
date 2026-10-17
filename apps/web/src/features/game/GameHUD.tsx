@@ -965,7 +965,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           <div className={hudStyles.pauseModalContainer}>
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '1.8rem', filter: 'drop-shadow(0 0 10px #f1c40f)' }}>⚔️</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+                <img
+                  src="/icon.png"
+                  alt="Last-Crown Logo"
+                  width={48}
+                  height={48}
+                  style={{ imageRendering: 'pixelated', filter: 'drop-shadow(0 0 10px #f1c40f)' }}
+                />
+              </div>
               <h2
                 style={{
                   fontFamily: "'Press Start 2P', monospace",

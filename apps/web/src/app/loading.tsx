@@ -16,12 +16,17 @@ export default function Loading() {
     >
       <div
         style={{
-          fontSize: '2.5rem',
           filter: 'drop-shadow(0 0 12px #f1c40f)',
           animation: 'pixelBounce 0.6s steps(4) infinite alternate',
         }}
       >
-        ⚔️
+        <img
+          src="/icon.png"
+          alt="Last-Crown Logo"
+          width={64}
+          height={64}
+          style={{ imageRendering: 'pixelated', objectFit: 'contain' }}
+        />
       </div>
       <p
         style={{

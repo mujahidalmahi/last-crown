@@ -25,7 +25,13 @@ const PhaserGameContainer = dynamic(
           zIndex: 9999,
         }}
       >
-        <span style={{ fontSize: '3rem', filter: 'drop-shadow(0 0 12px #f1c40f)' }}>⚔️</span>
+        <img
+          src="/icon.png"
+          alt="Last-Crown Logo"
+          width={64}
+          height={64}
+          style={{ imageRendering: 'pixelated', filter: 'drop-shadow(0 0 12px #f1c40f)' }}
+        />
         <p
           style={{
             color: 'var(--text-gold)',

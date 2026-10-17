@@ -27,6 +27,15 @@ export default function ErrorPage({
       }}
     >
       <Card style={{ maxWidth: '560px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '14px' }}>
+          <img
+            src="/icon.png"
+            alt="Last-Crown Logo"
+            width={48}
+            height={48}
+            style={{ imageRendering: 'pixelated', filter: 'drop-shadow(0 0 10px #ef4444)' }}
+          />
+        </div>
         <h2
           style={{
             color: '#ef4444',
@@ -38,7 +47,7 @@ export default function ErrorPage({
               '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 3px 0 #000',
           }}
         >
-          ⚔️ Combat Anomaly Detected ⚔️
+          Combat Anomaly Detected
         </h2>
         <p
           style={{

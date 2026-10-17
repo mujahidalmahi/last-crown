@@ -1,6 +1,8 @@
 <div align="center">
 
-# ⚔️ Last-Crown
+<img src="apps/web/public/icon.png" alt="Last-Crown Logo" width="128" height="128" style="image-rendering: pixelated;" />
+
+# Last-Crown
 
 ### _"The winner takes it all"_
 
