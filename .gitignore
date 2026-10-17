@@ -26,6 +26,7 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+scratch/
 
 # Logs
 npm-debug.log*

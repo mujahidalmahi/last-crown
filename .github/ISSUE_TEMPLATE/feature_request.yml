@@ -1,0 +1,49 @@
+name: Feature Proposal
+description: Propose a new feature, warrior preset, combat mechanic, or optimization
+title: "[Feature]: "
+labels: ["enhancement", "proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have an idea to make LAST CROWN even better? Let us know!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement or Opportunity
+      description: Is your feature request related to a problem or limitation?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution or Design
+      description: Describe the solution you'd like to see implemented.
+      placeholder: "Add a new warrior archetype with..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: A clear and concise description of any alternative solutions or features you've considered.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area of Impact
+      options:
+        - "Gameplay / Combat Mechanics"
+        - "Multiplayer / Netcode"
+        - "Sound / Music / Audio FX"
+        - "Mobile / Touch Experience"
+        - "Visuals / Retro Aesthetic"
+        - "Developer Experience / Tooling"
+    validations:
+      required: true

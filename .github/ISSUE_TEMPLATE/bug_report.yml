@@ -1,0 +1,88 @@
+name: Bug Report
+description: Report an issue or unexpected behavior in LAST CROWN
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please provide as much context as possible to help us reproduce and resolve it quickly.
+
+  - type: input
+    id: version
+    attributes:
+      label: Game / Package Version or Git Commit
+      description: What version or git commit SHA are you running?
+      placeholder: "e.g. 0.1.0 or commit f79bd98"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the system is encountering the issue?
+      options:
+        - "Singleplayer (Offline / AI Bot)"
+        - "Local 2-Player (Dual Keyboard / Gamepad)"
+        - "Online Multiplayer (Colyseus BattleRoom)"
+        - "Mobile Touch Controls & Orientation"
+        - "Companion Phone Controller (QR Code)"
+        - "WebRTC Voice Chat"
+        - "Audio Synthesis / SFX"
+        - "Combat Math & State Machine"
+        - "Web Portal / UI / Menus"
+        - "Other"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser & Operating System
+      options:
+        - "Chrome / Chromium (Windows / macOS / Linux)"
+        - "Firefox (Windows / macOS / Linux)"
+        - "Safari (macOS / iOS)"
+        - "Chrome / Brave (Android)"
+        - "Edge (Windows)"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the Bug
+      description: A clear and concise description of what the bug is.
+      placeholder: "When performing an aerial strike while..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps To Reproduce
+      description: Detailed steps to reproduce the behavior.
+      value: |
+        1. Go to '...'
+        2. Select '...'
+        3. Press '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Console Logs / Screenshots
+      description: Paste any browser developer console logs, server terminal output, or paste links/images.
+      render: shell

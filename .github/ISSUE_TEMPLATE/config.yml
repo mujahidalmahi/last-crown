@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security Vulnerabilities
+    url: https://github.com/mujahidalmahi/last-crown/security/advisories/new
+    about: Please report security vulnerabilities privately according to our security policy.
+  - name: Community Discussions & Questions
+    url: https://github.com/mujahidalmahi/last-crown/discussions
+    about: Ask questions, discuss tactics, and share gameplay strategies with the community.
