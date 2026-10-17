@@ -21,6 +21,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
     light: boolean;
     heavy: boolean;
     thrust: boolean;
+    sweep: boolean;
     block: boolean;
     parry: boolean;
     dash: boolean;
@@ -28,6 +29,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
     light: false,
     heavy: false,
     thrust: false,
+    sweep: false,
     block: false,
     parry: false,
     dash: false,
@@ -72,6 +74,100 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
       TouchInputBridge.setDirection({ up, down, left, right });
     },
     []
+  );
+
+  // Directional Button Actions: Left & Right
+  const handleLeftDown = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(activeDirections.up, activeDirections.down, true, false);
+      triggerHaptic(8);
+    },
+    [activeDirections, updateDirectionState, triggerHaptic]
+  );
+
+  const handleLeftUp = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(
+        activeDirections.up,
+        activeDirections.down,
+        false,
+        activeDirections.right
+      );
+    },
+    [activeDirections, updateDirectionState]
+  );
+
+  const handleRightDown = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(activeDirections.up, activeDirections.down, false, true);
+      triggerHaptic(8);
+    },
+    [activeDirections, updateDirectionState, triggerHaptic]
+  );
+
+  const handleRightUp = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(
+        activeDirections.up,
+        activeDirections.down,
+        activeDirections.left,
+        false
+      );
+    },
+    [activeDirections, updateDirectionState]
+  );
+
+  const handleJumpDown = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(true, false, activeDirections.left, activeDirections.right);
+      triggerHaptic(8);
+    },
+    [activeDirections, updateDirectionState, triggerHaptic]
+  );
+
+  const handleJumpUp = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(
+        false,
+        activeDirections.down,
+        activeDirections.left,
+        activeDirections.right
+      );
+    },
+    [activeDirections, updateDirectionState]
+  );
+
+  const handleCrouchDown = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(
+        activeDirections.up,
+        true,
+        activeDirections.left,
+        activeDirections.right
+      );
+      triggerHaptic(8);
+    },
+    [activeDirections, updateDirectionState, triggerHaptic]
+  );
+
+  const handleCrouchUp = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      updateDirectionState(
+        activeDirections.up,
+        false,
+        activeDirections.left,
+        activeDirections.right
+      );
+    },
+    [activeDirections, updateDirectionState]
   );
 
   // D-Pad Touch/Pointer coordinate resolver for smooth 360 thumb gliding
@@ -135,7 +231,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
     }
   };
 
-  // Tactical Dash Trigger
+  // Defensive Modes: Dash, Block, Parry
   const handleDashDown = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setActiveActions(prev => ({ ...prev, dash: true }));
@@ -147,7 +243,30 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
     setActiveActions(prev => ({ ...prev, dash: false }));
   };
 
-  // Combat Actions
+  const handleBlockDown = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setActiveActions(prev => ({ ...prev, block: true }));
+    TouchInputBridge.setBlock(true);
+    triggerHaptic(10);
+  };
+  const handleBlockUp = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setActiveActions(prev => ({ ...prev, block: false }));
+    TouchInputBridge.setBlock(false);
+  };
+
+  const handleParryDown = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setActiveActions(prev => ({ ...prev, parry: true }));
+    TouchInputBridge.triggerParry();
+    triggerHaptic(16);
+  };
+  const handleParryUp = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setActiveActions(prev => ({ ...prev, parry: false }));
+  };
+
+  // Attacking Moves: Light, Heavy, Thrust, Sweep
   const handleLightAttackDown = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setActiveActions(prev => ({ ...prev, light: true }));
@@ -181,30 +300,18 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
     setActiveActions(prev => ({ ...prev, thrust: false }));
   };
 
-  const handleBlockDown = (e: React.SyntheticEvent) => {
+  const handleSweepDown = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setActiveActions(prev => ({ ...prev, block: true }));
-    TouchInputBridge.setBlock(true);
-    triggerHaptic(10);
+    setActiveActions(prev => ({ ...prev, sweep: true }));
+    TouchInputBridge.triggerSweep();
+    triggerHaptic(15);
   };
-  const handleBlockUp = (e: React.SyntheticEvent) => {
+  const handleSweepUp = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setActiveActions(prev => ({ ...prev, block: false }));
-    TouchInputBridge.setBlock(false);
-  };
-
-  const handleParryDown = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setActiveActions(prev => ({ ...prev, parry: true }));
-    TouchInputBridge.triggerParry();
-    triggerHaptic(16);
-  };
-  const handleParryUp = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setActiveActions(prev => ({ ...prev, parry: false }));
+    setActiveActions(prev => ({ ...prev, sweep: false }));
   };
 
-  // On desktop screens: Return null to guarantee 0 changes to desktop layout or DOM!
+  // On desktop fine-pointer screens: Return null to guarantee 0 changes to desktop layout or DOM!
   if (!isTouchDevice) {
     return null;
   }
@@ -219,27 +326,50 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
       }}
     >
       {/* =========================================================================
-          LEFT THUMB ZONE: Directional D-Pad & Quick Dash
+          LEFT ZONE: Movement Deck (Left, Right, D-Pad, Jump, Crouch)
           ========================================================================= */}
       <div className={styles.leftThumbZone}>
-        {/* Quick Dash Tactical Button */}
-        <button
-          type="button"
-          className={`${styles.dashButton} ${activeActions.dash ? styles.active : ''}`}
-          onTouchStart={handleDashDown}
-          onTouchEnd={handleDashUp}
-          onTouchCancel={handleDashUp}
-          onPointerDown={handleDashDown}
-          onPointerUp={handleDashUp}
-          onPointerCancel={handleDashUp}
-          aria-label="Tactical Dash"
-          title="Dash [C / E]"
-        >
-          <span className={styles.dashIcon}>💨</span>
-          <span className={styles.dashLabel}>DASH</span>
-        </button>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionIcon}>🕹️</span>
+          <span className={styles.sectionTitle}>MOVEMENT</span>
+        </div>
 
-        {/* Tactical Cross D-Pad */}
+        {/* Dedicated LEFT & RIGHT Directional Quick Bar */}
+        <div className={styles.horizontalMoveBar} role="group" aria-label="Horizontal Movement">
+          <button
+            type="button"
+            className={`${styles.moveBtn} ${styles.moveBtnLeft} ${activeDirections.left ? styles.active : ''}`}
+            onTouchStart={handleLeftDown}
+            onTouchEnd={handleLeftUp}
+            onTouchCancel={handleLeftUp}
+            onPointerDown={handleLeftDown}
+            onPointerUp={handleLeftUp}
+            onPointerCancel={handleLeftUp}
+            aria-label="Step Left"
+            title="Move Left [A / ◀]"
+          >
+            <span className={styles.moveBtnArrow}>◀</span>
+            <span className={styles.moveBtnText}>LEFT</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.moveBtn} ${styles.moveBtnRight} ${activeDirections.right ? styles.active : ''}`}
+            onTouchStart={handleRightDown}
+            onTouchEnd={handleRightUp}
+            onTouchCancel={handleRightUp}
+            onPointerDown={handleRightDown}
+            onPointerUp={handleRightUp}
+            onPointerCancel={handleRightUp}
+            aria-label="Step Right"
+            title="Move Right [D / ▶]"
+          >
+            <span className={styles.moveBtnText}>RIGHT</span>
+            <span className={styles.moveBtnArrow}>▶</span>
+          </button>
+        </div>
+
+        {/* Tactical Cross D-Pad with Jump & Crouch */}
         <div
           ref={dpadRef}
           className={styles.dpadContainer}
@@ -256,20 +386,12 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
           <button
             type="button"
             className={`${styles.dpadDir} ${styles.dpadUp} ${activeDirections.up ? styles.active : ''}`}
-            onTouchStart={e => {
-              e.preventDefault();
-              updateDirectionState(true, false, activeDirections.left, activeDirections.right);
-              triggerHaptic(8);
-            }}
-            onTouchEnd={e => {
-              e.preventDefault();
-              updateDirectionState(
-                false,
-                activeDirections.down,
-                activeDirections.left,
-                activeDirections.right
-              );
-            }}
+            onTouchStart={handleJumpDown}
+            onTouchEnd={handleJumpUp}
+            onTouchCancel={handleJumpUp}
+            onPointerDown={handleJumpDown}
+            onPointerUp={handleJumpUp}
+            onPointerCancel={handleJumpUp}
             aria-label="Jump / Up"
           >
             <span className={styles.dirArrow}>▲</span>
@@ -279,26 +401,18 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
           <button
             type="button"
             className={`${styles.dpadDir} ${styles.dpadLeft} ${activeDirections.left ? styles.active : ''}`}
-            onTouchStart={e => {
-              e.preventDefault();
-              updateDirectionState(activeDirections.up, activeDirections.down, true, false);
-              triggerHaptic(8);
-            }}
-            onTouchEnd={e => {
-              e.preventDefault();
-              updateDirectionState(
-                activeDirections.up,
-                activeDirections.down,
-                false,
-                activeDirections.right
-              );
-            }}
+            onTouchStart={handleLeftDown}
+            onTouchEnd={handleLeftUp}
+            onTouchCancel={handleLeftUp}
+            onPointerDown={handleLeftDown}
+            onPointerUp={handleLeftUp}
+            onPointerCancel={handleLeftUp}
             aria-label="Move Left"
           >
             <span className={styles.dirArrow}>◀</span>
           </button>
 
-          {/* Center Crown Embellishment */}
+          {/* Center Crown Emblem */}
           <div className={styles.dpadCenter} aria-hidden="true">
             👑
           </div>
@@ -307,20 +421,12 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
           <button
             type="button"
             className={`${styles.dpadDir} ${styles.dpadRight} ${activeDirections.right ? styles.active : ''}`}
-            onTouchStart={e => {
-              e.preventDefault();
-              updateDirectionState(activeDirections.up, activeDirections.down, false, true);
-              triggerHaptic(8);
-            }}
-            onTouchEnd={e => {
-              e.preventDefault();
-              updateDirectionState(
-                activeDirections.up,
-                activeDirections.down,
-                activeDirections.left,
-                false
-              );
-            }}
+            onTouchStart={handleRightDown}
+            onTouchEnd={handleRightUp}
+            onTouchCancel={handleRightUp}
+            onPointerDown={handleRightDown}
+            onPointerUp={handleRightUp}
+            onPointerCancel={handleRightUp}
             aria-label="Move Right"
           >
             <span className={styles.dirArrow}>▶</span>
@@ -330,25 +436,12 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
           <button
             type="button"
             className={`${styles.dpadDir} ${styles.dpadDown} ${activeDirections.down ? styles.active : ''}`}
-            onTouchStart={e => {
-              e.preventDefault();
-              updateDirectionState(
-                activeDirections.up,
-                true,
-                activeDirections.left,
-                activeDirections.right
-              );
-              triggerHaptic(8);
-            }}
-            onTouchEnd={e => {
-              e.preventDefault();
-              updateDirectionState(
-                activeDirections.up,
-                false,
-                activeDirections.left,
-                activeDirections.right
-              );
-            }}
+            onTouchStart={handleCrouchDown}
+            onTouchEnd={handleCrouchUp}
+            onTouchCancel={handleCrouchUp}
+            onPointerDown={handleCrouchDown}
+            onPointerUp={handleCrouchUp}
+            onPointerCancel={handleCrouchUp}
             aria-label="Crouch / Down"
           >
             <span className={styles.dirArrow}>▼</span>
@@ -357,10 +450,81 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
       </div>
 
       {/* =========================================================================
-          RIGHT THUMB ZONE: Combat Action Diamond / Arc
+          CENTER / FLANK ZONE: Defensive Modes (Block, Parry, Evade Dash)
+          ========================================================================= */}
+      <div className={styles.defenseZone} role="group" aria-label="Defensive Modes">
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionIcon}>🛡️</span>
+          <span className={styles.sectionTitle}>DEFENSE</span>
+        </div>
+
+        <div className={styles.defenseCluster}>
+          {/* 1. Hold Guard / Block (Holdable Shield) */}
+          <button
+            type="button"
+            className={`${styles.defenseBtn} ${styles.btnBlock} ${activeActions.block ? styles.active : ''}`}
+            onTouchStart={handleBlockDown}
+            onTouchEnd={handleBlockUp}
+            onTouchCancel={handleBlockUp}
+            onPointerDown={handleBlockDown}
+            onPointerUp={handleBlockUp}
+            onPointerCancel={handleBlockUp}
+            aria-label="Hold Guard / Block"
+            title="Hold to Block [Shift / I]"
+          >
+            <span className={styles.defenseIcon}>🛡️</span>
+            <span className={styles.defenseLabel}>BLOCK</span>
+            <span className={styles.defenseSub}>HOLD</span>
+          </button>
+
+          {/* 2. Parry & Riposte (Counter Deflection) */}
+          <button
+            type="button"
+            className={`${styles.defenseBtn} ${styles.btnParry} ${activeActions.parry ? styles.active : ''}`}
+            onTouchStart={handleParryDown}
+            onTouchEnd={handleParryUp}
+            onTouchCancel={handleParryUp}
+            onPointerDown={handleParryDown}
+            onPointerUp={handleParryUp}
+            onPointerCancel={handleParryUp}
+            aria-label="Parry & Riposte"
+            title="Parry Deflection [Alt / O]"
+          >
+            <span className={styles.defenseIcon}>✨</span>
+            <span className={styles.defenseLabel}>PARRY</span>
+            <span className={styles.defenseSub}>COUNTER</span>
+          </button>
+
+          {/* 3. Tactical Evade Dash */}
+          <button
+            type="button"
+            className={`${styles.defenseBtn} ${styles.btnDash} ${activeActions.dash ? styles.active : ''}`}
+            onTouchStart={handleDashDown}
+            onTouchEnd={handleDashUp}
+            onTouchCancel={handleDashUp}
+            onPointerDown={handleDashDown}
+            onPointerUp={handleDashUp}
+            onPointerCancel={handleDashUp}
+            aria-label="Tactical Dash"
+            title="Evasive Dash [C / E]"
+          >
+            <span className={styles.defenseIcon}>💨</span>
+            <span className={styles.defenseLabel}>DASH</span>
+            <span className={styles.defenseSub}>EVADE</span>
+          </button>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          RIGHT ZONE: Attacking Moves (Light, Heavy, Thrust, Sweep)
           ========================================================================= */}
       <div className={styles.rightThumbZone}>
-        <div className={styles.actionCluster} role="group" aria-label="Combat Actions">
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionIcon}>⚔️</span>
+          <span className={styles.sectionTitle}>ATTACK MOVES</span>
+        </div>
+
+        <div className={styles.attackCluster} role="group" aria-label="Attacking Moves">
           {/* 1. Heavy Strike (Top) */}
           <button
             type="button"
@@ -395,41 +559,24 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             <span className={styles.btnLabel}>THRUST</span>
           </button>
 
-          {/* 3. Block / Guard (Left - Holdable) */}
+          {/* 3. Low Sweep (Left) */}
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.btnBlock} ${activeActions.block ? styles.active : ''}`}
-            onTouchStart={handleBlockDown}
-            onTouchEnd={handleBlockUp}
-            onTouchCancel={handleBlockUp}
-            onPointerDown={handleBlockDown}
-            onPointerUp={handleBlockUp}
-            onPointerCancel={handleBlockUp}
-            aria-label="Hold Guard / Block"
-            title="Block [Shift / I]"
+            className={`${styles.actionBtn} ${styles.btnSweep} ${activeActions.sweep ? styles.active : ''}`}
+            onTouchStart={handleSweepDown}
+            onTouchEnd={handleSweepUp}
+            onTouchCancel={handleSweepUp}
+            onPointerDown={handleSweepDown}
+            onPointerUp={handleSweepUp}
+            onPointerCancel={handleSweepUp}
+            aria-label="Low Sweep Trip"
+            title="Low Sweep [Down + Attack]"
           >
-            <span className={styles.btnIcon}>🛡️</span>
-            <span className={styles.btnLabel}>BLOCK</span>
+            <span className={styles.btnIcon}>💥</span>
+            <span className={styles.btnLabel}>SWEEP</span>
           </button>
 
-          {/* 4. Parry & Riposte (Bottom-Left) */}
-          <button
-            type="button"
-            className={`${styles.actionBtn} ${styles.btnParry} ${activeActions.parry ? styles.active : ''}`}
-            onTouchStart={handleParryDown}
-            onTouchEnd={handleParryUp}
-            onTouchCancel={handleParryUp}
-            onPointerDown={handleParryDown}
-            onPointerUp={handleParryUp}
-            onPointerCancel={handleParryUp}
-            aria-label="Parry & Riposte"
-            title="Parry [Alt / O]"
-          >
-            <span className={styles.btnIcon}>✨</span>
-            <span className={styles.btnLabel}>PARRY</span>
-          </button>
-
-          {/* 5. Light Slash (Center/Bottom - Largest Primary) */}
+          {/* 4. Light Slash (Center/Bottom - Largest Primary) */}
           <button
             type="button"
             className={`${styles.actionBtn} ${styles.btnLight} ${activeActions.light ? styles.active : ''}`}

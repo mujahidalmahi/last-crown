@@ -9,6 +9,7 @@ export interface TouchInputState {
   lightAttackTrigger: boolean;
   heavyAttackTrigger: boolean;
   thrustTrigger: boolean;
+  sweepTrigger: boolean;
   parryTrigger: boolean;
 }
 
@@ -24,6 +25,7 @@ class TouchInputBridgeClass {
     lightAttackTrigger: false,
     heavyAttackTrigger: false,
     thrustTrigger: false,
+    sweepTrigger: false,
     parryTrigger: false,
   };
 
@@ -67,6 +69,10 @@ class TouchInputBridgeClass {
     this.state.thrustTrigger = true;
   }
 
+  public triggerSweep(): void {
+    this.state.sweepTrigger = true;
+  }
+
   public triggerParry(): void {
     this.state.parryTrigger = true;
   }
@@ -84,6 +90,7 @@ class TouchInputBridgeClass {
     this.state.lightAttackTrigger = false;
     this.state.heavyAttackTrigger = false;
     this.state.thrustTrigger = false;
+    this.state.sweepTrigger = false;
     this.state.parryTrigger = false;
 
     return snapshot;
@@ -101,6 +108,7 @@ class TouchInputBridgeClass {
       lightAttackTrigger: false,
       heavyAttackTrigger: false,
       thrustTrigger: false,
+      sweepTrigger: false,
       parryTrigger: false,
     };
   }

@@ -47,13 +47,26 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   const [isPaused, setIsPaused] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
   const [showRotateTip, setShowRotateTip] = useState(true);
+  const [tiltAngle, setTiltAngle] = useState<0 | 90 | -90>(0);
 
   useEffect(() => {
     const handleOrientation = () => {
       if (typeof window === 'undefined') return;
-      const portrait = window.innerHeight > window.innerWidth && window.innerWidth <= 768;
+      const isTouchOrMobile =
+        'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
+      const portrait = window.innerHeight > window.innerWidth && isTouchOrMobile;
       setIsPortrait(portrait);
-      bootstrapRef.current?.refreshScale();
+
+      // Auto make the screen 90 degree tilted during fights when device is held in portrait
+      if (portrait) {
+        setTiltAngle(prev => (prev === 0 ? 90 : prev));
+      } else {
+        setTiltAngle(0);
+      }
+
+      setTimeout(() => {
+        bootstrapRef.current?.refreshScale();
+      }, 100);
     };
 
     handleOrientation();
@@ -63,6 +76,17 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       window.removeEventListener('resize', handleOrientation);
       window.removeEventListener('orientationchange', handleOrientation);
     };
+  }, []);
+
+  const toggleTilt = useCallback(() => {
+    setTiltAngle(prev => {
+      if (prev === 90) return -90;
+      if (prev === -90) return 0;
+      return 90;
+    });
+    setTimeout(() => {
+      bootstrapRef.current?.refreshScale();
+    }, 150);
   }, []);
 
   useEffect(() => {
@@ -265,24 +289,28 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     };
   }, [mode, playerPreset, opponentPreset, arenaId, colyseusRoom]);
 
+  const isTilted = tiltAngle !== 0 && isPortrait;
+
   return (
     <div
       ref={fullscreenContainerRef}
       id="last-crown-fullscreen-viewport"
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        width: '100vw',
-        height: '100vh',
+        top: isTilted ? '50%' : 0,
+        left: isTilted ? '50%' : 0,
+        right: isTilted ? undefined : 0,
+        bottom: isTilted ? undefined : 0,
+        width: isTilted ? '100vh' : '100vw',
+        height: isTilted ? '100vw' : '100vh',
+        transform: isTilted ? `translate(-50%, -50%) rotate(${tiltAngle}deg)` : 'none',
+        transformOrigin: 'center center',
         backgroundColor: '#050810',
         zIndex: 9999,
         display: 'flex',
-        flexDirection: isPortrait ? 'column' : 'row',
+        flexDirection: isPortrait && !isTilted ? 'column' : 'row',
         alignItems: 'center',
-        justifyContent: isPortrait ? 'flex-start' : 'center',
+        justifyContent: isPortrait && !isTilted ? 'flex-start' : 'center',
         overflow: 'hidden',
         userSelect: 'none',
       }}
@@ -291,8 +319,11 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       <div
         style={{
           position: 'relative',
-          width: isPortrait ? '100vw' : 'min(100vw, calc(100vh * (16 / 9)))',
-          height: isPortrait ? 'calc(100vw * (9 / 16))' : 'min(100vh, calc(100vw * (9 / 16)))',
+          width: isPortrait && !isTilted ? '100vw' : 'min(100%, calc(100% * (16 / 9)))',
+          height:
+            isPortrait && !isTilted ? 'calc(100vw * (9 / 16))' : 'min(100%, calc(100% * (9 / 16)))',
+          maxWidth: '100%',
+          maxHeight: '100%',
           aspectRatio: '16 / 9',
           display: 'flex',
           alignItems: 'center',
@@ -318,6 +349,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           onToggleFullscreen={toggleFullscreen}
           isPaused={isPaused}
           onTogglePause={handleTogglePause}
+          tiltAngle={tiltAngle}
+          onToggleTilt={isPortrait ? toggleTilt : undefined}
         />
 
         {/* Floating prompt if browser was opened in windowed mode */}
@@ -364,10 +397,44 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           }}
           aria-hidden="true"
         />
+
+        {/* Overlay touch controls when in landscape or auto-tilted 90° */}
+        {(!isPortrait || isTilted) && <MobileGameControls isPortrait={false} />}
       </div>
 
-      {/* Portrait Mode Console Lower Deck or Landscape Fullscreen Controls */}
-      {isPortrait ? (
+      {/* Floating 90° Tilt Quick Button for Mobile/Tablet */}
+      {isPortrait && (
+        <button
+          type="button"
+          onClick={toggleTilt}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '12px',
+            zIndex: 350,
+            backgroundColor: 'rgba(15, 23, 42, 0.88)',
+            color: '#f1c40f',
+            border: '1.5px solid rgba(212, 175, 55, 0.6)',
+            borderRadius: '16px',
+            padding: '4px 10px',
+            fontSize: '0.62rem',
+            fontFamily: "'Press Start 2P', monospace",
+            cursor: 'pointer',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.85)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            pointerEvents: 'auto',
+          }}
+          title="Toggle 90° Screen Tilt"
+        >
+          <span>🔄</span>
+          <span>{isTilted ? `TILT ${tiltAngle > 0 ? '+90°' : '-90°'}` : 'TILT OFF'}</span>
+        </button>
+      )}
+
+      {/* Portrait Mode Console Lower Deck (Only when user explicitly turns off 90° tilt) */}
+      {isPortrait && !isTilted && (
         <div
           style={{
             display: 'flex',
@@ -394,7 +461,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
                 letterSpacing: '0.04em',
               }}
             >
-              <span>📱 Tip: Rotate to landscape for full screen!</span>
+              <span>📱 Tip: Tap TILT +90° or turn phone sideways!</span>
               <button
                 type="button"
                 onClick={() => setShowRotateTip(false)}
@@ -413,8 +480,6 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           )}
           <MobileGameControls isPortrait={true} />
         </div>
-      ) : (
-        <MobileGameControls isPortrait={false} />
       )}
     </div>
   );

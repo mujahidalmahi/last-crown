@@ -198,6 +198,9 @@ export class KeyboardInputAdapter {
       attack = true;
       attackType = 'thrust';
       this.thrustBuffer = false;
+    } else if (touch.sweepTrigger) {
+      attack = true;
+      attackType = 'sweep';
     } else if (this.lightAttackBuffer || touch.lightAttackTrigger) {
       attack = true;
       if (dash) {
