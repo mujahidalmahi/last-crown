@@ -1,0 +1,228 @@
+.pageWrapper {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #0a0a0f;
+}
+
+.backgroundLayer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.backgroundLayer.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.cover1Image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/backgrounds/cover1.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.cover2Image {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/backgrounds/cover.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.coverContainer {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 2.5vh, 20px);
+  width: 100%;
+  max-width: 480px;
+}
+
+.mainButton {
+  width: min(320px, 84vw, calc(25vh * (804 / 454)));
+}
+
+.modeButton {
+  width: min(320px, 84vw, calc(25vh * (804 / 454)));
+}
+
+.backButton {
+  width: min(220px, 65vw, calc(16vh * (804 / 454)));
+  margin-top: 6px;
+  align-self: center;
+}
+
+.transitionWrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 15;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.transitionLayer {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 100%;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+.cover1Layer {
+  left: 0;
+}
+
+.cover2Layer {
+  left: 0;
+}
+
+.slideOutLeft {
+  animation: slideOutLeft 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.slideInFromRight {
+  animation: slideInFromRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.slideOutToRight {
+  animation: slideOutToRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.slideInRight {
+  animation: slideInRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideOutLeft {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@keyframes slideInFromRight {
+  0% {
+    transform: translate3d(100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideOutToRight {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(100%, 0, 0);
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slideOutLeft,
+  .slideInFromRight,
+  .slideOutToRight,
+  .slideInRight {
+    animation: none !important;
+  }
+  .transitionWrapper {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .coverContainer {
+    padding: clamp(10px, 3vh, 20px) 16px;
+  }
+  .mainButton {
+    min-width: 240px;
+    font-size: 0.7rem;
+  }
+  .modeButton {
+    min-width: 250px;
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .coverContainer {
+    padding: 10px 12px;
+  }
+  .mainButton {
+    min-width: 200px;
+    width: 88vw;
+  }
+  .modeButton {
+    min-width: 210px;
+    width: 90vw;
+  }
+  .backButton {
+    min-width: 160px;
+  }
+}
+
+/* Landscape mobile phone viewports */
+@media (max-height: 480px) and (orientation: landscape) {
+  .buttonGroup {
+    gap: 6px;
+  }
+  .mainButton {
+    width: min(240px, 60vw, calc(28vh * (804 / 454)));
+  }
+  .modeButton {
+    width: min(240px, 60vw, calc(28vh * (804 / 454)));
+  }
+  .backButton {
+    width: min(170px, 45vw, calc(20vh * (804 / 454)));
+    margin-top: 2px;
+  }
+}
+
+.fadeOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: #050810;
+  z-index: 10000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fadeOverlayActive {
+  opacity: 1;
+  pointer-events: auto;
+}

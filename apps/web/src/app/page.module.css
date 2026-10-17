@@ -1,228 +1,1002 @@
-.pageWrapper {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  background: #0a0a0f;
+/* ==========================================================================
+   Last-Crown Retro Landing Page Styles
+   Theme: 16-Bit Medieval Gothic Arcade (No AI Gimmicks)
+   ========================================================================== */
+
+.landingWrapper {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #000000;
+  color: #cbd5e1;
+  font-family: 'Press Start 2P', monospace;
+  position: relative;
+  overflow-x: hidden;
 }
 
-.backgroundLayer {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
+/* --------------------------------------------------------------------------
+   Sticky Retro Navigation Bar
+   -------------------------------------------------------------------------- */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(8px);
+  border-bottom: 2px solid #1c1c24;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.95);
+  padding: 12px 24px;
 }
 
-.backgroundLayer.visible {
-  opacity: 1;
-  pointer-events: auto;
+.navContainer {
+  max-width: 1300px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.cover1Image {
-  position: absolute;
-  inset: 0;
-  background-image: url('/assets/backgrounds/cover1.jpg');
+.brandLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+
+.brandLogo {
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.6));
+  transition: transform 0.15s ease;
+}
+
+.brandLink:hover .brandLogo {
+  transform: scale(1.06);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandTitle {
+  font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+  font-weight: 900;
+  color: #f1c40f;
+  letter-spacing: 0.12em;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 3px 0 #000;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+.brandSubtitle {
+  font-size: 0.5rem;
+  color: #94a3b8;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.navLink {
+  font-size: 0.58rem;
+  color: #cbd5e1;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 10px;
+  border-radius: 2px;
+  transition: color 0.12s ease;
+}
+
+.navLink:hover {
+  color: #f1c40f;
+}
+
+.navActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navGithubBtn {
+  font-size: 0.58rem;
+  background: #141419;
+  color: #cbd5e1;
+  font-weight: 900;
+  padding: 8px 14px;
+  border: 2px solid #282832;
+  border-radius: 3px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  box-shadow: 0 3px 0 #000;
+  transition: all 0.12s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.navGithubBtn:hover {
+  background: #1c1c24;
+  border-color: #f1c40f;
+  color: #f1c40f;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #000;
+}
+
+.navGithubBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #000;
+}
+
+.githubIcon {
+  width: 14px;
+  height: 14px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.navPlayBtn {
+  font-size: 0.62rem;
+  background: linear-gradient(180deg, #f1c40f 0%, #b8860b 100%);
+  color: #000000;
+  font-weight: 900;
+  padding: 8px 16px;
+  border: 2px solid #fff;
+  border-radius: 3px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 3px 0 #5c3818;
+  transition: all 0.12s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.navPlayBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #5c3818;
+}
+
+.navPlayBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #5c3818;
+}
+
+/* --------------------------------------------------------------------------
+   Hero Section (Arcade Title Screen)
+   -------------------------------------------------------------------------- */
+.heroSection {
+  position: relative;
+  min-height: 82vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 20px 70px;
+  box-sizing: border-box;
+  background-image: radial-gradient(
+      circle at center,
+      rgba(0, 0, 0, 0.75) 0%,
+      rgba(0, 0, 0, 0.98) 85%
+    ),
+    url('/assets/backgrounds/cover.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  border-bottom: 2px solid #1c1c24;
 }
 
-.cover2Image {
-  position: absolute;
-  inset: 0;
-  background-image: url('/assets/backgrounds/cover.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-
-.coverContainer {
+.heroContent {
   position: relative;
   z-index: 10;
-  width: 100%;
-  height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 20px;
+}
+
+.heroLogoContainer {
+  margin: 10px 0 0;
+  filter: drop-shadow(0 0 16px rgba(241, 196, 15, 0.6));
+}
+
+.heroTitle {
+  font-size: clamp(2rem, 5.5vw, 3.8rem);
+  font-weight: 900;
+  color: #f1c40f;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow:
+    -3px -3px 0 #000,
+    3px -3px 0 #000,
+    -3px 3px 0 #000,
+    3px 3px 0 #000,
+    0 5px 0 #000;
+  line-height: 1.15;
+}
+
+.heroSubtitle {
+  font-size: clamp(0.75rem, 1.8vw, 1.25rem);
+  color: #e2e8f0;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin: 0;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 3px 0 #000;
+}
+
+.heroDescription {
+  max-width: 720px;
+  font-size: clamp(0.6rem, 1.1vw, 0.72rem);
+  line-height: 1.9;
+  color: #94a3b8;
+  letter-spacing: 0.04em;
+  margin: 6px 0 16px;
+}
+
+.heroCtaGroup {
+  display: flex;
+  gap: 16px;
+  align-items: center;
   justify-content: center;
-  padding: 24px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.heroPrimaryBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+  font-weight: 900;
+  background: linear-gradient(180deg, #ffd700 0%, #b8860b 100%);
+  color: #000000;
+  padding: 16px 28px;
+  border: 3px solid #fff;
+  border-radius: 4px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 5px 0 #5c3818;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.heroPrimaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 #5c3818;
+}
+
+.heroPrimaryBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #5c3818;
+}
+
+.heroSecondaryBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.62rem, 1.1vw, 0.78rem);
+  background: #121217;
+  color: #cbd5e1;
+  padding: 15px 24px;
+  border: 2px solid #272730;
+  border-radius: 4px;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 0 #000;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heroSecondaryBtn:hover {
+  background: #1a1a22;
+  border-color: #f1c40f;
+  color: #f1c40f;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #000;
+}
+
+/* --------------------------------------------------------------------------
+   Shared Section Layout & Headers
+   -------------------------------------------------------------------------- */
+.section {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 70px 20px;
   box-sizing: border-box;
 }
 
-.buttonGroup {
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 44px;
+}
+
+.sectionTag {
+  font-size: 0.58rem;
+  color: #f1c40f;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  display: inline-block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.sectionTitle {
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 0 0 10px;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 3px 0 #000;
+  line-height: 1.25;
+}
+
+.sectionSubtitle {
+  font-size: clamp(0.55rem, 0.95vw, 0.7rem);
+  color: #94a3b8;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+/* --------------------------------------------------------------------------
+   Game Modes Arcade Grid (#modes)
+   -------------------------------------------------------------------------- */
+.modesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+  gap: 22px;
+}
+
+.modeCard {
+  background: #0e0e13;
+  border: 2px solid #202028;
+  border-radius: 4px;
+  padding: 26px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 0 #000;
+  transition: all 0.15s ease;
+}
+
+.modeCard:hover {
+  transform: translateY(-4px);
+  border-color: #f1c40f;
+  box-shadow: 0 8px 0 #000;
+}
+
+.modeBadge {
+  font-size: 0.48rem;
+  color: #f1c40f;
+  background: #181820;
+  border: 1px solid #2a2a35;
+  padding: 4px 8px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-bottom: 12px;
+  letter-spacing: 0.08em;
+}
+
+.modeCardTitle {
+  font-size: 0.85rem;
+  color: #f1c40f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 10px;
+  line-height: 1.3;
+}
+
+.modeCardBody {
+  font-size: 0.56rem;
+  line-height: 1.8;
+  color: #94a3b8;
+  margin-bottom: 18px;
+  flex-grow: 1;
+}
+
+.modeFeaturesList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modeFeatureItem {
+  font-size: 0.52rem;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modeFeatureItem::before {
+  content: '▸';
+  color: #f1c40f;
+}
+
+.modeActionBtn {
+  width: 100%;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 13px;
+  border: 2px solid #f1c40f;
+  background: #141419;
+  color: #f1c40f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-radius: 3px;
+  box-shadow: 0 3px 0 #000;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.modeActionBtn:hover {
+  background: #f1c40f;
+  color: #000000;
+  box-shadow: 0 5px 0 #000;
+  transform: translateY(-2px);
+}
+
+.modeActionBtn:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #000;
+}
+
+/* --------------------------------------------------------------------------
+   Screenshots & Sacred Battlegrounds Gallery (#screenshots)
+   -------------------------------------------------------------------------- */
+.galleryContainer {
+  background: #0c0c0f;
+  border: 2px solid #202028;
+  border-radius: 4px;
+  padding: 22px;
+  box-shadow: 0 6px 0 #000;
+}
+
+.mainStageWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 520px;
+  border: 2px solid #202028;
+  border-radius: 4px;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.mainStageImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+}
+
+.stageInfoOverlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.96) 0%, rgba(0, 0, 0, 0) 100%);
+  padding: 28px 22px 18px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.stageTitle {
+  font-size: clamp(0.85rem, 1.8vw, 1.25rem);
+  color: #f1c40f;
+  margin: 0 0 6px;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 2px 0 #000;
+}
+
+.stageLore {
+  font-size: clamp(0.5rem, 0.9vw, 0.65rem);
+  color: #cbd5e1;
+  max-width: 650px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.stagePlayBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.58rem;
+  background: #f1c40f;
+  color: #000000;
+  border: 2px solid #fff;
+  padding: 10px 18px;
+  border-radius: 3px;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: 900;
+  box-shadow: 0 3px 0 #000;
+  transition: all 0.12s ease;
+}
+
+.stagePlayBtn:hover {
+  background: #fff;
+  color: #000;
+  transform: translateY(-2px);
+}
+
+.thumbnailStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.thumbnailBtn {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border: 2px solid #202028;
+  border-radius: 3px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #000;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.thumbnailBtn:hover {
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+}
+
+.thumbnailBtnActive {
+  border-color: #f1c40f;
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+  transform: translateY(-2px);
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.75;
+  transition: opacity 0.15s;
+}
+
+.thumbnailBtn:hover .thumbnailImage,
+.thumbnailBtnActive .thumbnailImage {
+  opacity: 1;
+}
+
+.thumbnailTag {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.88);
+  font-size: 0.45rem;
+  color: #f1c40f;
+  padding: 4px;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --------------------------------------------------------------------------
+   Combat Mechanics & Systems (#mechanics)
+   -------------------------------------------------------------------------- */
+.mechanicsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 20px;
+}
+
+.mechanicCard {
+  background: #0e0e13;
+  border: 2px solid #202028;
+  border-radius: 4px;
+  padding: 24px 20px;
+  position: relative;
+  box-shadow: 0 4px 0 #000;
+  transition: all 0.15s ease;
+}
+
+.mechanicCard:hover {
+  border-color: #f1c40f;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 0 #000;
+}
+
+.moveKeyBadge {
+  font-size: 0.5rem;
+  background: #181820;
+  color: #f1c40f;
+  border: 1px solid #f1c40f;
+  padding: 4px 8px;
+  border-radius: 2px;
+  display: inline-block;
+  margin-bottom: 12px;
+  letter-spacing: 0.06em;
+}
+
+.mechanicTitle {
+  font-size: 0.75rem;
+  color: #f1c40f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 0 10px;
+  line-height: 1.3;
+}
+
+.mechanicDesc {
+  font-size: 0.55rem;
+  line-height: 1.8;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.moveTip {
+  font-size: 0.48rem;
+  color: #64748b;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed #202028;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* --------------------------------------------------------------------------
+   The Creators Section (#developer)
+   -------------------------------------------------------------------------- */
+.developersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 26px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.devCard {
+  background: #0e0e13;
+  border: 2px solid #202028;
+  border-radius: 4px;
+  padding: 32px 24px;
+  box-shadow: 0 6px 0 #000;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(12px, 2.5vh, 20px);
-  width: 100%;
-  max-width: 480px;
+  text-align: center;
+  transition: all 0.15s ease;
 }
 
-.mainButton {
-  width: min(320px, 84vw, calc(25vh * (804 / 454)));
+.devCard:hover {
+  border-color: #f1c40f;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 #000;
 }
 
-.modeButton {
-  width: min(320px, 84vw, calc(25vh * (804 / 454)));
-}
-
-.backButton {
-  width: min(220px, 65vw, calc(16vh * (804 / 454)));
-  margin-top: 6px;
-  align-self: center;
-}
-
-.transitionWrapper {
-  position: fixed;
-  inset: 0;
-  z-index: 15;
+.devAvatarBox {
+  width: 136px;
+  height: 136px;
+  background: #141419;
+  border: 3.5px solid #f1c40f;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow:
+    0 0 16px rgba(241, 196, 15, 0.4),
+    0 4px 0 #000;
   overflow: hidden;
-  pointer-events: none;
+  position: relative;
 }
 
-.transitionLayer {
-  position: absolute;
-  top: 0;
-  height: 100%;
+.devAvatarImg {
   width: 100%;
-  transform: translate3d(0, 0, 0);
-  backface-visibility: hidden;
-  will-change: transform;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
-.cover1Layer {
-  left: 0;
+.devName {
+  font-size: 0.95rem;
+  color: #f1c40f;
+  text-transform: uppercase;
+  margin: 0 0 6px;
+  letter-spacing: 0.08em;
 }
 
-.cover2Layer {
-  left: 0;
+.devRole {
+  font-size: 0.52rem;
+  color: #38bdf8;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 6px;
 }
 
-.slideOutLeft {
-  animation: slideOutLeft 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.devFocus {
+  font-size: 0.52rem;
+  color: #cbd5e1;
+  letter-spacing: 0.06em;
+  margin: 0 0 16px;
+  font-weight: bold;
 }
 
-.slideInFromRight {
-  animation: slideInFromRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.devBio {
+  font-size: 0.58rem;
+  line-height: 1.85;
+  color: #94a3b8;
+  margin-bottom: 22px;
+  flex-grow: 1;
 }
 
-.slideOutToRight {
-  animation: slideOutToRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.devLinks {
+  display: flex;
+  gap: 12px;
 }
 
-.slideInRight {
-  animation: slideInRight 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.devLinkBtn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  background: #141419;
+  color: #f1c40f;
+  border: 2px solid #f1c40f;
+  padding: 9px 18px;
+  border-radius: 3px;
+  text-decoration: none;
+  text-transform: uppercase;
+  box-shadow: 0 3px 0 #000;
+  transition: all 0.12s ease;
 }
 
-@keyframes slideOutLeft {
-  0% {
-    transform: translate3d(0, 0, 0);
+.devLinkBtn:hover {
+  background: #f1c40f;
+  color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 #000;
+}
+
+/* --------------------------------------------------------------------------
+   Development Journey Timeline (#journey)
+   -------------------------------------------------------------------------- */
+.journeyTimeline {
+  position: relative;
+  max-width: 860px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.journeyTimeline::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 22px;
+  width: 3px;
+  background: #202028;
+}
+
+.timelineItem {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  margin-left: 0;
+}
+
+.timelineSeal {
+  position: relative;
+  z-index: 5;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  background: #141419;
+  border: 2px solid #f1c40f;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-family: 'Press Start 2P', monospace;
+  font-weight: bold;
+  color: #f1c40f;
+  box-shadow: 0 3px 0 #000;
+}
+
+.timelineContent {
+  background: #0e0e13;
+  border: 2px solid #202028;
+  border-radius: 4px;
+  padding: 20px 22px;
+  flex-grow: 1;
+  box-shadow: 0 4px 0 #000;
+  transition: border-color 0.15s ease;
+}
+
+.timelineContent:hover {
+  border-color: #f1c40f;
+}
+
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.timelineTitle {
+  font-size: 0.75rem;
+  color: #f1c40f;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 0.08em;
+}
+
+.timelinePeriod {
+  font-size: 0.48rem;
+  color: #94a3b8;
+  background: #181820;
+  border: 1px solid #2a2a35;
+  padding: 4px 8px;
+  border-radius: 2px;
+}
+
+.timelineBody {
+  font-size: 0.56rem;
+  line-height: 1.8;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Final Challenger Call To Action
+   -------------------------------------------------------------------------- */
+.ctaBanner {
+  background: radial-gradient(circle at center, rgba(14, 14, 18, 0.96) 0%, rgba(0, 0, 0, 0.99) 100%),
+    url('/assets/backgrounds/cover1.jpg');
+  background-size: cover;
+  background-position: center;
+  border-top: 2px solid #1c1c24;
+  border-bottom: 2px solid #1c1c24;
+  padding: 70px 20px;
+  text-align: center;
+}
+
+.ctaContent {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.ctaTitle {
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  color: #f1c40f;
+  text-transform: uppercase;
+  margin: 0;
+  letter-spacing: 0.1em;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 3px 0 #000;
+  line-height: 1.25;
+}
+
+.ctaSubtitle {
+  font-size: clamp(0.55rem, 1vw, 0.72rem);
+  color: #94a3b8;
+  line-height: 1.8;
+  max-width: 600px;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Mobile Responsiveness
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .navbar {
+    padding: 10px 16px;
   }
-  100% {
-    transform: translate3d(-100%, 0, 0);
-  }
-}
-
-@keyframes slideInFromRight {
-  0% {
-    transform: translate3d(100%, 0, 0);
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes slideOutToRight {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(100%, 0, 0);
-  }
-}
-
-@keyframes slideInRight {
-  0% {
-    transform: translate3d(-100%, 0, 0);
-  }
-  100% {
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .slideOutLeft,
-  .slideInFromRight,
-  .slideOutToRight,
-  .slideInRight {
-    animation: none !important;
-  }
-  .transitionWrapper {
+  .navLinks {
     display: none;
+  }
+  .section {
+    padding: 50px 16px;
+  }
+  .heroSection {
+    padding: 40px 16px 55px;
+    min-height: auto;
+  }
+  .journeyTimeline::before {
+    left: 18px;
+  }
+  .timelineSeal {
+    width: 36px;
+    height: 36px;
+    font-size: 0.58rem;
+  }
+  .timelineContent {
+    padding: 16px;
+  }
+  .galleryContainer {
+    padding: 14px;
   }
 }
 
 @media (max-width: 480px) {
-  .coverContainer {
-    padding: clamp(10px, 3vh, 20px) 16px;
+  .heroCtaGroup {
+    flex-direction: column;
+    width: 100%;
   }
-  .mainButton {
-    min-width: 240px;
-    font-size: 0.7rem;
+  .heroPrimaryBtn,
+  .heroSecondaryBtn {
+    width: 100%;
+    justify-content: center;
   }
-  .modeButton {
-    min-width: 250px;
-    font-size: 0.65rem;
+  .stageInfoOverlay {
+    position: static;
+    background: #0c0c0f;
+    padding: 16px;
   }
-}
-
-@media (max-width: 360px) {
-  .coverContainer {
-    padding: 10px 12px;
+  .mainStageWrapper {
+    aspect-ratio: 4 / 3;
   }
-  .mainButton {
-    min-width: 200px;
-    width: 88vw;
-  }
-  .modeButton {
-    min-width: 210px;
-    width: 90vw;
-  }
-  .backButton {
-    min-width: 160px;
-  }
-}
-
-/* Landscape mobile phone viewports */
-@media (max-height: 480px) and (orientation: landscape) {
-  .buttonGroup {
-    gap: 6px;
-  }
-  .mainButton {
-    width: min(240px, 60vw, calc(28vh * (804 / 454)));
-  }
-  .modeButton {
-    width: min(240px, 60vw, calc(28vh * (804 / 454)));
-  }
-  .backButton {
-    width: min(170px, 45vw, calc(20vh * (804 / 454)));
-    margin-top: 2px;
-  }
-}
-
-.fadeOverlay {
-  position: fixed;
-  inset: 0;
-  background-color: #050810;
-  z-index: 10000;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.fadeOverlayActive {
-  opacity: 1;
-  pointer-events: auto;
 }

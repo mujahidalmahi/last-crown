@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import React from 'react';
 import '../styles/globals.css';
-import { Footer } from '../components/layout/Footer';
 import { SkipLink } from '../components/accessibility/SkipLink';
 
 export const metadata: Metadata = {
@@ -96,7 +95,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#07090e',
+  themeColor: '#000000',
 };
 
 const jsonLd = {
@@ -222,7 +221,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         >
           {children}
         </main>
-        <Footer />
       </body>
     </html>
   );

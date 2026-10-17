@@ -65,7 +65,7 @@ export default function ErrorPage({
               display: 'inline-block',
               marginTop: '10px',
               padding: '6px 12px',
-              backgroundColor: '#070a10',
+              backgroundColor: '#0c0c0f',
               border: '2px solid #ef4444',
               borderRadius: '3px',
               fontSize: '0.55rem',

@@ -5,7 +5,7 @@ export const Footer: React.FC = () => {
   return (
     <footer
       style={{
-        borderTop: '3px solid #283342',
+        borderTop: '2px solid #1c1c24',
         padding: '16px 24px',
         textAlign: 'center',
         fontSize: '0.52rem',
@@ -15,7 +15,7 @@ export const Footer: React.FC = () => {
         flexDirection: 'column',
         alignItems: 'center',
         gap: '10px',
-        backgroundColor: '#070a10',
+        backgroundColor: '#000000',
         zIndex: 5,
         fontFamily: "'Press Start 2P', monospace",
         lineHeight: 1.7,
@@ -43,7 +43,7 @@ export const Footer: React.FC = () => {
         >
           Home
         </Link>
-        <span aria-hidden="true" style={{ color: '#334155' }}>
+        <span aria-hidden="true" style={{ color: '#272730' }}>
           •
         </span>
         <Link
@@ -58,7 +58,7 @@ export const Footer: React.FC = () => {
         >
           Play vs AI
         </Link>
-        <span aria-hidden="true" style={{ color: '#334155' }}>
+        <span aria-hidden="true" style={{ color: '#272730' }}>
           •
         </span>
         <Link
@@ -73,7 +73,7 @@ export const Footer: React.FC = () => {
         >
           Local 2-Player (Controllers)
         </Link>
-        <span aria-hidden="true" style={{ color: '#334155' }}>
+        <span aria-hidden="true" style={{ color: '#272730' }}>
           •
         </span>
         <Link
@@ -88,7 +88,7 @@ export const Footer: React.FC = () => {
         >
           1v1 Private Room
         </Link>
-        <span aria-hidden="true" style={{ color: '#334155' }}>
+        <span aria-hidden="true" style={{ color: '#272730' }}>
           •
         </span>
         <Link
@@ -104,7 +104,7 @@ export const Footer: React.FC = () => {
           Controls &amp; Settings
         </Link>
       </nav>
-      <p style={{ margin: 0, fontSize: '0.48rem', color: '#475569' }}>
+      <p style={{ margin: 0, fontSize: '0.48rem', color: '#52525c' }}>
         © 2026 <strong style={{ color: '#f1c40f' }}>LAST-CROWN</strong> — The winner takes it all.
       </p>
     </footer>
