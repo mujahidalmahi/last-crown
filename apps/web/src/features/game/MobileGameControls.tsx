@@ -217,7 +217,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
           <span className={styles.btnLabel}>JUMP</span>
         </button>
 
-        {/* LEFT + RIGHT — bottom row */}
+        {/* LEFT + DASH + RIGHT — bottom row */}
         <div className={styles.lrRow}>
           <button
             type="button"
@@ -234,7 +234,6 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             <span className={styles.btnLabel}>LEFT</span>
           </button>
 
-          {/* DASH — centre between L & R */}
           <button
             type="button"
             className={`${styles.dashBtn} ${activeActions.dash ? styles.active : ''}`}
@@ -246,7 +245,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerCancel={handleDashUp}
             aria-label="Dash"
           >
-            <span className={styles.btnIcon}>💨</span>
+            <span className={styles.btnIcon}>»</span>
             <span className={styles.btnLabel}>DASH</span>
           </button>
 
@@ -275,7 +274,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
         <div className={styles.defRow}>
           <button
             type="button"
-            className={`${styles.defBtn} ${styles.blockBtn} ${activeActions.block ? styles.active : ''}`}
+            className={`${styles.blockBtn} ${activeActions.block ? styles.active : ''}`}
             onTouchStart={handleBlockDown}
             onTouchEnd={handleBlockUp}
             onTouchCancel={handleBlockUp}
@@ -284,13 +283,13 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerCancel={handleBlockUp}
             aria-label="Block"
           >
-            <span className={styles.btnIcon}>🛡️</span>
+            <span className={styles.btnIcon}>▣</span>
             <span className={styles.btnLabel}>BLOCK</span>
           </button>
 
           <button
             type="button"
-            className={`${styles.defBtn} ${styles.parryBtn} ${activeActions.parry ? styles.active : ''}`}
+            className={`${styles.parryBtn} ${activeActions.parry ? styles.active : ''}`}
             onTouchStart={handleParryDown}
             onTouchEnd={handleParryUp}
             onTouchCancel={handleParryUp}
@@ -299,16 +298,16 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerCancel={handleParryUp}
             aria-label="Parry"
           >
-            <span className={styles.btnIcon}>✨</span>
+            <span className={styles.btnIcon}>◈</span>
             <span className={styles.btnLabel}>PARRY</span>
           </button>
         </div>
 
-        {/* Attack row on bottom */}
+        {/* Attack row on bottom — larger buttons for primary actions */}
         <div className={styles.atkRow}>
           <button
             type="button"
-            className={`${styles.atkBtn} ${styles.heavyBtn} ${activeActions.heavy ? styles.active : ''}`}
+            className={`${styles.heavyBtn} ${activeActions.heavy ? styles.active : ''}`}
             onTouchStart={handleHeavyDown}
             onTouchEnd={handleHeavyUp}
             onTouchCancel={handleHeavyUp}
@@ -317,13 +316,13 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerCancel={handleHeavyUp}
             aria-label="Heavy Strike"
           >
-            <span className={styles.btnIcon}>⚡</span>
+            <span className={styles.btnIcon}>★</span>
             <span className={styles.btnLabel}>HEAVY</span>
           </button>
 
           <button
             type="button"
-            className={`${styles.atkBtn} ${styles.lightBtn} ${activeActions.light ? styles.active : ''}`}
+            className={`${styles.lightBtn} ${activeActions.light ? styles.active : ''}`}
             onTouchStart={handleLightDown}
             onTouchEnd={handleLightUp}
             onTouchCancel={handleLightUp}
@@ -332,7 +331,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerCancel={handleLightUp}
             aria-label="Light Attack"
           >
-            <span className={styles.btnIcon}>⚔️</span>
+            <span className={styles.btnIcon}>†</span>
             <span className={styles.btnLabel}>LIGHT</span>
           </button>
         </div>
