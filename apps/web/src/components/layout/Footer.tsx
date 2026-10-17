@@ -28,9 +28,21 @@ export const Footer: React.FC = () => {
       <div className={styles.topFiligreeBar} aria-hidden="true">
         <div className={styles.filigreeLine} />
         <div className={styles.filigreeCenter}>
-          <img src="/crown-logo.png" alt="" width={18} height={18} className={styles.filigreeIcon} />
+          <img
+            src="/crown-logo.png"
+            alt=""
+            width={18}
+            height={18}
+            className={styles.filigreeIcon}
+          />
           <span>THE WINNER TAKES IT ALL</span>
-          <img src="/crown-logo.png" alt="" width={18} height={18} className={styles.filigreeIcon} />
+          <img
+            src="/crown-logo.png"
+            alt=""
+            width={18}
+            height={18}
+            className={styles.filigreeIcon}
+          />
         </div>
         <div className={styles.filigreeLine} />
       </div>
