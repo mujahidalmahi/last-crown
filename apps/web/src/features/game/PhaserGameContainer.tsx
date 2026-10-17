@@ -45,28 +45,44 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isFadingIn, setIsFadingIn] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
+  const [isTouchMobile, setIsTouchMobile] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
-  const [showRotateTip, setShowRotateTip] = useState(true);
 
+  // Detect mobile touch device and attempt landscape lock
   useEffect(() => {
-    const handleOrientation = () => {
-      if (typeof window === 'undefined') return;
-      const isTouchOrMobile =
-        'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
-      const portrait = window.innerHeight > window.innerWidth && isTouchOrMobile;
-      setIsPortrait(portrait);
+    if (typeof window === 'undefined') return;
 
-      setTimeout(() => {
-        bootstrapRef.current?.refreshScale();
-      }, 100);
+    const check = () => {
+      const hasTouch =
+        'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
+      setIsTouchMobile(hasTouch);
+      setIsPortrait(window.innerHeight > window.innerWidth);
+      setTimeout(() => bootstrapRef.current?.refreshScale(), 120);
     };
 
-    handleOrientation();
-    window.addEventListener('resize', handleOrientation);
-    window.addEventListener('orientationchange', handleOrientation);
+    check();
+
+    // Try to lock to landscape on mobile — ignore if not supported
+    if (typeof screen !== 'undefined' && screen.orientation && 'lock' in screen.orientation) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (screen.orientation as any).lock('landscape').catch(() => {
+        /* Silently ignore — not all browsers allow this */
+      });
+    }
+
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
     return () => {
-      window.removeEventListener('resize', handleOrientation);
-      window.removeEventListener('orientationchange', handleOrientation);
+      window.removeEventListener('resize', check);
+      window.removeEventListener('orientationchange', check);
+      // Release orientation lock on unmount
+      if (typeof screen !== 'undefined' && screen.orientation && 'unlock' in screen.orientation) {
+        try {
+          screen.orientation.unlock();
+        } catch {
+          /* ignore */
+        }
+      }
     };
   }, []);
 
@@ -282,9 +298,9 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         backgroundColor: '#050810',
         zIndex: 9999,
         display: 'flex',
-        flexDirection: isPortrait ? 'column' : 'row',
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: isPortrait ? 'flex-start' : 'center',
+        justifyContent: 'center',
         overflow: 'hidden',
         userSelect: 'none',
       }}
@@ -293,10 +309,10 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       <div
         style={{
           position: 'relative',
-          width: isPortrait ? '100vw' : 'min(100vw, calc(100vh * (16 / 9)))',
-          height: isPortrait ? 'calc(100vw * (9 / 16))' : 'min(100vh, calc(100vw * (9 / 16)))',
+          width: 'min(100vw, calc(100vh * (16 / 9)))',
+          height: 'min(100vh, calc(100vw * (9 / 16)))',
           maxWidth: '100%',
-          maxHeight: isPortrait ? '44vh' : '100%',
+          maxHeight: '100%',
           aspectRatio: '16 / 9',
           display: 'flex',
           alignItems: 'center',
@@ -369,61 +385,43 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           aria-hidden="true"
         />
 
-        {/* Overlay touch controls when in landscape mode (strictly pinned to bottom corners) */}
-        {!isPortrait && <MobileGameControls isPortrait={false} />}
-      </div>
-
-      {/* Portrait Mode Dedicated Console Lower Deck */}
-      {isPortrait && (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            flex: 1,
-            width: '100%',
-            minHeight: 0,
-            backgroundColor: '#070a10',
-            position: 'relative',
-            borderTop: '2px solid rgba(212, 175, 55, 0.3)',
-            boxShadow: 'inset 0 4px 20px rgba(0, 0, 0, 0.8)',
-          }}
-        >
-          {showRotateTip && (
-            <div
+        {/* Portrait warning overlay — shown only when orientation lock failed */}
+        {isTouchMobile && isPortrait && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(5, 8, 16, 0.93)',
+              zIndex: 500,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '16px',
+              pointerEvents: 'auto',
+            }}
+          >
+            <span style={{ fontSize: '3rem' }}>📱</span>
+            <p
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '4px 12px',
-                backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                borderBottom: '1px solid rgba(212, 175, 55, 0.25)',
                 color: '#f1c40f',
-                fontSize: 'clamp(0.52rem, 1.6vw, 0.65rem)',
                 fontFamily: "'Press Start 2P', monospace",
-                letterSpacing: '0.04em',
-                flexShrink: 0,
+                fontSize: 'clamp(0.65rem, 3vw, 0.9rem)',
+                textAlign: 'center',
+                padding: '0 24px',
+                lineHeight: 1.8,
               }}
             >
-              <span>📱 Turn phone sideways for fullscreen arcade!</span>
-              <button
-                type="button"
-                onClick={() => setShowRotateTip(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94a3b8',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  padding: '2px 8px',
-                }}
-              >
-                ✕
-              </button>
-            </div>
-          )}
-          <MobileGameControls isPortrait={true} />
-        </div>
-      )}
+              ROTATE PHONE
+              <br />
+              SIDEWAYS TO PLAY
+            </p>
+          </div>
+        )}
+
+        {/* Touch game controls — overlaid directly on the arena canvas */}
+        {isTouchMobile && <MobileGameControls isPortrait={false} />}
+      </div>
     </div>
   );
 };
