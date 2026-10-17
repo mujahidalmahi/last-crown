@@ -219,19 +219,27 @@
     margin-top: 3px;
   }
 
-  /* Reposition utility bar to a compact top floating strip so bottom is 100% free for gamepad! */
+  .keyboardOnly {
+    display: none !important;
+  }
+
+  /* Keep bottom utility bar unobtrusive on mobile */
   .bottomUtilityBar {
     position: absolute;
-    top: clamp(48px, 9vh, 64px);
-    left: max(10px, env(safe-area-inset-left));
-    right: max(10px, env(safe-area-inset-right));
-    margin-top: 0;
+    bottom: max(6px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
     width: auto;
+    max-width: 90%;
+    margin-top: 0;
+    gap: 8px;
+    justify-content: center;
+    z-index: 30;
   }
 
   .utilityBtn {
-    padding: 4px 8px;
-    font-size: clamp(0.65rem, 1.2vw, 0.75rem);
+    padding: 3px 8px;
+    font-size: clamp(0.62rem, 1.2vw, 0.72rem);
     border-radius: 4px;
     background-color: rgba(10, 14, 22, 0.88);
   }

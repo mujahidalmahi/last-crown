@@ -21,8 +21,6 @@ export interface GameHUDProps {
   onToggleFullscreen?: () => void;
   isPaused?: boolean;
   onTogglePause?: () => void;
-  tiltAngle?: 0 | 90 | -90;
-  onToggleTilt?: () => void;
 }
 
 export const GameHUD: React.FC<GameHUDProps> = ({
@@ -36,8 +34,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   onToggleFullscreen,
   isPaused = false,
   onTogglePause,
-  tiltAngle = 0,
-  onToggleTilt,
 }) => {
   const fallbackVoice = useVoiceChat({
     room: mode === 'multiplayer' && !voiceState ? colyseusRoom : null,
@@ -863,27 +859,13 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           )}
         </div>
 
-        {/* Bottom Right: Controls Guide & Fullscreen Toggle & Screen Tilt */}
+        {/* Bottom Right: Controls Guide & Fullscreen Toggle */}
         <div className={hudStyles.utilityGroup}>
-          {onToggleTilt && (
-            <button
-              type="button"
-              onClick={onToggleTilt}
-              title="Toggle 90° Screen Tilt for Mobile/Tablet"
-              className={hudStyles.utilityBtn}
-              style={{
-                color: tiltAngle !== 0 ? '#f1c40f' : '#94a3b8',
-                borderColor: tiltAngle !== 0 ? '#f1c40f' : undefined,
-              }}
-            >
-              🔄 {tiltAngle !== 0 ? `Tilt: ${tiltAngle > 0 ? '+90°' : '-90°'}` : 'Tilt: Off'}
-            </button>
-          )}
           <button
             type="button"
             onClick={() => setShowControls(prev => !prev)}
             title="Toggle Controls Guide (H)"
-            className={hudStyles.utilityBtn}
+            className={`${hudStyles.utilityBtn} ${hudStyles.keyboardOnly}`}
             style={{
               color: showControls ? '#f1c40f' : '#cbd5e1',
               borderColor: showControls ? '#f1c40f' : undefined,

@@ -231,7 +231,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
     }
   };
 
-  // Defensive Modes: Dash, Block, Parry
+  // Evasion: Dash
   const handleDashDown = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setActiveActions(prev => ({ ...prev, dash: true }));
@@ -243,6 +243,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
     setActiveActions(prev => ({ ...prev, dash: false }));
   };
 
+  // Defensive Actions: Block, Parry
   const handleBlockDown = (e: React.SyntheticEvent) => {
     e.preventDefault();
     setActiveActions(prev => ({ ...prev, block: true }));
@@ -318,58 +319,36 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
 
   return (
     <div
-      className={styles.mobileControlsContainer}
+      className={`${styles.mobileControlsContainer} ${isPortrait ? styles.portraitMode : styles.landscapeMode}`}
       role="region"
       aria-label="Mobile Game Touch Controls"
-      style={{
-        position: isPortrait ? 'relative' : 'absolute',
-      }}
     >
       {/* =========================================================================
-          LEFT ZONE: Movement Deck (Left, Right, D-Pad, Jump, Crouch)
+          LEFT THUMB ZONE: Movement Deck (Left, Right, D-Pad, Jump, Crouch, Dash)
           ========================================================================= */}
       <div className={styles.leftThumbZone}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionIcon}>🕹️</span>
-          <span className={styles.sectionTitle}>MOVEMENT</span>
-        </div>
-
-        {/* Dedicated LEFT & RIGHT Directional Quick Bar */}
-        <div className={styles.horizontalMoveBar} role="group" aria-label="Horizontal Movement">
+        {/* Tactical Dash & Header */}
+        <div className={styles.leftTopBar}>
           <button
             type="button"
-            className={`${styles.moveBtn} ${styles.moveBtnLeft} ${activeDirections.left ? styles.active : ''}`}
-            onTouchStart={handleLeftDown}
-            onTouchEnd={handleLeftUp}
-            onTouchCancel={handleLeftUp}
-            onPointerDown={handleLeftDown}
-            onPointerUp={handleLeftUp}
-            onPointerCancel={handleLeftUp}
-            aria-label="Step Left"
-            title="Move Left [A / ◀]"
+            className={`${styles.dashBtn} ${activeActions.dash ? styles.active : ''}`}
+            onTouchStart={handleDashDown}
+            onTouchEnd={handleDashUp}
+            onTouchCancel={handleDashUp}
+            onPointerDown={handleDashDown}
+            onPointerUp={handleDashUp}
+            onPointerCancel={handleDashUp}
+            aria-label="Tactical Dash"
+            title="Evasive Dash [C / E]"
           >
-            <span className={styles.moveBtnArrow}>◀</span>
-            <span className={styles.moveBtnText}>LEFT</span>
+            <span className={styles.dashIcon}>💨</span>
+            <span className={styles.dashLabel}>DASH</span>
           </button>
 
-          <button
-            type="button"
-            className={`${styles.moveBtn} ${styles.moveBtnRight} ${activeDirections.right ? styles.active : ''}`}
-            onTouchStart={handleRightDown}
-            onTouchEnd={handleRightUp}
-            onTouchCancel={handleRightUp}
-            onPointerDown={handleRightDown}
-            onPointerUp={handleRightUp}
-            onPointerCancel={handleRightUp}
-            aria-label="Step Right"
-            title="Move Right [D / ▶]"
-          >
-            <span className={styles.moveBtnText}>RIGHT</span>
-            <span className={styles.moveBtnArrow}>▶</span>
-          </button>
+          <span className={styles.zoneTag}>MOVE</span>
         </div>
 
-        {/* Tactical Cross D-Pad with Jump & Crouch */}
+        {/* Tactical Cross D-Pad */}
         <div
           ref={dpadRef}
           className={styles.dpadContainer}
@@ -447,88 +426,92 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             <span className={styles.dirArrow}>▼</span>
           </button>
         </div>
-      </div>
 
-      {/* =========================================================================
-          CENTER / FLANK ZONE: Defensive Modes (Block, Parry, Evade Dash)
-          ========================================================================= */}
-      <div className={styles.defenseZone} role="group" aria-label="Defensive Modes">
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionIcon}>🛡️</span>
-          <span className={styles.sectionTitle}>DEFENSE</span>
-        </div>
-
-        <div className={styles.defenseCluster}>
-          {/* 1. Hold Guard / Block (Holdable Shield) */}
+        {/* Dedicated LEFT & RIGHT Step Buttons */}
+        <div className={styles.horizontalMoveBar} role="group" aria-label="Horizontal Movement">
           <button
             type="button"
-            className={`${styles.defenseBtn} ${styles.btnBlock} ${activeActions.block ? styles.active : ''}`}
-            onTouchStart={handleBlockDown}
-            onTouchEnd={handleBlockUp}
-            onTouchCancel={handleBlockUp}
-            onPointerDown={handleBlockDown}
-            onPointerUp={handleBlockUp}
-            onPointerCancel={handleBlockUp}
-            aria-label="Hold Guard / Block"
-            title="Hold to Block [Shift / I]"
+            className={`${styles.stepBtn} ${activeDirections.left ? styles.active : ''}`}
+            onTouchStart={handleLeftDown}
+            onTouchEnd={handleLeftUp}
+            onTouchCancel={handleLeftUp}
+            onPointerDown={handleLeftDown}
+            onPointerUp={handleLeftUp}
+            onPointerCancel={handleLeftUp}
+            aria-label="Step Left"
+            title="Move Left [A / ◀]"
           >
-            <span className={styles.defenseIcon}>🛡️</span>
-            <span className={styles.defenseLabel}>BLOCK</span>
-            <span className={styles.defenseSub}>HOLD</span>
+            <span>◀ LEFT</span>
           </button>
 
-          {/* 2. Parry & Riposte (Counter Deflection) */}
           <button
             type="button"
-            className={`${styles.defenseBtn} ${styles.btnParry} ${activeActions.parry ? styles.active : ''}`}
-            onTouchStart={handleParryDown}
-            onTouchEnd={handleParryUp}
-            onTouchCancel={handleParryUp}
-            onPointerDown={handleParryDown}
-            onPointerUp={handleParryUp}
-            onPointerCancel={handleParryUp}
-            aria-label="Parry & Riposte"
-            title="Parry Deflection [Alt / O]"
+            className={`${styles.stepBtn} ${activeDirections.right ? styles.active : ''}`}
+            onTouchStart={handleRightDown}
+            onTouchEnd={handleRightUp}
+            onTouchCancel={handleRightUp}
+            onPointerDown={handleRightDown}
+            onPointerUp={handleRightUp}
+            onPointerCancel={handleRightUp}
+            aria-label="Step Right"
+            title="Move Right [D / ▶]"
           >
-            <span className={styles.defenseIcon}>✨</span>
-            <span className={styles.defenseLabel}>PARRY</span>
-            <span className={styles.defenseSub}>COUNTER</span>
-          </button>
-
-          {/* 3. Tactical Evade Dash */}
-          <button
-            type="button"
-            className={`${styles.defenseBtn} ${styles.btnDash} ${activeActions.dash ? styles.active : ''}`}
-            onTouchStart={handleDashDown}
-            onTouchEnd={handleDashUp}
-            onTouchCancel={handleDashUp}
-            onPointerDown={handleDashDown}
-            onPointerUp={handleDashUp}
-            onPointerCancel={handleDashUp}
-            aria-label="Tactical Dash"
-            title="Evasive Dash [C / E]"
-          >
-            <span className={styles.defenseIcon}>💨</span>
-            <span className={styles.defenseLabel}>DASH</span>
-            <span className={styles.defenseSub}>EVADE</span>
+            <span>RIGHT ▶</span>
           </button>
         </div>
       </div>
 
       {/* =========================================================================
-          RIGHT ZONE: Attacking Moves (Light, Heavy, Thrust, Sweep)
+          RIGHT THUMB ZONE: Combat Deck (Defense on top, Attack diamond below)
           ========================================================================= */}
       <div className={styles.rightThumbZone}>
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionIcon}>⚔️</span>
-          <span className={styles.sectionTitle}>ATTACK MOVES</span>
+        {/* Upper Tier: Defensive Modes (Block & Parry) */}
+        <div className={styles.defenseBar} role="group" aria-label="Defensive Modes">
+          <span className={styles.zoneTag}>DEFENSE</span>
+
+          <div className={styles.defenseBtnGroup}>
+            {/* Block / Guard (Holdable Shield) */}
+            <button
+              type="button"
+              className={`${styles.defenseBtn} ${styles.btnBlock} ${activeActions.block ? styles.active : ''}`}
+              onTouchStart={handleBlockDown}
+              onTouchEnd={handleBlockUp}
+              onTouchCancel={handleBlockUp}
+              onPointerDown={handleBlockDown}
+              onPointerUp={handleBlockUp}
+              onPointerCancel={handleBlockUp}
+              aria-label="Hold Guard / Block"
+              title="Hold to Block [Shift / I]"
+            >
+              <span className={styles.defIcon}>🛡️</span>
+              <span className={styles.defLabel}>BLOCK</span>
+            </button>
+
+            {/* Parry & Riposte (Counter) */}
+            <button
+              type="button"
+              className={`${styles.defenseBtn} ${styles.btnParry} ${activeActions.parry ? styles.active : ''}`}
+              onTouchStart={handleParryDown}
+              onTouchEnd={handleParryUp}
+              onTouchCancel={handleParryUp}
+              onPointerDown={handleParryDown}
+              onPointerUp={handleParryUp}
+              onPointerCancel={handleParryUp}
+              aria-label="Parry & Riposte"
+              title="Parry Deflection [Alt / O]"
+            >
+              <span className={styles.defIcon}>✨</span>
+              <span className={styles.defLabel}>PARRY</span>
+            </button>
+          </div>
         </div>
 
+        {/* Lower Tier: Attacking Moves (Heavy, Thrust, Sweep, Light) */}
         <div className={styles.attackCluster} role="group" aria-label="Attacking Moves">
           {/* 1. Heavy Strike (Top) */}
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.btnHeavy} ${activeActions.heavy ? styles.active : ''}`}
+            className={`${styles.atkBtn} ${styles.btnHeavy} ${activeActions.heavy ? styles.active : ''}`}
             onTouchStart={handleHeavyAttackDown}
             onTouchEnd={handleHeavyAttackUp}
             onTouchCancel={handleHeavyAttackUp}
@@ -538,14 +521,14 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             aria-label="Heavy Strike"
             title="Heavy Strike [K]"
           >
-            <span className={styles.btnIcon}>⚡</span>
-            <span className={styles.btnLabel}>HEAVY</span>
+            <span className={styles.atkIcon}>⚡</span>
+            <span className={styles.atkLabel}>HEAVY</span>
           </button>
 
           {/* 2. Forward Thrust (Right) */}
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.btnThrust} ${activeActions.thrust ? styles.active : ''}`}
+            className={`${styles.atkBtn} ${styles.btnThrust} ${activeActions.thrust ? styles.active : ''}`}
             onTouchStart={handleThrustDown}
             onTouchEnd={handleThrustUp}
             onTouchCancel={handleThrustUp}
@@ -555,14 +538,14 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             aria-label="Forward Thrust"
             title="Thrust [L / U]"
           >
-            <span className={styles.btnIcon}>🗡️</span>
-            <span className={styles.btnLabel}>THRUST</span>
+            <span className={styles.atkIcon}>🗡️</span>
+            <span className={styles.atkLabel}>THRUST</span>
           </button>
 
           {/* 3. Low Sweep (Left) */}
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.btnSweep} ${activeActions.sweep ? styles.active : ''}`}
+            className={`${styles.atkBtn} ${styles.btnSweep} ${activeActions.sweep ? styles.active : ''}`}
             onTouchStart={handleSweepDown}
             onTouchEnd={handleSweepUp}
             onTouchCancel={handleSweepUp}
@@ -572,14 +555,14 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             aria-label="Low Sweep Trip"
             title="Low Sweep [Down + Attack]"
           >
-            <span className={styles.btnIcon}>💥</span>
-            <span className={styles.btnLabel}>SWEEP</span>
+            <span className={styles.atkIcon}>💥</span>
+            <span className={styles.atkLabel}>SWEEP</span>
           </button>
 
           {/* 4. Light Slash (Center/Bottom - Largest Primary) */}
           <button
             type="button"
-            className={`${styles.actionBtn} ${styles.btnLight} ${activeActions.light ? styles.active : ''}`}
+            className={`${styles.atkBtn} ${styles.btnLight} ${activeActions.light ? styles.active : ''}`}
             onTouchStart={handleLightAttackDown}
             onTouchEnd={handleLightAttackUp}
             onTouchCancel={handleLightAttackUp}
@@ -589,8 +572,8 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = ({ isPortra
             aria-label="Light Slash Combo"
             title="Light Slash [J / Space]"
           >
-            <span className={styles.btnIcon}>⚔️</span>
-            <span className={styles.btnLabel}>LIGHT</span>
+            <span className={styles.atkIcon}>⚔️</span>
+            <span className={styles.atkLabel}>LIGHT</span>
           </button>
         </div>
       </div>

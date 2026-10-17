@@ -11,132 +11,123 @@
 
 /* Base Mobile Controls Root Wrapper */
 .mobileControlsContainer {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  z-index: 200;
+}
+
+/* Landscape Mode: Overlays bottom corners of the widescreen arena */
+.landscapeMode {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 200;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  box-sizing: border-box;
-  padding: 0 max(10px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
-  user-select: none;
-  -webkit-user-select: none;
-  touch-action: none;
+  padding: 0 max(16px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
 
-/* Section Header Badges */
-.sectionHeader {
+/* Portrait Mode: Fills the lower arcade console deck beneath the fight canvas */
+.portraitMode {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(212, 175, 55, 0.35);
-  border-radius: 12px;
-  padding: 2px 8px;
-  margin-bottom: 4px;
-  backdrop-filter: blur(4px);
-  pointer-events: none;
+  padding: 6px clamp(8px, 3vw, 16px);
 }
 
-.sectionIcon {
-  font-size: clamp(9px, 1.8vw, 12px);
-  line-height: 1;
-}
-
-.sectionTitle {
+/* Section Tags */
+.zoneTag {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(5.5px, 1.1vw, 7px);
-  letter-spacing: 0.08em;
+  font-size: clamp(5px, 1vw, 6.5px);
   color: #f1c40f;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  padding: 2px 6px;
+  border-radius: 6px;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  text-shadow: 0 1px 2px #000;
 }
 
 /* ==============================================================================
-   1. LEFT ZONE: Movement Deck (Left, Right, D-Pad, Jump, Crouch)
+   LEFT THUMB ZONE: Movement (D-Pad, Left/Right Step Bar, Dash)
    ============================================================================== */
 .leftThumbZone {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: clamp(4px, 1vh, 8px);
+  gap: clamp(3px, 0.8vh, 6px);
   pointer-events: auto;
-  margin-bottom: clamp(2px, 0.8vh, 10px);
 }
 
-/* Dedicated LEFT & RIGHT Directional Quick Bar */
-.horizontalMoveBar {
+.leftTopBar {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
 }
 
-.moveBtn {
-  flex: 1;
-  height: clamp(34px, 7.5vw, 44px);
-  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border: 2px solid #64748b;
-  outline: 1px solid #334155;
-  border-radius: 8px;
-  color: #f1c40f;
+.dashBtn {
+  height: clamp(26px, 5.5vh, 32px);
+  padding: 0 clamp(8px, 1.8vw, 12px);
+  background: radial-gradient(circle at 50% 30%, #334155 0%, #0f172a 100%);
+  border: 1.5px solid #64748b;
+  border-radius: 6px;
+  color: #f8fafc;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.25);
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform, filter, border-color;
-  transition: transform 0.08s cubic-bezier(0.16, 1, 0.3, 1), filter 0.1s ease, border-color 0.1s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
-  padding: 0 8px;
+  transition: transform 0.06s ease, filter 0.1s ease;
 }
 
-.moveBtn:active,
-.moveBtn.active {
+.dashBtn:active,
+.dashBtn.active {
   transform: scale(0.92);
-  border-color: #f1c40f;
-  filter: brightness(1.25) drop-shadow(0 0 10px rgba(241, 196, 15, 0.7));
-  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+  border-color: #38bdf8;
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(56, 189, 248, 0.8));
 }
 
-.moveBtnArrow {
-  font-size: clamp(12px, 2.8vw, 16px);
-  color: #f1c40f;
+.dashIcon {
+  font-size: clamp(10px, 2.2vw, 13px);
+  line-height: 1;
 }
 
-.moveBtnText {
+.dashLabel {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(6px, 1.3vw, 8px);
-  letter-spacing: 0.06em;
+  font-size: clamp(5px, 1vw, 6.5px);
   color: #e2e8f0;
 }
 
-/* Ergonomic Cross D-Pad Container */
+/* Cross D-Pad */
 .dpadContainer {
   position: relative;
-  width: clamp(116px, 24vw, 156px);
-  height: clamp(116px, 24vw, 156px);
+  width: clamp(96px, 20vw, 130px);
+  height: clamp(96px, 20vw, 130px);
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-/* D-Pad Background Cross Shell */
 .dpadCrossBackdrop {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.85) 0%, rgba(5, 8, 16, 0.95) 70%);
-  border: 2px solid rgba(212, 175, 55, 0.45);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), inset 0 0 14px rgba(0, 0, 0, 0.9);
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.9) 0%, rgba(5, 8, 16, 0.98) 75%);
+  border: 1.5px solid rgba(212, 175, 55, 0.4);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.85);
 }
 
-/* Individual Directional Pads */
 .dpadDir {
   position: absolute;
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
@@ -147,11 +138,7 @@
   justify-content: center;
   cursor: pointer;
   touch-action: none;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform, background, border-color;
-  transition: transform 0.06s cubic-bezier(0.16, 1, 0.3, 1), background 0.1s ease, border-color 0.1s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  transition: transform 0.06s ease, background 0.1s ease;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -160,7 +147,7 @@
   background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
   border-color: #f1c40f;
   transform: scale(0.92);
-  filter: drop-shadow(0 0 8px rgba(241, 196, 15, 0.6));
+  filter: drop-shadow(0 0 6px rgba(241, 196, 15, 0.6));
 }
 
 .dpadUp {
@@ -168,7 +155,7 @@
   left: 33.33%;
   width: 33.34%;
   height: 35%;
-  border-radius: 8px 8px 0 0;
+  border-radius: 6px 6px 0 0;
 }
 
 .dpadDown {
@@ -176,7 +163,7 @@
   left: 33.33%;
   width: 33.34%;
   height: 35%;
-  border-radius: 0 0 8px 8px;
+  border-radius: 0 0 6px 6px;
 }
 
 .dpadLeft {
@@ -184,7 +171,7 @@
   left: 0;
   width: 35%;
   height: 33.34%;
-  border-radius: 8px 0 0 8px;
+  border-radius: 6px 0 0 6px;
 }
 
 .dpadRight {
@@ -192,7 +179,7 @@
   right: 0;
   width: 35%;
   height: 33.34%;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 6px 6px 0;
 }
 
 .dpadCenter {
@@ -205,52 +192,86 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(10px, 2.2vw, 14px);
+  font-size: clamp(9px, 2vw, 12px);
   color: #f1c40f;
-  border: 1px solid rgba(212, 175, 55, 0.3);
   pointer-events: none;
 }
 
 .dirArrow {
-  font-size: clamp(13px, 2.8vw, 17px);
-  filter: drop-shadow(0 1px 2px #000);
+  font-size: clamp(11px, 2.4vw, 15px);
   pointer-events: none;
 }
 
-/* ==============================================================================
-   2. DEFENSE ZONE: Defensive Modes (Block, Parry, Evade Dash)
-   ============================================================================== */
-.defenseZone {
+/* Horizontal Step Bar: Left & Right */
+.horizontalMoveBar {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  pointer-events: auto;
-  margin-bottom: clamp(4px, 1.2vh, 12px);
-  background: rgba(7, 10, 16, 0.6);
-  padding: 4px 8px;
-  border-radius: 14px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  gap: 6px;
+  width: 100%;
 }
 
-.defenseCluster {
+.stepBtn {
+  flex: 1;
+  height: clamp(26px, 5vh, 32px);
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  border: 1.5px solid #475569;
+  border-radius: 6px;
+  color: #f1c40f;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(5.5px, 1.1vw, 7px);
+  letter-spacing: 0.05em;
   display: flex;
-  align-items: center;
-  gap: clamp(6px, 1.5vw, 10px);
-}
-
-.defenseBtn {
-  display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1px;
-  border-radius: 10px;
   cursor: pointer;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.08s ease, filter 0.1s ease, border-color 0.1s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+  transition: transform 0.06s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+}
+
+.stepBtn:active,
+.stepBtn.active {
+  transform: scale(0.92);
+  border-color: #f1c40f;
+  background: linear-gradient(180deg, #334155 0%, #1e293b 100%);
+}
+
+/* ==============================================================================
+   RIGHT THUMB ZONE: Combat (Defense Top Row, Attack Diamond Below)
+   ============================================================================== */
+.rightThumbZone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: clamp(3px, 0.8vh, 6px);
+  pointer-events: auto;
+}
+
+/* Defense Bar */
+.defenseBar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.defenseBtnGroup {
+  display: flex;
+  gap: 6px;
+}
+
+.defenseBtn {
+  height: clamp(26px, 5.5vh, 32px);
+  padding: 0 clamp(8px, 1.8vw, 12px);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.06s ease, filter 0.1s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 .defenseBtn:active,
@@ -258,97 +279,52 @@
   transform: scale(0.92);
 }
 
-.defenseIcon {
-  font-size: clamp(13px, 2.8vw, 18px);
+.defIcon {
+  font-size: clamp(10px, 2.2vw, 13px);
   line-height: 1;
 }
 
-.defenseLabel {
+.defLabel {
   font-family: 'Press Start 2P', monospace;
   font-size: clamp(5px, 1vw, 6.5px);
   letter-spacing: 0.05em;
-  color: #f8fafc;
-}
-
-.defenseSub {
-  font-family: 'Press Start 2P', monospace;
-  font-size: clamp(4px, 0.8vw, 5px);
-  opacity: 0.7;
-  letter-spacing: 0.04em;
-}
-
-/* BLOCK (Holdable Shield - Royal Sapphire) */
-.btnBlock {
-  width: clamp(46px, 10vw, 60px);
-  height: clamp(44px, 9.5vw, 56px);
-  background: radial-gradient(circle at 45% 35%, #2563eb 0%, #1e3a8a 85%);
-  border: 2px solid #60a5fa;
-  outline: 1px solid #1d4ed8;
   color: #ffffff;
+}
+
+/* Block Button (Sapphire) */
+.btnBlock {
+  background: radial-gradient(circle at 45% 35%, #2563eb 0%, #1e3a8a 85%);
+  border: 1.5px solid #60a5fa;
 }
 
 .btnBlock:active,
 .btnBlock.active {
   border-color: #bfdbfe;
-  filter: brightness(1.25) drop-shadow(0 0 14px rgba(96, 165, 250, 0.9));
-  background: radial-gradient(circle at 45% 35%, #1d4ed8 0%, #172554 85%);
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(96, 165, 250, 0.8));
 }
 
-/* PARRY (Counter Deflection - Amethyst) */
+/* Parry Button (Amethyst) */
 .btnParry {
-  width: clamp(46px, 10vw, 60px);
-  height: clamp(44px, 9.5vw, 56px);
   background: radial-gradient(circle at 45% 35%, #9333ea 0%, #581c87 85%);
-  border: 2px solid #c084fc;
-  outline: 1px solid #7e22ce;
-  color: #ffffff;
+  border: 1.5px solid #c084fc;
 }
 
 .btnParry:active,
 .btnParry.active {
   border-color: #f3e8ff;
-  filter: brightness(1.25) drop-shadow(0 0 14px rgba(192, 132, 252, 0.9));
-  background: radial-gradient(circle at 45% 35%, #7e22ce 0%, #3b0764 85%);
+  filter: brightness(1.2) drop-shadow(0 0 8px rgba(192, 132, 252, 0.8));
 }
 
-/* DASH (Evasive Dodge - Slate Cyan) */
-.btnDash {
-  width: clamp(44px, 9vw, 56px);
-  height: clamp(44px, 9.5vw, 56px);
-  background: radial-gradient(circle at 45% 35%, #0284c7 0%, #0c4a6e 85%);
-  border: 2px solid #38bdf8;
-  outline: 1px solid #0369a1;
-  color: #ffffff;
-}
-
-.btnDash:active,
-.btnDash.active {
-  border-color: #bae6fd;
-  filter: brightness(1.25) drop-shadow(0 0 14px rgba(56, 189, 248, 0.9));
-  background: radial-gradient(circle at 45% 35%, #0369a1 0%, #082f49 85%);
-}
-
-/* ==============================================================================
-   3. RIGHT ZONE: Attacking Moves (Light, Heavy, Thrust, Sweep)
-   ============================================================================== */
-.rightThumbZone {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  pointer-events: auto;
-  margin-bottom: clamp(2px, 0.8vh, 10px);
-}
-
+/* Attack Cluster Diamond */
 .attackCluster {
   position: relative;
-  width: clamp(144px, 30vw, 196px);
-  height: clamp(134px, 28vw, 182px);
+  width: clamp(118px, 24vw, 150px);
+  height: clamp(110px, 22vw, 140px);
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.actionBtn {
+.atkBtn {
   position: absolute;
   border-radius: 50%;
   display: flex;
@@ -357,160 +333,129 @@
   justify-content: center;
   cursor: pointer;
   touch-action: none;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: transform, filter, border-color;
-  transition: transform 0.08s cubic-bezier(0.16, 1, 0.3, 1), filter 0.1s ease, border-color 0.1s ease;
-  box-shadow: 0 5px 16px rgba(0, 0, 0, 0.8), inset 0 1px 2px rgba(255, 255, 255, 0.25);
-  user-select: none;
-  -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.06s ease, filter 0.1s ease;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.85);
 }
 
-.actionBtn:active,
-.actionBtn.active {
+.atkBtn:active,
+.atkBtn.active {
   transform: scale(0.9);
 }
 
-.btnIcon {
+.atkIcon {
   line-height: 1;
 }
 
-.btnLabel {
+.atkLabel {
   font-family: 'Press Start 2P', monospace;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   margin-top: 1px;
 }
 
-/* 1. LIGHT ATTACK (Primary Combat Action - Largest, Bottom Center) */
+/* 1. LIGHT ATTACK (Largest Primary, Bottom Center) */
 .btnLight {
   bottom: 0%;
-  left: 34%;
-  width: clamp(54px, 11.5vw, 74px);
-  height: clamp(54px, 11.5vw, 74px);
+  left: 33%;
+  width: clamp(48px, 10vw, 62px);
+  height: clamp(48px, 10vw, 62px);
   background: radial-gradient(circle at 45% 35%, #10b981 0%, #064e3b 85%);
-  border: 2.5px solid #34d399;
-  outline: 1.5px solid #059669;
+  border: 2px solid #34d399;
   color: #ffffff;
   z-index: 5;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), 0 0 14px rgba(16, 185, 129, 0.45);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.85), 0 0 10px rgba(16, 185, 129, 0.45);
 }
 
 .btnLight:active,
 .btnLight.active {
   border-color: #6ee7b7;
-  filter: brightness(1.25) drop-shadow(0 0 16px rgba(52, 211, 153, 0.85));
-  background: radial-gradient(circle at 45% 35%, #059669 0%, #022c22 85%);
+  filter: brightness(1.25) drop-shadow(0 0 12px rgba(52, 211, 153, 0.85));
 }
 
-.btnLight .btnIcon {
-  font-size: clamp(17px, 3.8vw, 24px);
+.btnLight .atkIcon {
+  font-size: clamp(14px, 3.2vw, 19px);
 }
 
-.btnLight .btnLabel {
-  font-size: clamp(5.5px, 1.2vw, 7px);
+.btnLight .atkLabel {
+  font-size: clamp(5px, 1vw, 6.5px);
   color: #ecfdf5;
 }
 
 /* 2. HEAVY STRIKE (Top Center) */
 .btnHeavy {
   top: 0%;
-  left: 36%;
-  width: clamp(44px, 9vw, 58px);
-  height: clamp(44px, 9vw, 58px);
+  left: 35%;
+  width: clamp(38px, 8vw, 48px);
+  height: clamp(38px, 8vw, 48px);
   background: radial-gradient(circle at 45% 35%, #f97316 0%, #7c2d12 85%);
-  border: 2px solid #fb923c;
-  outline: 1px solid #c2410c;
+  border: 1.5px solid #fb923c;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 12px rgba(249, 115, 22, 0.4);
 }
 
 .btnHeavy:active,
 .btnHeavy.active {
   border-color: #fed7aa;
-  filter: brightness(1.25) drop-shadow(0 0 16px rgba(249, 115, 22, 0.85));
-  background: radial-gradient(circle at 45% 35%, #c2410c 0%, #431407 85%);
+  filter: brightness(1.25) drop-shadow(0 0 10px rgba(249, 115, 22, 0.85));
 }
 
-.btnHeavy .btnIcon {
-  font-size: clamp(13px, 2.8vw, 18px);
+.btnHeavy .atkIcon {
+  font-size: clamp(11px, 2.4vw, 15px);
 }
 
-.btnHeavy .btnLabel {
-  font-size: clamp(5px, 1vw, 6px);
+.btnHeavy .atkLabel {
+  font-size: clamp(4.5px, 0.9vw, 5.5px);
   color: #fff7ed;
 }
 
 /* 3. FORWARD THRUST (Right Wing) */
 .btnThrust {
-  top: 30%;
+  top: 28%;
   right: 0%;
-  width: clamp(44px, 9vw, 58px);
-  height: clamp(44px, 9vw, 58px);
+  width: clamp(38px, 8vw, 48px);
+  height: clamp(38px, 8vw, 48px);
   background: radial-gradient(circle at 45% 35%, #06b6d4 0%, #164e63 85%);
-  border: 2px solid #22d3ee;
-  outline: 1px solid #0891b2;
+  border: 1.5px solid #22d3ee;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 12px rgba(6, 182, 212, 0.4);
 }
 
 .btnThrust:active,
 .btnThrust.active {
   border-color: #a5f3fc;
-  filter: brightness(1.25) drop-shadow(0 0 16px rgba(34, 211, 238, 0.85));
-  background: radial-gradient(circle at 45% 35%, #0891b2 0%, #083344 85%);
+  filter: brightness(1.25) drop-shadow(0 0 10px rgba(34, 211, 238, 0.85));
 }
 
-.btnThrust .btnIcon {
-  font-size: clamp(13px, 2.8vw, 18px);
+.btnThrust .atkIcon {
+  font-size: clamp(11px, 2.4vw, 15px);
 }
 
-.btnThrust .btnLabel {
-  font-size: clamp(5px, 1vw, 6px);
+.btnThrust .atkLabel {
+  font-size: clamp(4.5px, 0.9vw, 5.5px);
   color: #ecfeff;
 }
 
 /* 4. LOW SWEEP (Left Wing) */
 .btnSweep {
-  top: 30%;
+  top: 28%;
   left: 0%;
-  width: clamp(44px, 9vw, 58px);
-  height: clamp(44px, 9vw, 58px);
+  width: clamp(38px, 8vw, 48px);
+  height: clamp(38px, 8vw, 48px);
   background: radial-gradient(circle at 45% 35%, #ef4444 0%, #7f1d1d 85%);
-  border: 2px solid #f87171;
-  outline: 1px solid #b91c1c;
+  border: 1.5px solid #f87171;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.8), 0 0 12px rgba(239, 68, 68, 0.4);
 }
 
 .btnSweep:active,
 .btnSweep.active {
   border-color: #fecaca;
-  filter: brightness(1.25) drop-shadow(0 0 16px rgba(248, 113, 113, 0.85));
-  background: radial-gradient(circle at 45% 35%, #b91c1c 0%, #450a0a 85%);
+  filter: brightness(1.25) drop-shadow(0 0 10px rgba(248, 113, 113, 0.85));
 }
 
-.btnSweep .btnIcon {
-  font-size: clamp(13px, 2.8vw, 18px);
+.btnSweep .atkIcon {
+  font-size: clamp(11px, 2.4vw, 15px);
 }
 
-.btnSweep .btnLabel {
-  font-size: clamp(5px, 1vw, 6px);
+.btnSweep .atkLabel {
+  font-size: clamp(4.5px, 0.9vw, 5.5px);
   color: #fef2f2;
-}
-
-/* ==============================================================================
-   Adaptive Layout for Portrait Lower Deck Mode
-   ============================================================================== */
-@media (max-width: 768px) and (orientation: portrait) {
-  .mobileControlsContainer[style*="position: relative"] {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    align-items: center;
-    padding: 10px 8px;
-    height: 100%;
-    gap: 6px;
-  }
 }
