@@ -368,12 +368,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {isP1Exhausted && (
             <div
               style={{
-                fontSize: '0.78rem',
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: '0.62rem',
                 fontWeight: 900,
                 color: '#ff3838',
-                letterSpacing: '0.12em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                textShadow: '0 0 10px rgba(255, 56, 56, 0.9)',
+                textShadow:
+                  '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 10px rgba(255, 56, 56, 0.9)',
                 animation: 'pulse 0.7s infinite alternate',
               }}
             >
@@ -385,19 +387,21 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {p1.health > 0 && (p1.health <= 28 || isP1Exhausted) && (
             <div
               style={{
-                fontSize: '0.78rem',
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: '0.62rem',
                 fontWeight: 900,
                 color: '#ff4757',
-                letterSpacing: '0.1em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                textShadow: '0 0 10px rgba(255, 71, 87, 0.9)',
+                textShadow:
+                  '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 10px rgba(255, 71, 87, 0.9)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
               }}
             >
               <span>💀</span>
-              <span>DANGER: VULNERABLE TO EXECUTION</span>
+              <span>DANGER: VULNERABLE</span>
             </div>
           )}
 
@@ -405,12 +409,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {p1.comboCount !== undefined && p1.comboCount >= 2 && (
             <div
               style={{
-                fontSize: '0.92rem',
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: '0.75rem',
                 fontWeight: 900,
                 color: '#f1c40f',
-                letterSpacing: '0.12em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                textShadow: '0 0 12px rgba(241, 196, 15, 0.95), 0 2px 4px #000',
+                textShadow:
+                  '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 2px 0 #000, 0 0 12px rgba(241, 196, 15, 0.95)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px',
@@ -597,13 +603,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {isP2Exhausted && (
             <div
               style={{
-                fontSize: '0.78rem',
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: '0.62rem',
                 fontWeight: 900,
                 color: '#ff3838',
-                letterSpacing: '0.12em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 textAlign: 'right',
-                textShadow: '0 0 10px rgba(255, 56, 56, 0.9)',
+                textShadow:
+                  '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 10px rgba(255, 56, 56, 0.9)',
                 animation: 'pulse 0.7s infinite alternate',
               }}
             >
@@ -615,13 +623,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {p2.health > 0 && (p2.health <= 28 || isP2Exhausted) && (
             <div
               style={{
-                fontSize: '0.78rem',
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: '0.62rem',
                 fontWeight: 900,
                 color: '#f1c40f',
-                letterSpacing: '0.1em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 textAlign: 'right',
-                textShadow: '0 0 10px rgba(241, 196, 15, 0.9)',
+                textShadow:
+                  '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 10px rgba(241, 196, 15, 0.9)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
@@ -629,7 +639,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 animation: 'pulse 0.6s infinite alternate',
               }}
             >
-              <span>⚡ EXECUTION READY [HEAVY STRIKE: K]</span>
+              <span>⚡ EXECUTION READY [HEAVY: K]</span>
               <span>💀</span>
             </div>
           )}
@@ -638,13 +648,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           {p2.comboCount !== undefined && p2.comboCount >= 2 && (
             <div
               style={{
-                fontSize: '0.92rem',
+                fontFamily: "'Press Start 2P', monospace",
+                fontSize: '0.75rem',
                 fontWeight: 900,
                 color: '#e74c3c',
-                letterSpacing: '0.12em',
+                letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 textAlign: 'right',
-                textShadow: '0 0 12px rgba(231, 76, 60, 0.95), 0 2px 4px #000',
+                textShadow:
+                  '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 2px 0 #000, 0 0 12px rgba(231, 76, 60, 0.95)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
@@ -667,16 +679,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             top: '84px',
             left: '50%',
             transform: 'translateX(-50%)',
-            backgroundColor: 'rgba(180, 30, 30, 0.95)',
+            backgroundColor: '#1c0a0a',
             border: '2px solid #f1c40f',
-            borderRadius: '6px',
-            padding: '8px 24px',
+            borderRadius: '4px',
+            padding: '8px 20px',
             color: '#fff',
+            fontFamily: "'Press Start 2P', monospace",
             fontWeight: 900,
-            fontSize: '0.9rem',
-            letterSpacing: '0.08em',
-            textShadow: '0 2px 4px #000',
-            boxShadow: '0 0 20px rgba(231, 76, 60, 0.8)',
+            fontSize: '0.68rem',
+            letterSpacing: '0.06em',
+            textShadow: '-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000',
+            boxShadow: '0 4px 0 #000, 0 0 20px rgba(231, 76, 60, 0.8)',
             zIndex: 1000,
             display: 'flex',
             alignItems: 'center',
@@ -686,8 +699,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         >
           <span>⚠️</span>
           <span>
-            OPPONENT DISCONNECTED — RECONNECT WINDOW:{' '}
-            {colyseusRoom.state.disconnectGraceRemainingSec}s
+            OPPONENT DISCONNECTED — RECONNECT: {colyseusRoom.state.disconnectGraceRemainingSec}s
           </span>
         </div>
       )}
@@ -708,9 +720,10 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         >
           <h1
             style={{
-              fontSize: '4.2rem',
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: 'clamp(1.8rem, 4.8vw, 3.2rem)',
               fontWeight: 900,
-              letterSpacing: '0.15em',
+              letterSpacing: '0.12em',
               textTransform: 'uppercase',
               color:
                 roundSplash.includes('SUDDEN') || roundSplash.includes('BLOOD')
@@ -718,8 +731,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                   : '#f1c40f',
               textShadow:
                 roundSplash.includes('SUDDEN') || roundSplash.includes('BLOOD')
-                  ? '0 0 35px rgba(255, 56, 56, 0.95), 0 4px 16px #000000'
-                  : '0 0 30px rgba(241, 196, 15, 0.8), 0 4px 16px #000000',
+                  ? '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 6px 0 #000, 0 0 35px rgba(255, 56, 56, 0.95)'
+                  : '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 6px 0 #000, 0 0 30px rgba(241, 196, 15, 0.85)',
               margin: 0,
               animation: 'pulse 0.4s infinite alternate',
             }}
@@ -940,8 +953,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundColor: 'rgba(5, 7, 14, 0.88)',
-            backdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(5, 7, 14, 0.92)',
             zIndex: 200,
             pointerEvents: 'auto',
             display: 'flex',
@@ -953,30 +965,33 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           <div className={hudStyles.pauseModalContainer}>
             {/* Header */}
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2.2rem', filter: 'drop-shadow(0 0 10px #f1c40f)' }}>⚔️</div>
+              <div style={{ fontSize: '1.8rem', filter: 'drop-shadow(0 0 10px #f1c40f)' }}>⚔️</div>
               <h2
                 style={{
-                  fontSize: '2rem',
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: 'clamp(1.1rem, 2.4vw, 1.6rem)',
                   fontWeight: 900,
                   color: '#f1c40f',
-                  letterSpacing: '0.14em',
+                  letterSpacing: '0.12em',
                   textTransform: 'uppercase',
-                  margin: '4px 0 0 0',
-                  textShadow: '0 3px 12px rgba(0,0,0,0.9), 0 0 20px rgba(241,196,15,0.4)',
+                  margin: '8px 0 0 0',
+                  textShadow:
+                    '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000, 0 0 20px rgba(241,196,15,0.4)',
                 }}
               >
                 DUEL PAUSED
               </h2>
               <p
                 style={{
-                  color: '#a0aec0',
-                  fontSize: '0.88rem',
-                  fontStyle: 'italic',
-                  margin: '4px 0 0 0',
+                  fontFamily: "'Press Start 2P', monospace",
+                  color: '#94a3b8',
+                  fontSize: 'clamp(0.52rem, 1vw, 0.65rem)',
+                  margin: '8px 0 0 0',
                   letterSpacing: '0.04em',
+                  lineHeight: '1.6',
                 }}
               >
-                Tactical Respite — The Battle Awaits Your Command
+                Tactical Respite — The Battle Awaits
               </p>
             </div>
 
@@ -996,19 +1011,21 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                   style={{
                     backgroundColor: '#f1c40f',
                     color: '#070b12',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '12px 26px',
-                    fontSize: '0.98rem',
+                    border: '2px solid #ffffff',
+                    borderRadius: '4px',
+                    padding: '12px 22px',
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
                     fontWeight: 900,
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.06em',
                     textTransform: 'uppercase',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 16px rgba(241, 196, 15, 0.45)',
-                    transition: 'all 0.15s ease',
+                    boxShadow:
+                      'inset 0 -3px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 0 #000, 0 0 16px rgba(241, 196, 15, 0.45)',
+                    transition: 'transform 0.08s ease',
                   }}
                 >
-                  ▶️ Resume Duel (P / Esc)
+                  ▶️ Resume Duel (P)
                 </button>
               )}
               {onRematch && (
@@ -1018,15 +1035,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                   style={{
                     backgroundColor: '#1a2233',
                     color: '#f1c40f',
-                    border: '1px solid var(--border-gold)',
-                    borderRadius: '8px',
-                    padding: '12px 22px',
-                    fontSize: '0.98rem',
+                    border: '2px solid var(--border-gold)',
+                    borderRadius: '4px',
+                    padding: '12px 20px',
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
                     fontWeight: 800,
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.06em',
                     textTransform: 'uppercase',
                     cursor: 'pointer',
-                    transition: 'all 0.15s ease',
+                    boxShadow:
+                      'inset 0 -3px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 0 #000',
+                    transition: 'transform 0.08s ease',
                   }}
                 >
                   🔄 Restart Match
@@ -1038,14 +1058,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                   style={{
                     backgroundColor: '#121722',
                     color: '#cbd5e1',
-                    border: '1px solid #4a5568',
-                    borderRadius: '8px',
+                    border: '2px solid #4a5568',
+                    borderRadius: '4px',
                     padding: '12px 20px',
-                    fontSize: '0.98rem',
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
                     fontWeight: 700,
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.06em',
                     textTransform: 'uppercase',
                     cursor: 'pointer',
+                    boxShadow:
+                      'inset 0 -3px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 0 #000',
                   }}
                 >
                   🏰 Castle Hall
@@ -1056,15 +1079,16 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             {/* Audio Settings Bar */}
             <div
               style={{
-                backgroundColor: 'rgba(15, 20, 32, 0.85)',
-                border: '1px solid rgba(212, 175, 55, 0.3)',
-                borderRadius: '10px',
+                backgroundColor: 'rgba(15, 20, 32, 0.95)',
+                border: '2px solid rgba(212, 175, 55, 0.4)',
+                borderRadius: '4px',
                 padding: '12px 18px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 flexWrap: 'wrap',
                 gap: '14px',
+                boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
               }}
             >
               <div
@@ -1078,14 +1102,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               >
                 <span
                   style={{
-                    fontSize: '0.84rem',
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: '0.65rem',
                     fontWeight: 800,
                     color: '#f1c40f',
                     textTransform: 'uppercase',
                     letterSpacing: '0.06em',
                   }}
                 >
-                  🔊 Audio Volume
+                  🔊 Volume
                 </span>
                 <input
                   type="range"
@@ -1101,10 +1126,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 />
                 <span
                   style={{
-                    fontSize: '0.82rem',
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: '0.65rem',
                     fontWeight: 800,
                     color: '#cbd5e1',
-                    width: '38px',
+                    width: '46px',
                     textAlign: 'right',
                   }}
                 >
@@ -1117,45 +1143,49 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 style={{
                   backgroundColor: sfxMuted ? '#7f1d1d' : '#1e293b',
                   color: sfxMuted ? '#fca5a5' : '#f1c40f',
-                  border: `1px solid ${sfxMuted ? '#ef4444' : 'rgba(212, 175, 55, 0.4)'}`,
-                  borderRadius: '6px',
-                  padding: '6px 14px',
-                  fontSize: '0.8rem',
+                  border: `2px solid ${sfxMuted ? '#ef4444' : 'rgba(212, 175, 55, 0.4)'}`,
+                  borderRadius: '4px',
+                  padding: '8px 14px',
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: '0.62rem',
                   fontWeight: 800,
                   textTransform: 'uppercase',
                   letterSpacing: '0.06em',
                   cursor: 'pointer',
+                  boxShadow: 'inset 0 -2px 0 rgba(0, 0, 0, 0.7), 0 2px 0 #000',
                   transition: 'all 0.15s ease',
                 }}
               >
-                {sfxMuted ? '🔇 Audio Muted' : '🔊 SFX Active'}
+                {sfxMuted ? '🔇 Muted' : '🔊 SFX On'}
               </button>
             </div>
 
             {/* Tactical Fighting Techniques & Move Reference */}
             <div
               style={{
-                backgroundColor: 'rgba(12, 16, 26, 0.85)',
-                border: '1px solid #2d3748',
-                borderRadius: '10px',
+                backgroundColor: 'rgba(12, 16, 26, 0.95)',
+                border: '2px solid #3d495c',
+                borderRadius: '4px',
                 padding: '14px 18px',
+                boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
               }}
             >
               <div
                 style={{
-                  fontSize: '0.8rem',
+                  fontFamily: "'Press Start 2P', monospace",
+                  fontSize: '0.68rem',
                   fontWeight: 900,
                   color: '#f1c40f',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  marginBottom: '8px',
+                  letterSpacing: '0.08em',
+                  marginBottom: '10px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
                 }}
               >
                 <span>📜</span>
-                <span>Tactical Fighting Arts & Maneuvers</span>
+                <span>Tactical Fighting Arts</span>
               </div>
               <div
                 style={{

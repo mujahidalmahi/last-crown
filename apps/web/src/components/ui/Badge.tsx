@@ -7,10 +7,10 @@ export interface BadgeProps {
 
 export const Badge: React.FC<BadgeProps> = ({ variant = 'steel', children }) => {
   const colors: Record<string, { bg: string; text: string; border: string }> = {
-    gold: { bg: 'rgba(212, 175, 55, 0.15)', text: '#f1c40f', border: '#d4af37' },
-    steel: { bg: 'rgba(74, 85, 104, 0.2)', text: '#cbd5e0', border: '#4a5568' },
-    crimson: { bg: 'rgba(197, 48, 48, 0.2)', text: '#fc8181', border: '#e53e3e' },
-    green: { bg: 'rgba(46, 204, 113, 0.2)', text: '#2ecc71', border: '#27ae60' },
+    gold: { bg: '#1c1605', text: '#f1c40f', border: '#d4af37' },
+    steel: { bg: '#111827', text: '#cbd5e1', border: '#475569' },
+    crimson: { bg: '#2b0b0b', text: '#fca5a5', border: '#ef4444' },
+    green: { bg: '#092113', text: '#4ade80', border: '#22c55e' },
   };
 
   const scheme = colors[variant] || colors.steel!;
@@ -19,15 +19,18 @@ export const Badge: React.FC<BadgeProps> = ({ variant = 'steel', children }) => 
     <span
       style={{
         display: 'inline-block',
-        padding: '2px 8px',
-        fontSize: '0.75rem',
+        padding: '4px 8px',
+        fontFamily: "'Press Start 2P', monospace",
+        fontSize: '0.58rem',
         fontWeight: 700,
         textTransform: 'uppercase',
         letterSpacing: '0.05em',
         borderRadius: '3px',
         backgroundColor: scheme.bg,
         color: scheme.text,
-        border: `1px solid ${scheme.border}`,
+        border: `2px solid ${scheme.border}`,
+        boxShadow: '0 2px 0 #000',
+        textShadow: '0 1px 2px rgba(0, 0, 0, 0.9)',
       }}
     >
       {children}

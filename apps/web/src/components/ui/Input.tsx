@@ -9,15 +9,18 @@ export const Input: React.FC<InputProps> = ({ label, error, style, id, ...props 
   const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
       {label && (
         <label
           htmlFor={inputId}
           style={{
-            fontSize: '0.85rem',
-            fontWeight: 600,
-            color: 'var(--text-secondary)',
+            fontFamily: "'Press Start 2P', monospace",
+            fontSize: '0.65rem',
+            fontWeight: 700,
+            color: '#f1c40f',
             textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            textShadow: '0 1px 2px rgba(0, 0, 0, 0.8)',
           }}
         >
           {label}
@@ -26,18 +29,34 @@ export const Input: React.FC<InputProps> = ({ label, error, style, id, ...props 
       <input
         id={inputId}
         style={{
-          backgroundColor: 'var(--bg-primary)',
-          border: error ? '1px solid var(--accent-crimson)' : '1px solid var(--border-subtle)',
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: '0.72rem',
+          backgroundColor: '#070a10',
+          border: error ? '2px solid #ef4444' : '2px solid #3d495c',
+          outline: 'none',
           borderRadius: '4px',
           padding: '10px 14px',
-          color: 'var(--text-primary)',
-          fontSize: '1rem',
-          outline: 'none',
+          color: '#ffffff',
+          boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.9), 0 2px 0 #000',
+          boxSizing: 'border-box',
+          letterSpacing: '0.04em',
           ...style,
         }}
         {...props}
       />
-      {error && <span style={{ color: 'var(--accent-crimson)', fontSize: '0.8rem' }}>{error}</span>}
+      {error && (
+        <span
+          style={{
+            fontFamily: "'Press Start 2P', monospace",
+            color: '#ef4444',
+            fontSize: '0.58rem',
+            letterSpacing: '0.04em',
+            marginTop: '2px',
+          }}
+        >
+          {error}
+        </span>
+      )}
     </div>
   );
 };

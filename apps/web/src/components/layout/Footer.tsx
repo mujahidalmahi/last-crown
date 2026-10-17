@@ -5,18 +5,20 @@ export const Footer: React.FC = () => {
   return (
     <footer
       style={{
-        borderTop: '1px solid var(--border-subtle)',
-        padding: '18px 24px',
+        borderTop: '3px solid #283342',
+        padding: '16px 24px',
         textAlign: 'center',
-        fontSize: '0.82rem',
-        color: 'var(--text-muted)',
+        fontSize: '0.52rem',
+        color: '#64748b',
         marginTop: 'auto',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         gap: '10px',
-        backgroundColor: 'rgba(5, 8, 16, 0.95)',
+        backgroundColor: '#070a10',
         zIndex: 5,
+        fontFamily: "'Press Start 2P', monospace",
+        lineHeight: 1.7,
       }}
     >
       <nav
@@ -24,7 +26,7 @@ export const Footer: React.FC = () => {
         style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: '16px',
+          gap: '12px',
           justifyContent: 'center',
           alignItems: 'center',
         }}
@@ -32,69 +34,79 @@ export const Footer: React.FC = () => {
         <Link
           href="/"
           style={{
-            color: 'var(--text-secondary)',
+            color: '#94a3b8',
             textDecoration: 'none',
-            transition: 'color 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            transition: 'color 0.12s',
           }}
         >
           Home
         </Link>
-        <span aria-hidden="true" style={{ opacity: 0.4 }}>
+        <span aria-hidden="true" style={{ color: '#334155' }}>
           •
         </span>
         <Link
           href="/play"
           style={{
-            color: 'var(--text-secondary)',
+            color: '#94a3b8',
             textDecoration: 'none',
-            transition: 'color 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            transition: 'color 0.12s',
           }}
         >
           Play vs AI
         </Link>
-        <span aria-hidden="true" style={{ opacity: 0.4 }}>
+        <span aria-hidden="true" style={{ color: '#334155' }}>
           •
         </span>
         <Link
           href="/local"
           style={{
-            color: 'var(--text-secondary)',
+            color: '#94a3b8',
             textDecoration: 'none',
-            transition: 'color 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            transition: 'color 0.12s',
           }}
         >
           Local 2-Player (Controllers)
         </Link>
-        <span aria-hidden="true" style={{ opacity: 0.4 }}>
+        <span aria-hidden="true" style={{ color: '#334155' }}>
           •
         </span>
         <Link
           href="/room"
           style={{
-            color: 'var(--text-secondary)',
+            color: '#94a3b8',
             textDecoration: 'none',
-            transition: 'color 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            transition: 'color 0.12s',
           }}
         >
-          Private 1v1 Room
+          1v1 Private Room
         </Link>
-        <span aria-hidden="true" style={{ opacity: 0.4 }}>
+        <span aria-hidden="true" style={{ color: '#334155' }}>
           •
         </span>
         <Link
           href="/settings"
           style={{
-            color: 'var(--text-secondary)',
+            color: '#94a3b8',
             textDecoration: 'none',
-            transition: 'color 0.2s',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            transition: 'color 0.12s',
           }}
         >
           Controls &amp; Settings
         </Link>
       </nav>
-      <p style={{ margin: 0, fontSize: '0.78rem' }}>
-        © 2026 <strong>LAST CROWN</strong> — Free Retro Pixel-Art Browser Fighting Game. Powered by
-        Next.js, Phaser 3 &amp; Colyseus.
+      <p style={{ margin: 0, fontSize: '0.48rem', color: '#475569' }}>
+        © 2026 <strong style={{ color: '#f1c40f' }}>LAST CROWN</strong> — Free Retro Pixel-Art
+        Browser Fighting Game.
       </p>
     </footer>
   );

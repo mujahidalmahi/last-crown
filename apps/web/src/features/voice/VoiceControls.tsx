@@ -38,25 +38,25 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           onClick={joinVoice}
           title="Enable free peer-to-peer voice chat with your opponent"
           style={{
-            backgroundColor: 'rgba(10, 14, 22, 0.85)',
+            backgroundColor: '#0c101a',
             color: '#f1c40f',
-            border: '1px solid rgba(212, 175, 55, 0.5)',
-            borderRadius: '6px',
-            padding: compact ? '6px 12px' : '8px 16px',
-            fontSize: compact ? '0.8rem' : '0.85rem',
-            fontWeight: 800,
-            letterSpacing: '0.06em',
+            border: '2px solid var(--border-gold)',
+            borderRadius: '4px',
+            padding: compact ? '6px 10px' : '7px 14px',
+            fontFamily: "'Press Start 2P', monospace",
+            fontSize: compact ? '0.62rem' : '0.68rem',
+            letterSpacing: '0.05em',
             textTransform: 'uppercase',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            backdropFilter: 'blur(6px)',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
-            transition: 'all 0.15s ease',
+            boxShadow:
+              'inset 0 -2px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 3px 0 #000',
+            transition: 'transform 0.08s ease',
           }}
         >
-          <span style={{ fontSize: '1rem' }}>🎙️</span>
+          <span style={{ fontSize: '0.85rem' }}>🎙️</span>
           <span>{compact ? 'Voice' : 'Voice Chat'}</span>
         </button>
       </div>
@@ -71,21 +71,20 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: 'rgba(10, 14, 22, 0.92)',
-          border: '1px solid rgba(241, 196, 15, 0.6)',
-          borderRadius: '6px',
-          padding: '6px 14px',
+          backgroundColor: '#0c101a',
+          border: '2px solid #f1c40f',
+          borderRadius: '4px',
+          padding: '6px 12px',
           color: '#f1c40f',
-          fontSize: '0.8rem',
-          fontWeight: 700,
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: '0.62rem',
           letterSpacing: '0.04em',
-          backdropFilter: 'blur(6px)',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.6)',
+          boxShadow: 'inset 0 -2px 0 rgba(0, 0, 0, 0.8), 0 3px 0 #000',
           pointerEvents: 'auto',
         }}
       >
-        <span style={{ animation: 'spin 1.2s linear infinite' }}>⏳</span>
-        <span>Grant Mic Access...</span>
+        <span style={{ animation: 'pulse 0.8s linear infinite' }}>⏳</span>
+        <span>Granting Mic...</span>
       </div>
     );
   }
@@ -98,13 +97,13 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: 'rgba(10, 14, 22, 0.92)',
-          border: '1px solid rgba(212, 175, 55, 0.4)',
-          borderRadius: '8px',
+          backgroundColor: '#0c101a',
+          border: '2px solid var(--border-gold)',
+          borderRadius: '4px',
           padding: '4px 8px',
-          backdropFilter: 'blur(8px)',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.7)',
+          boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.8), 0 3px 0 #000',
           pointerEvents: 'auto',
+          fontFamily: "'Press Start 2P', monospace",
         }}
       >
         {/* Local Mic button while waiting */}
@@ -116,18 +115,19 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            backgroundColor: isMuted ? 'rgba(239, 68, 68, 0.2)' : 'rgba(255, 255, 255, 0.06)',
-            border: isMuted ? '1px solid #ef4444' : '1px solid rgba(212, 175, 55, 0.3)',
-            borderRadius: '5px',
-            padding: '3px 8px',
-            color: isMuted ? '#f87171' : '#f1c40f',
-            fontSize: '0.76rem',
-            fontWeight: 800,
+            backgroundColor: isMuted ? '#3a1010' : '#142018',
+            border: isMuted ? '2px solid #ef4444' : '2px solid #22c55e',
+            borderRadius: '3px',
+            padding: '4px 8px',
+            color: isMuted ? '#f87171' : '#4ade80',
+            fontFamily: 'inherit',
+            fontSize: '0.58rem',
             cursor: 'pointer',
+            boxShadow: 'inset 0 -2px 0 rgba(0, 0, 0, 0.8)',
           }}
         >
           <span>{isMuted ? '🔇' : '🎙️'}</span>
-          <span>{isMuted ? 'Muted' : 'Mic Active'}</span>
+          <span>{isMuted ? 'Muted' : 'Mic On'}</span>
         </button>
 
         {/* Rival prompt badge */}
@@ -136,8 +136,8 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '2px 8px',
-            fontSize: '0.76rem',
+            padding: '2px 6px',
+            fontSize: '0.55rem',
             color: '#cbd5e1',
           }}
         >
@@ -145,12 +145,11 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             style={{
               width: '6px',
               height: '6px',
-              borderRadius: '50%',
               backgroundColor: '#eab308',
               boxShadow: '0 0 6px #eab308',
             }}
           />
-          <span>{compact ? 'Waiting for rival...' : 'Waiting for Rival to enable voice...'}</span>
+          <span>{compact ? 'Waiting...' : 'Waiting Rival...'}</span>
         </div>
 
         {/* Cancel button */}
@@ -162,9 +161,10 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             background: 'none',
             border: 'none',
             color: '#94a3b8',
-            padding: '2px 6px',
+            padding: '2px 4px',
             cursor: 'pointer',
-            fontSize: '0.85rem',
+            fontSize: '0.75rem',
+            fontFamily: 'inherit',
           }}
         >
           ✕
@@ -181,20 +181,19 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: 'rgba(10, 14, 22, 0.92)',
-          border: '1px solid rgba(52, 152, 219, 0.6)',
-          borderRadius: '8px',
-          padding: '4px 10px',
+          backgroundColor: '#0c101a',
+          border: '2px solid #3b82f6',
+          borderRadius: '4px',
+          padding: '5px 10px',
           color: '#60a5fa',
-          fontSize: '0.8rem',
-          fontWeight: 700,
-          backdropFilter: 'blur(6px)',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.6)',
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: '0.6rem',
+          boxShadow: 'inset 0 0 10px rgba(0, 0, 0, 0.8), 0 3px 0 #000',
           pointerEvents: 'auto',
         }}
       >
-        <span style={{ animation: 'spin 1.2s linear infinite' }}>⏳</span>
-        <span>{compact ? 'Connecting...' : 'Connecting P2P Voice...'}</span>
+        <span style={{ animation: 'pulse 0.8s linear infinite' }}>⏳</span>
+        <span>{compact ? 'Connecting...' : 'Connecting P2P...'}</span>
         <button
           type="button"
           onClick={leaveVoice}
@@ -205,8 +204,9 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             color: '#94a3b8',
             padding: '2px 4px',
             cursor: 'pointer',
-            fontSize: '0.85rem',
+            fontSize: '0.75rem',
             marginLeft: '4px',
+            fontFamily: 'inherit',
           }}
         >
           ✕
@@ -223,14 +223,16 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'inline-flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: 'rgba(50, 10, 10, 0.92)',
-          border: '1px solid #ef4444',
-          borderRadius: '6px',
-          padding: '6px 12px',
+          backgroundColor: '#260a0a',
+          border: '2px solid #ef4444',
+          borderRadius: '4px',
+          padding: '6px 10px',
           color: '#fca5a5',
-          fontSize: '0.78rem',
+          fontFamily: "'Press Start 2P', monospace",
+          fontSize: '0.58rem',
           pointerEvents: 'auto',
           maxWidth: '340px',
+          boxShadow: '0 3px 0 #000',
         }}
         title={error || 'Microphone error'}
       >
@@ -245,9 +247,10 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             backgroundColor: '#ef4444',
             color: '#fff',
             border: 'none',
-            borderRadius: '4px',
-            padding: '2px 8px',
-            fontSize: '0.72rem',
+            borderRadius: '2px',
+            padding: '3px 6px',
+            fontSize: '0.55rem',
+            fontFamily: 'inherit',
             fontWeight: 800,
             cursor: 'pointer',
             marginLeft: 'auto',
@@ -263,7 +266,8 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             border: 'none',
             color: '#fca5a5',
             cursor: 'pointer',
-            fontSize: '0.9rem',
+            fontSize: '0.8rem',
+            fontFamily: 'inherit',
           }}
         >
           ✕
@@ -272,20 +276,21 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
     );
   }
 
-  // 6. Connected state: Full Live Gothic Voice Bar
+  // 6. Connected state: Full Live Gothic Retro Voice Bar
   return (
     <div
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         gap: '6px',
-        backgroundColor: 'rgba(10, 14, 22, 0.94)',
-        border: '1px solid rgba(212, 175, 55, 0.4)',
-        borderRadius: '8px',
+        backgroundColor: '#0a0e16',
+        border: '2px solid var(--border-gold)',
+        borderRadius: '4px',
         padding: '4px 8px',
-        backdropFilter: 'blur(8px)',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.7)',
+        boxShadow:
+          'inset 0 0 10px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 3px 0 #000',
         pointerEvents: 'auto',
+        fontFamily: "'Press Start 2P', monospace",
       }}
     >
       {/* Local Microphone Toggle */}
@@ -297,24 +302,20 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
-          backgroundColor: isMuted
-            ? 'rgba(239, 68, 68, 0.2)'
-            : isUserSpeaking
-              ? 'rgba(46, 204, 113, 0.25)'
-              : 'rgba(255, 255, 255, 0.06)',
+          backgroundColor: isMuted ? '#2b0f0f' : isUserSpeaking ? '#0f2918' : '#141a24',
           border: isMuted
-            ? '1px solid #ef4444'
+            ? '2px solid #ef4444'
             : isUserSpeaking
-              ? '1px solid #2ecc71'
-              : '1px solid rgba(212, 175, 55, 0.3)',
-          borderRadius: '5px',
-          padding: '4px 10px',
-          color: isMuted ? '#f87171' : isUserSpeaking ? '#2ecc71' : '#cbd5e1',
-          fontSize: '0.78rem',
-          fontWeight: 800,
+              ? '2px solid #2ecc71'
+              : '2px solid #334155',
+          borderRadius: '3px',
+          padding: '4px 8px',
+          color: isMuted ? '#f87171' : isUserSpeaking ? '#4ade80' : '#cbd5e1',
+          fontFamily: 'inherit',
+          fontSize: '0.58rem',
           cursor: 'pointer',
-          boxShadow: isUserSpeaking ? '0 0 10px rgba(46, 204, 113, 0.5)' : 'none',
-          transition: 'all 0.15s ease',
+          boxShadow: isUserSpeaking ? '0 0 8px rgba(46, 204, 113, 0.6)' : 'none',
+          transition: 'transform 0.08s ease',
         }}
       >
         <span>{isMuted ? '🔇' : '🎙️'}</span>
@@ -324,7 +325,6 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
             style={{
               width: '6px',
               height: '6px',
-              borderRadius: '50%',
               backgroundColor: '#2ecc71',
               boxShadow: '0 0 6px #2ecc71',
               animation: 'pulse 0.4s infinite alternate',
@@ -342,36 +342,31 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'flex',
           alignItems: 'center',
           gap: '6px',
-          backgroundColor: isDeafened
-            ? 'rgba(239, 68, 68, 0.2)'
-            : isOpponentSpeaking
-              ? 'rgba(52, 152, 219, 0.25)'
-              : 'rgba(255, 255, 255, 0.06)',
+          backgroundColor: isDeafened ? '#2b0f0f' : isOpponentSpeaking ? '#0f1f33' : '#141a24',
           border: isDeafened
-            ? '1px solid #ef4444'
+            ? '2px solid #ef4444'
             : isOpponentSpeaking
-              ? '1px solid #3498db'
-              : '1px solid rgba(212, 175, 55, 0.3)',
-          borderRadius: '5px',
-          padding: '4px 10px',
+              ? '2px solid #3b82f6'
+              : '2px solid #334155',
+          borderRadius: '3px',
+          padding: '4px 8px',
           color: isDeafened ? '#f87171' : isOpponentSpeaking ? '#60a5fa' : '#cbd5e1',
-          fontSize: '0.78rem',
-          fontWeight: 800,
+          fontFamily: 'inherit',
+          fontSize: '0.58rem',
           cursor: 'pointer',
-          boxShadow: isOpponentSpeaking ? '0 0 10px rgba(52, 152, 219, 0.5)' : 'none',
-          transition: 'all 0.15s ease',
+          boxShadow: isOpponentSpeaking ? '0 0 8px rgba(52, 152, 219, 0.6)' : 'none',
+          transition: 'transform 0.08s ease',
         }}
       >
         <span>{isDeafened ? '🔈' : '🔊'}</span>
-        <span>{isDeafened ? 'Deafened' : 'Audio'}</span>
+        <span>{isDeafened ? 'Deaf' : 'Audio'}</span>
         {isOpponentSpeaking && !isDeafened && (
           <span
             style={{
               width: '6px',
               height: '6px',
-              borderRadius: '50%',
-              backgroundColor: '#3498db',
-              boxShadow: '0 0 6px #3498db',
+              backgroundColor: '#38bdf8',
+              boxShadow: '0 0 6px #38bdf8',
               animation: 'pulse 0.4s infinite alternate',
             }}
           />
@@ -384,8 +379,8 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           display: 'flex',
           alignItems: 'center',
           gap: '5px',
-          padding: '2px 8px',
-          fontSize: '0.74rem',
+          padding: '2px 6px',
+          fontSize: '0.55rem',
           color: opponentInVoice ? (isOpponentMuted ? '#f87171' : '#34d399') : '#94a3b8',
         }}
         title={
@@ -402,7 +397,6 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           style={{
             width: '6px',
             height: '6px',
-            borderRadius: '50%',
             backgroundColor: opponentInVoice
               ? isOpponentMuted
                 ? '#ef4444'
@@ -422,7 +416,7 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
               : isOpponentSpeaking
                 ? 'Rival Speaking'
                 : 'Rival Live'
-            : 'Waiting Rival'}
+            : 'Waiting'}
         </span>
       </div>
 
@@ -435,10 +429,10 @@ export const VoiceControls: React.FC<VoiceControlsProps> = ({ voice, compact = f
           background: 'none',
           border: 'none',
           color: '#94a3b8',
-          padding: '4px 6px',
-          borderRadius: '4px',
+          padding: '3px 6px',
           cursor: 'pointer',
-          fontSize: '0.85rem',
+          fontSize: '0.75rem',
+          fontFamily: 'inherit',
           transition: 'color 0.15s ease',
         }}
       >

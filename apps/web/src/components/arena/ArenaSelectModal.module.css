@@ -6,9 +6,7 @@
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(3, 5, 10, 0.88);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(3, 5, 10, 0.94);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -35,7 +33,7 @@
   width: min(96vw, calc(92vh * (16 / 9)), 980px);
   aspect-ratio: 16 / 9;
   background-color: #1e2430;
-  border-radius: 8px;
+  border-radius: 4px;
   box-shadow:
     0 0 0 4px #0c1017,
     0 0 0 8px #2d3848,
@@ -258,7 +256,7 @@
   background-color: #1a202c;
   border: clamp(3px, 0.5vw, 5px) solid #2d3748;
   outline: 2px solid #10141e;
-  border-radius: 8px;
+  border-radius: 4px;
   overflow: hidden;
   cursor: pointer;
   box-shadow:

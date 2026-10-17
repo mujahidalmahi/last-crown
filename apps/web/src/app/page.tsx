@@ -82,10 +82,10 @@ export default function HomePage() {
     <div className={styles.coverContainer} role="region" aria-label="Main menu">
       <div className={styles.buttonGroup}>
         <PixelButton size="lg" onClick={handlePlayClick} className={styles.mainButton}>
-          Play
+          PLAY
         </PixelButton>
         <PixelButton size="lg" onClick={handleSettingsClick} className={styles.mainButton}>
-          Settings
+          SETTINGS
         </PixelButton>
       </div>
     </div>
@@ -136,7 +136,7 @@ export default function HomePage() {
           onClick={() => handleModeClick('/room')}
           className={styles.modeButton}
         >
-          Private 2 Player Room
+          ONLINE 2-PLAYER ROOM
         </PixelButton>
         <PixelButton
           size="md"
@@ -144,7 +144,7 @@ export default function HomePage() {
           variant="danger"
           className={styles.backButton}
         >
-          Back
+          BACK
         </PixelButton>
       </div>
     </div>

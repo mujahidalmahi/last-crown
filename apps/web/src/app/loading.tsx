@@ -9,26 +9,41 @@ export default function Loading() {
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: '60vh',
-        gap: '16px',
+        gap: '20px',
+        fontFamily: "'Press Start 2P', monospace",
+        textAlign: 'center',
       }}
     >
       <div
         style={{
-          width: '48px',
-          height: '48px',
-          border: '4px solid var(--border-subtle)',
-          borderTop: '4px solid var(--accent-gold)',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite',
+          fontSize: '2.5rem',
+          filter: 'drop-shadow(0 0 12px #f1c40f)',
+          animation: 'pixelBounce 0.6s steps(4) infinite alternate',
         }}
-      />
-      <p style={{ color: 'var(--text-secondary)', fontWeight: 600, letterSpacing: '0.1em' }}>
+      >
+        ⚔️
+      </div>
+      <p
+        style={{
+          color: '#f1c40f',
+          fontSize: '0.75rem',
+          letterSpacing: '0.12em',
+          textShadow:
+            '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 3px 0 #000',
+          animation: 'pixelBlink 0.9s steps(2) infinite',
+        }}
+      >
         ENTERING THE ARENA...
       </p>
       <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+        @keyframes pixelBounce {
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-8px); }
+        }
+        @keyframes pixelBlink {
+          0% { opacity: 1; }
+          50% { opacity: 0.35; }
+          100% { opacity: 1; }
         }
       `}</style>
     </div>
