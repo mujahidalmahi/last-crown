@@ -418,7 +418,7 @@ export default function SettingsPage() {
 
       {/* Tiny Footer */}
       <footer className={styles.footerText}>
-        LAST CROWN v1.0.0 • 2D RETRO DUEL SIMULATION • © 2026 LAST CROWN
+        LAST-CROWN v1.0.0 • 2D RETRO DUEL SIMULATION • © 2026 LAST-CROWN
       </footer>
     </div>
   );

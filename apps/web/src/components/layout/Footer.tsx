@@ -105,8 +105,7 @@ export const Footer: React.FC = () => {
         </Link>
       </nav>
       <p style={{ margin: 0, fontSize: '0.48rem', color: '#475569' }}>
-        © 2026 <strong style={{ color: '#f1c40f' }}>LAST CROWN</strong> — Free Retro Pixel-Art
-        Browser Fighting Game.
+        © 2026 <strong style={{ color: '#f1c40f' }}>LAST-CROWN</strong> — The winner takes it all.
       </p>
     </footer>
   );

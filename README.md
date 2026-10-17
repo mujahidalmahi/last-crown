@@ -1,8 +1,8 @@
 <div align="center">
 
-# ⚔️ Last-Crown: The winner takes it all
+# ⚔️ Last-Crown
 
-### _"The winner takes it all."_
+### _"The winner takes it all"_
 
 An enterprise-grade, browser-based 2D medieval sword-fighting game featuring deterministic 60Hz physics, frame-perfect parrying, stamina management, WebRTC peer-to-peer voice chat, and server-authoritative multiplayer.
 
@@ -43,7 +43,7 @@ An enterprise-grade, browser-based 2D medieval sword-fighting game featuring det
 
 ## 🏛️ System Architecture
 
-LAST CROWN is organized as a high-performance TypeScript monorepo using npm workspaces:
+Last-Crown is organized as a high-performance TypeScript monorepo using npm workspaces:
 
 ```mermaid
 flowchart TD
@@ -221,4 +221,4 @@ We welcome contributions! Please read our [Contributing Guide](CONTRIBUTING.md) 
 ## 📄 License
 
 This project is licensed under the terms of the [MIT License](LICENSE).  
-Copyright (c) 2026 LAST CROWN Contributors.
+Copyright (c) 2026 Last-Crown Contributors.

@@ -1,6 +1,6 @@
 # Production Operations & Deployment Runbook
 
-This guide outlines enterprise deployment, container orchestration, reverse proxy configuration, and monitoring for **LAST CROWN**.
+This guide outlines enterprise deployment, container orchestration, reverse proxy configuration, and monitoring for **Last-Crown**.
 
 ---
 

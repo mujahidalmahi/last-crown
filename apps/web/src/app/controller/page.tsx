@@ -245,7 +245,7 @@ export default function MobileControllerPage() {
       {/* Tap to Activate Modal for Audio & Fullscreen */}
       {!hasStarted && (
         <div className={styles.modalBackdrop}>
-          <h2 className={styles.modalTitle}>⚔️ LAST CROWN GAMEPAD</h2>
+          <h2 className={styles.modalTitle}>⚔️ LAST-CROWN GAMEPAD</h2>
           <p className={styles.modalSubtitle}>
             Tap below to pair your smartphone as a responsive controller for Room{' '}
             <strong style={{ color: '#f1c40f' }}>{roomCode}</strong>.

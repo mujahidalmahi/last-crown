@@ -1,12 +1,12 @@
 # Network Protocol Specification
 
-This document defines the wire protocol, message structures, validation rules, and signaling interfaces used for multiplayer synchronization in **LAST CROWN**.
+This document defines the wire protocol, message structures, validation rules, and signaling interfaces used for multiplayer synchronization in **Last-Crown**.
 
 ---
 
 ## 1. Network Architecture & Transport
 
-LAST CROWN utilizes two primary communication channels:
+Last-Crown utilizes two primary communication channels:
 
 1. **WebSocket State Channel** (Colyseus 0.15): Binary schema delta synchronization for real-time game simulation at 60 Hz.
 2. **WebRTC Peer-to-Peer Data & Media Channel**: Direct audio streaming between opposing players with Colyseus acting strictly as the signaling relay.

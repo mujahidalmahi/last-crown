@@ -196,7 +196,7 @@ export default function HomePage() {
           mobile devices.
         </p>
 
-        <h2>Game Modes in Last Crown</h2>
+        <h2>Game Modes in Last-Crown</h2>
         <section>
           <h3>Single-Player AI Duel</h3>
           <p>

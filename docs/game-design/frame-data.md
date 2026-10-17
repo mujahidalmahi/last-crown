@@ -1,6 +1,6 @@
 # Frame Data & Combat Archetypes
 
-All timings in **LAST CROWN** are based on a fixed **60Hz simulation rate** ($1\text{ frame} \approx 16.66\text{ms}$).
+All timings in **Last-Crown** are based on a fixed **60Hz simulation rate** ($1\text{ frame} \approx 16.66\text{ms}$).
 
 ---
 

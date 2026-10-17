@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Last-Crown: The winner takes it all',
+    name: 'Last-Crown — The winner takes it all',
     short_name: 'Last-Crown',
     description:
       'Fast-paced retro pixel-art browser fighting game featuring 1v1 online multiplayer, smart AI duels, and local 2-player with smartphone QR controllers.',

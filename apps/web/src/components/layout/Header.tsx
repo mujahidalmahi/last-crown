@@ -34,7 +34,7 @@ export const Header: React.FC = () => {
               lineHeight: 1.2,
             }}
           >
-            LAST CROWN
+            LAST-CROWN
           </span>
           <p
             style={{

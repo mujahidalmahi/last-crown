@@ -1,6 +1,6 @@
-# Last-Crown: The winner takes it all — Technical Documentation Hub
+# Last-Crown — Technical Documentation Hub
 
-Welcome to the comprehensive technical documentation for **Last-Crown: The winner takes it all**, a browser-based, competitive 2D medieval sword-fighting game.
+Welcome to the comprehensive technical documentation for **Last-Crown** (_"The winner takes it all"_), a browser-based, competitive 2D medieval sword-fighting game.
 
 This documentation hub covers the architectural foundations, deterministic combat simulation, network protocol, game balance, security models, testing strategies, and production deployment runbooks.
 

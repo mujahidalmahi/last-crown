@@ -1,6 +1,6 @@
 # Security Policy
 
-The **LAST CROWN** engineering team takes the security, reliability, and integrity of our online gaming platform seriously. We appreciate responsible disclosures from researchers, players, and contributors.
+The **Last-Crown** engineering team takes the security, reliability, and integrity of our online gaming platform seriously. We appreciate responsible disclosures from researchers, players, and contributors.
 
 ---
 
@@ -17,7 +17,7 @@ Only the latest release on the primary production branch receives active securit
 
 ## Security Architecture & Principles
 
-LAST CROWN operates under a **Zero-Client-Trust** multiplayer architecture:
+Last-Crown operates under a **Zero-Client-Trust** multiplayer architecture:
 
 1. **Server Authoritative State**:
    - Game clients do not dictate attack validation, collision checks, damage calculations, health values, or round winners.
@@ -88,4 +88,4 @@ To help us investigate and remediate the issue promptly, please provide:
 
 ## Security Hall of Fame
 
-We believe in recognizing security researchers who help protect the LAST CROWN community. With your permission, credited contributors will be acknowledged in our release notes and Security Hall of Fame.
+We believe in recognizing security researchers who help protect the Last-Crown community. With your permission, credited contributors will be acknowledged in our release notes and Security Hall of Fame.

@@ -1,6 +1,6 @@
 # Mobile & Responsive Architecture
 
-LAST CROWN features dedicated mobile optimization supporting both **direct touch gameplay on mobile browsers** and **smartphone companion controllers** via QR code pairing.
+Last-Crown features dedicated mobile optimization supporting both **direct touch gameplay on mobile browsers** and **smartphone companion controllers** via QR code pairing.
 
 ---
 

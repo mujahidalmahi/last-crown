@@ -1,7 +1,7 @@
-# Last-Crown: The winner takes it all — Production Readiness Audit Record
+# Last-Crown — Production Readiness Audit Record
 
 **Date**: 2026-10-14  
-**Project**: Last-Crown: The winner takes it all ("The winner takes it all.")  
+**Project**: Last-Crown ("The winner takes it all")  
 **Scope**: Full repository audit across core simulation, multiplayer systems, UI/UX, security, performance, audio, accessibility, tests, and deployment readiness.
 
 ---

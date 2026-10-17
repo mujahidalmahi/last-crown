@@ -1,6 +1,6 @@
-# Contributing to LAST CROWN
+# Contributing to Last-Crown
 
-Thank you for your interest in contributing to **LAST CROWN**! We welcome community contributions, bug reports, performance enhancements, and gameplay proposals.
+Thank you for your interest in contributing to **Last-Crown**! We welcome community contributions, bug reports, performance enhancements, and gameplay proposals.
 
 To keep the codebase reliable, deterministic, and scalable, we maintain enterprise-grade software engineering standards. Please review this guide before submitting pull requests.
 
@@ -28,7 +28,7 @@ All contributors and maintainers are expected to adhere to our [Code of Conduct]
 
 ## Monorepo Architecture & Package Boundaries
 
-LAST CROWN is organized as an npm workspaces monorepo:
+Last-Crown is organized as an npm workspaces monorepo:
 
 ```text
 last-crown/
@@ -210,10 +210,10 @@ Every bug fix or new feature **must include automated tests**:
 
 ## Release & Versioning
 
-LAST CROWN follows [Semantic Versioning 2.0.0](https://semver.org/):
+Last-Crown follows [Semantic Versioning 2.0.0](https://semver.org/):
 
 - **MAJOR (`x.0.0`)**: Breaking network protocol changes or major architecture shifts.
 - **MINOR (`0.x.0`)**: New warriors, game modes, arenas, or non-breaking API additions.
 - **PATCH (`0.0.x`)**: Bug fixes, balance adjustments, performance tuning, and documentation improvements.
 
-Thank you for helping forge **LAST CROWN** into an exceptional competitive experience!
+Thank you for helping forge **Last-Crown** into an exceptional competitive experience!

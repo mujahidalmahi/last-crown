@@ -2,7 +2,7 @@
   "name": "last-crown-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "Last-Crown: The winner takes it all. A browser-based 2D medieval sword-fighting game.",
+  "description": "Last-Crown — The winner takes it all. A browser-based 2D medieval sword-fighting game.",
   "workspaces": [
     "packages/*",
     "apps/*"

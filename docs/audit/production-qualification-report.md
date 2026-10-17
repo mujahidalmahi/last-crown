@@ -1,6 +1,6 @@
-# Last-Crown: The winner takes it all — Final Production Readiness Qualification Report
+# Last-Crown — Final Production Readiness Qualification Report
 
-**Project**: Last-Crown: The winner takes it all ("The winner takes it all.")  
+**Project**: Last-Crown ("The winner takes it all")  
 **Type**: 2D Medieval Sword-Fighting Browser Game  
 **Stack**: Next.js 14, Phaser 3.88, Colyseus 0.15, Web Audio API, TypeScript 5.6  
 **Auditor**: Senior Game & Release Engineering Auditor  
