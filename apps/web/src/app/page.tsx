@@ -187,12 +187,13 @@ export default function HomePage() {
 
       {/* Semantic Search Engine Crawler & Screen Reader Content */}
       <article className="sr-only">
-        <h1>Last Crown — Free Retro Pixel-Art Browser Fighting Game</h1>
+        <h1>Last-Crown: The winner takes it all — Free Retro Pixel-Art Browser Fighting Game</h1>
         <p>
-          Welcome to Last Crown (https://last-crown.top), the premier free retro pixel-art browser
-          fighting game. Experience intense 2D combat featuring server-authoritative physics,
-          parrying mechanics, tactical stamina management, and dynamic retro CRT arcade visuals.
-          Play instantly with zero downloads on desktop, tablet, and mobile devices.
+          Welcome to Last-Crown: The winner takes it all (https://last-crown.top), the premier free
+          retro pixel-art browser fighting game. Experience intense 2D combat featuring
+          server-authoritative physics, parrying mechanics, tactical stamina management, and dynamic
+          retro CRT arcade visuals. Play instantly with zero downloads on desktop, tablet, and
+          mobile devices.
         </p>
 
         <h2>Game Modes in Last Crown</h2>

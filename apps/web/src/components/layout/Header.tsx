@@ -45,7 +45,7 @@ export const Header: React.FC = () => {
               margin: '3px 0 0 0',
             }}
           >
-            Only One Shall Reign
+            The winner takes it all
           </p>
         </div>
       </Link>

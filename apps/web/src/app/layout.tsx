@@ -7,13 +7,14 @@ import { SkipLink } from '../components/accessibility/SkipLink';
 export const metadata: Metadata = {
   metadataBase: new URL('https://last-crown.top'),
   title: {
-    default: 'Last Crown — Free Retro Pixel-Art Browser Fighting Game',
-    template: '%s | Last Crown',
+    default: 'Last-Crown: The winner takes it all — Free Retro Pixel-Art Browser Fighting Game',
+    template: '%s | Last-Crown: The winner takes it all',
   },
   description:
-    'Play Last Crown, the ultimate free retro pixel-art browser fighting game. Experience fast 2D combat, smart AI bot duels, online 1v1 multiplayer with voice chat, and local 2-player battles with mobile QR controllers or gamepads.',
-  applicationName: 'Last Crown',
+    'Play Last-Crown: The winner takes it all, the ultimate free retro pixel-art browser fighting game. Experience fast 2D combat, smart AI bot duels, online 1v1 multiplayer with voice chat, and local 2-player battles with mobile QR controllers or gamepads.',
+  applicationName: 'Last-Crown: The winner takes it all',
   keywords: [
+    'Last-Crown: The winner takes it all',
     'Last Crown',
     'Last Crown game',
     'last-crown.top',
@@ -50,17 +51,17 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.webmanifest',
   openGraph: {
-    title: 'Last Crown — Retro Pixel-Art Browser Fighting Game',
+    title: 'Last-Crown: The winner takes it all — Retro Pixel-Art Browser Fighting Game',
     description:
       'Fast 2D combat in your browser! Single-player AI duels, online 1v1 with voice chat, and local 2-player with phone QR controllers. No download required.',
     url: 'https://last-crown.top',
-    siteName: 'Last Crown',
+    siteName: 'Last-Crown: The winner takes it all',
     images: [
       {
         url: '/assets/backgrounds/cover.jpg',
         width: 1200,
         height: 630,
-        alt: 'Last Crown — Retro Pixel-Art Browser Fighting Game',
+        alt: 'Last-Crown: The winner takes it all — Retro Pixel-Art Browser Fighting Game',
         type: 'image/jpeg',
       },
     ],
@@ -69,7 +70,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Last Crown — Retro Pixel-Art Browser Fighting Game',
+    title: 'Last-Crown: The winner takes it all — Retro Pixel-Art Browser Fighting Game',
     description:
       'Fast 2D combat in your browser! Single-player AI duels, online 1v1 with voice chat, and local 2-player with phone QR controllers.',
     images: ['/assets/backgrounds/cover.jpg'],
@@ -104,8 +105,13 @@ const jsonLd = {
     {
       '@type': ['VideoGame', 'WebApplication'],
       '@id': 'https://last-crown.top/#game',
-      name: 'Last Crown',
-      alternateName: ['Last Crown Fighting Game', 'Last-Crown', 'LastCrown'],
+      name: 'Last-Crown: The winner takes it all',
+      alternateName: [
+        'Last Crown',
+        'Last-Crown',
+        'Last-Crown: The winner takes it all',
+        'LastCrown',
+      ],
       url: 'https://last-crown.top',
       image: 'https://last-crown.top/assets/backgrounds/cover.jpg',
       screenshot: 'https://last-crown.top/assets/backgrounds/cover.jpg',

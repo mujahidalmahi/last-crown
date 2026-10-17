@@ -777,8 +777,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             : isDraw
               ? 'Both Champions Stood Equal In Blood & Steel.'
               : p1.isDecapitated
-                ? 'Your Head Fell To The Arena Floor. Only One Shall Reign.'
-                : 'Only One Shall Reign.';
+                ? 'Your Head Fell To The Arena Floor. The winner takes it all.'
+                : 'The winner takes it all.';
 
           return (
             <div
