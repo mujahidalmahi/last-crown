@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { TouchInputBridge } from '../../game/input/TouchInputBridge';
 import styles from './MobileGameControls.module.css';
 
@@ -10,37 +10,43 @@ interface MobileGameControlsProps {
 
 export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
-  const [activeDirections, setActiveDirections] = useState<{
+
+  // Direction and action state tracked in ref to avoid multi-touch stale closures and re-render lag
+  const directionsRef = useRef({ up: false, down: false, left: false, right: false });
+
+  // Visual active state for retro button press indicators
+  const [activeVisuals, setActiveVisuals] = useState<{
     up: boolean;
-    down: boolean;
     left: boolean;
     right: boolean;
-  }>({ up: false, down: false, left: false, right: false });
-
-  const [activeActions, setActiveActions] = useState<{
-    light: boolean;
-    heavy: boolean;
+    dash: boolean;
     block: boolean;
     parry: boolean;
-    dash: boolean;
+    heavy: boolean;
+    light: boolean;
   }>({
-    light: false,
-    heavy: false,
+    up: false,
+    left: false,
+    right: false,
+    dash: false,
     block: false,
     parry: false,
-    dash: false,
+    heavy: false,
+    light: false,
   });
 
-  // Device detection
+  // Device detection: rely strictly on pointer coarse / maxTouchPoints, not desktop window width
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const checkDevice = () => {
       const hasTouch =
-        'ontouchstart' in window ||
-        navigator.maxTouchPoints > 0 ||
-        (window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches) ||
-        window.innerWidth <= 1024;
-      setIsTouchDevice(hasTouch);
+        (navigator.maxTouchPoints > 0 &&
+          window.matchMedia &&
+          window.matchMedia('(pointer: coarse)').matches) ||
+        ('ontouchstart' in window &&
+          window.matchMedia &&
+          window.matchMedia('(hover: none)').matches);
+      setIsTouchDevice(Boolean(hasTouch));
     };
     checkDevice();
     window.addEventListener('resize', checkDevice);
@@ -57,146 +63,155 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
     }
   }, []);
 
-  const updateDirectionState = useCallback(
-    (up: boolean, down: boolean, left: boolean, right: boolean) => {
-      setActiveDirections({ up, down, left, right });
-      TouchInputBridge.setDirection({ up, down, left, right });
-    },
-    []
-  );
+  const updateDirection = useCallback((delta: Partial<typeof directionsRef.current>) => {
+    Object.assign(directionsRef.current, delta);
+    TouchInputBridge.setDirection({ ...directionsRef.current });
+  }, []);
 
   // ── LEFT BUTTONS ──
 
   const handleLeftDown = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      updateDirectionState(activeDirections.up, false, true, false);
+      updateDirection({ left: true, right: false });
+      setActiveVisuals(prev => ({ ...prev, left: true, right: false }));
       triggerHaptic(8);
     },
-    [activeDirections.up, updateDirectionState, triggerHaptic]
+    [updateDirection, triggerHaptic]
   );
 
   const handleLeftUp = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      updateDirectionState(activeDirections.up, false, false, activeDirections.right);
+      updateDirection({ left: false });
+      setActiveVisuals(prev => ({ ...prev, left: false }));
     },
-    [activeDirections, updateDirectionState]
+    [updateDirection]
   );
 
   const handleRightDown = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      updateDirectionState(activeDirections.up, false, false, true);
+      updateDirection({ right: true, left: false });
+      setActiveVisuals(prev => ({ ...prev, right: true, left: false }));
       triggerHaptic(8);
     },
-    [activeDirections.up, updateDirectionState, triggerHaptic]
+    [updateDirection, triggerHaptic]
   );
 
   const handleRightUp = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      updateDirectionState(activeDirections.up, false, activeDirections.left, false);
+      updateDirection({ right: false });
+      setActiveVisuals(prev => ({ ...prev, right: false }));
     },
-    [activeDirections, updateDirectionState]
+    [updateDirection]
   );
 
   const handleJumpDown = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      updateDirectionState(true, false, activeDirections.left, activeDirections.right);
+      updateDirection({ up: true });
+      setActiveVisuals(prev => ({ ...prev, up: true }));
       triggerHaptic(10);
     },
-    [activeDirections, updateDirectionState, triggerHaptic]
+    [updateDirection, triggerHaptic]
   );
 
   const handleJumpUp = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      updateDirectionState(false, false, activeDirections.left, activeDirections.right);
+      updateDirection({ up: false });
+      setActiveVisuals(prev => ({ ...prev, up: false }));
     },
-    [activeDirections, updateDirectionState]
+    [updateDirection]
   );
 
   // ── DASH ──
   const handleDashDown = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      setActiveActions(prev => ({ ...prev, dash: true }));
+      setActiveVisuals(prev => ({ ...prev, dash: true }));
       TouchInputBridge.triggerDash();
       triggerHaptic(12);
     },
     [triggerHaptic]
   );
-  const handleDashUp = useCallback((e: React.SyntheticEvent) => {
+  const handleDashUp = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
-    setActiveActions(prev => ({ ...prev, dash: false }));
+    setActiveVisuals(prev => ({ ...prev, dash: false }));
   }, []);
 
   // ── DEFENSE ──
   const handleBlockDown = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      setActiveActions(prev => ({ ...prev, block: true }));
+      setActiveVisuals(prev => ({ ...prev, block: true }));
       TouchInputBridge.setBlock(true);
-      triggerHaptic(10);
+      triggerHaptic(8);
     },
     [triggerHaptic]
   );
-  const handleBlockUp = useCallback((e: React.SyntheticEvent) => {
+  const handleBlockUp = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
-    setActiveActions(prev => ({ ...prev, block: false }));
+    setActiveVisuals(prev => ({ ...prev, block: false }));
     TouchInputBridge.setBlock(false);
   }, []);
 
   const handleParryDown = useCallback(
-    (e: React.SyntheticEvent) => {
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      setActiveActions(prev => ({ ...prev, parry: true }));
+      setActiveVisuals(prev => ({ ...prev, parry: true }));
       TouchInputBridge.triggerParry();
-      triggerHaptic(16);
-    },
-    [triggerHaptic]
-  );
-  const handleParryUp = useCallback((e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setActiveActions(prev => ({ ...prev, parry: false }));
-  }, []);
-
-  // ── ATTACKS ──
-  const handleLightDown = useCallback(
-    (e: React.SyntheticEvent) => {
-      e.preventDefault();
-      setActiveActions(prev => ({ ...prev, light: true }));
-      TouchInputBridge.triggerLightAttack();
       triggerHaptic(14);
     },
     [triggerHaptic]
   );
-  const handleLightUp = useCallback((e: React.SyntheticEvent) => {
+  const handleParryUp = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
-    setActiveActions(prev => ({ ...prev, light: false }));
+    setActiveVisuals(prev => ({ ...prev, parry: false }));
   }, []);
 
-  const handleHeavyDown = useCallback(
-    (e: React.SyntheticEvent) => {
+  // ── ATTACK ──
+  const handleLightDown = useCallback(
+    (e: React.PointerEvent) => {
       e.preventDefault();
-      setActiveActions(prev => ({ ...prev, heavy: true }));
-      TouchInputBridge.triggerHeavyAttack();
-      triggerHaptic(18);
+      setActiveVisuals(prev => ({ ...prev, light: true }));
+      TouchInputBridge.triggerLightAttack();
+      triggerHaptic(10);
     },
     [triggerHaptic]
   );
-  const handleHeavyUp = useCallback((e: React.SyntheticEvent) => {
+  const handleLightUp = useCallback((e: React.PointerEvent) => {
     e.preventDefault();
-    setActiveActions(prev => ({ ...prev, heavy: false }));
+    setActiveVisuals(prev => ({ ...prev, light: false }));
   }, []);
 
-  // Desktop guard — render nothing on mouse-only devices
-  if (!isTouchDevice) return null;
+  const handleHeavyDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      setActiveVisuals(prev => ({ ...prev, heavy: true }));
+      TouchInputBridge.triggerHeavyAttack();
+      triggerHaptic(14);
+    },
+    [triggerHaptic]
+  );
+  const handleHeavyUp = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    setActiveVisuals(prev => ({ ...prev, heavy: false }));
+  }, []);
+
+  if (!isTouchDevice) {
+    return null;
+  }
 
   return (
-    <div className={styles.gamepad} role="region" aria-label="Mobile Game Controls">
+    <div
+      className={styles.gamepad}
+      role="region"
+      aria-label="Arcade Virtual Gamepad"
+      style={{ touchAction: 'none' }}
+    >
       {/* ═══════════════════════════════════════════
           LEFT ZONE — Movement & Jump
           ═══════════════════════════════════════════ */}
@@ -204,10 +219,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
         {/* JUMP — top centre of left zone */}
         <button
           type="button"
-          className={`${styles.jumpBtn} ${activeDirections.up ? styles.active : ''}`}
-          onTouchStart={handleJumpDown}
-          onTouchEnd={handleJumpUp}
-          onTouchCancel={handleJumpUp}
+          className={`${styles.jumpBtn} ${activeVisuals.up ? styles.active : ''}`}
           onPointerDown={handleJumpDown}
           onPointerUp={handleJumpUp}
           onPointerCancel={handleJumpUp}
@@ -221,10 +233,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
         <div className={styles.lrRow}>
           <button
             type="button"
-            className={`${styles.moveBtn} ${activeDirections.left ? styles.active : ''}`}
-            onTouchStart={handleLeftDown}
-            onTouchEnd={handleLeftUp}
-            onTouchCancel={handleLeftUp}
+            className={`${styles.moveBtn} ${activeVisuals.left ? styles.active : ''}`}
             onPointerDown={handleLeftDown}
             onPointerUp={handleLeftUp}
             onPointerCancel={handleLeftUp}
@@ -236,10 +245,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
 
           <button
             type="button"
-            className={`${styles.dashBtn} ${activeActions.dash ? styles.active : ''}`}
-            onTouchStart={handleDashDown}
-            onTouchEnd={handleDashUp}
-            onTouchCancel={handleDashUp}
+            className={`${styles.dashBtn} ${activeVisuals.dash ? styles.active : ''}`}
             onPointerDown={handleDashDown}
             onPointerUp={handleDashUp}
             onPointerCancel={handleDashUp}
@@ -251,10 +257,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
 
           <button
             type="button"
-            className={`${styles.moveBtn} ${activeDirections.right ? styles.active : ''}`}
-            onTouchStart={handleRightDown}
-            onTouchEnd={handleRightUp}
-            onTouchCancel={handleRightUp}
+            className={`${styles.moveBtn} ${activeVisuals.right ? styles.active : ''}`}
             onPointerDown={handleRightDown}
             onPointerUp={handleRightUp}
             onPointerCancel={handleRightUp}
@@ -274,10 +277,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
         <div className={styles.defRow}>
           <button
             type="button"
-            className={`${styles.blockBtn} ${activeActions.block ? styles.active : ''}`}
-            onTouchStart={handleBlockDown}
-            onTouchEnd={handleBlockUp}
-            onTouchCancel={handleBlockUp}
+            className={`${styles.blockBtn} ${activeVisuals.block ? styles.active : ''}`}
             onPointerDown={handleBlockDown}
             onPointerUp={handleBlockUp}
             onPointerCancel={handleBlockUp}
@@ -289,10 +289,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
 
           <button
             type="button"
-            className={`${styles.parryBtn} ${activeActions.parry ? styles.active : ''}`}
-            onTouchStart={handleParryDown}
-            onTouchEnd={handleParryUp}
-            onTouchCancel={handleParryUp}
+            className={`${styles.parryBtn} ${activeVisuals.parry ? styles.active : ''}`}
             onPointerDown={handleParryDown}
             onPointerUp={handleParryUp}
             onPointerCancel={handleParryUp}
@@ -307,10 +304,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
         <div className={styles.atkRow}>
           <button
             type="button"
-            className={`${styles.heavyBtn} ${activeActions.heavy ? styles.active : ''}`}
-            onTouchStart={handleHeavyDown}
-            onTouchEnd={handleHeavyUp}
-            onTouchCancel={handleHeavyUp}
+            className={`${styles.heavyBtn} ${activeVisuals.heavy ? styles.active : ''}`}
             onPointerDown={handleHeavyDown}
             onPointerUp={handleHeavyUp}
             onPointerCancel={handleHeavyUp}
@@ -322,10 +316,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
 
           <button
             type="button"
-            className={`${styles.lightBtn} ${activeActions.light ? styles.active : ''}`}
-            onTouchStart={handleLightDown}
-            onTouchEnd={handleLightUp}
-            onTouchCancel={handleLightUp}
+            className={`${styles.lightBtn} ${activeVisuals.light ? styles.active : ''}`}
             onPointerDown={handleLightDown}
             onPointerUp={handleLightUp}
             onPointerCancel={handleLightUp}

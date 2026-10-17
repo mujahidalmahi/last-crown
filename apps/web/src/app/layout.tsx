@@ -93,7 +93,9 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#f1c40f',
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#07090e',
 };
 
 const jsonLd = {
@@ -207,7 +209,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <SkipLink />
-        <main id="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', outline: 'none' }}
+        >
           {children}
         </main>
         <Footer />

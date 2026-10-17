@@ -30,6 +30,12 @@ function loadEnvFallback() {
   }
 }
 
+interface CachedIceServers {
+  data: { iceServers: { urls: string | string[]; username?: string; credential?: string }[] };
+  expiresAt: number;
+}
+let cachedTurnResponse: CachedIceServers | null = null;
+
 export async function GET() {
   loadEnvFallback();
   const isVercel = Boolean(process.env.VERCEL || process.env.NEXT_PUBLIC_VERCEL_ENV);
@@ -49,6 +55,11 @@ export async function GET() {
         return NextResponse.json(data);
       }
     } catch {}
+  }
+
+  // Check in-memory cached TURN credentials first
+  if (cachedTurnResponse && Date.now() < cachedTurnResponse.expiresAt) {
+    return NextResponse.json(cachedTurnResponse.data);
   }
 
   // Fallback to Cloudflare Realtime TURN if configured on web, or standard robust public STUN
@@ -74,13 +85,18 @@ export async function GET() {
           iceServers?: { urls: string | string[]; username?: string; credential?: string }[];
         };
         if (data && Array.isArray(data.iceServers) && data.iceServers.length > 0) {
-          return NextResponse.json({
+          const finalData = {
             iceServers: [
               { urls: 'stun:stun.cloudflare.com:3478' },
               { urls: 'stun:stun.l.google.com:19302' },
               ...data.iceServers,
             ],
-          });
+          };
+          cachedTurnResponse = {
+            data: finalData,
+            expiresAt: Date.now() + 12 * 60 * 60 * 1000,
+          };
+          return NextResponse.json(finalData);
         }
       }
     } catch {}

@@ -14,7 +14,18 @@ import { serverEnv } from './config/env.js';
 import { IceServerService } from './services/IceServerService.js';
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(express.json());
+
+// Helper to reliably sanitize client IP behind reverse proxies / CDN
+function getClientIp(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string') {
+    const leftmost = forwarded.split(',')[0]?.trim();
+    if (leftmost) return leftmost;
+  }
+  return req.ip || req.socket.remoteAddress || 'unknown';
+}
 
 // CORS configuration
 const allowedOrigins = serverEnv.SERVER_CORS_ORIGIN.split(',').map(o => o.trim());
@@ -112,8 +123,7 @@ app.get('/api/stats', (_req: Request, res: Response) => {
 // Private room creation endpoint
 app.post('/api/rooms/create', async (req: Request, res: Response) => {
   try {
-    const clientIp =
-      (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const clientIp = getClientIp(req);
     const rateLimitResult = createRateLimiter.isAllowed(clientIp);
     if (!rateLimitResult.allowed) {
       res.status(429).json({
@@ -164,8 +174,7 @@ app.post('/api/rooms/create', async (req: Request, res: Response) => {
 // Quick Match (Public Matchmaking) endpoint
 app.post('/api/rooms/quickmatch', async (req: Request, res: Response) => {
   try {
-    const clientIp =
-      (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+    const clientIp = getClientIp(req);
     const rateLimitResult = createRateLimiter.isAllowed(clientIp);
     if (!rateLimitResult.allowed) {
       res.status(429).json({
@@ -204,8 +213,7 @@ app.post('/api/rooms/quickmatch', async (req: Request, res: Response) => {
 
 // Private room verification endpoint
 app.post('/api/rooms/verify', (req: Request, res: Response) => {
-  const clientIp =
-    (req.headers['x-forwarded-for'] as string) || req.socket.remoteAddress || 'unknown';
+  const clientIp = getClientIp(req);
   const rateLimitResult = joinRateLimiter.isAllowed(clientIp);
 
   if (!rateLimitResult.allowed) {
@@ -309,6 +317,14 @@ if (process.env.NODE_ENV !== 'test') {
 
   process.on('SIGTERM', () => handleShutdown('SIGTERM'));
   process.on('SIGINT', () => handleShutdown('SIGINT'));
+
+  process.on('uncaughtException', (err: Error) => {
+    console.error('[LAST CROWN SERVER] Uncaught Exception:', err);
+  });
+
+  process.on('unhandledRejection', (reason: unknown) => {
+    console.error('[LAST CROWN SERVER] Unhandled Rejection:', reason);
+  });
 }
 
 export { app, server, gameServer };

@@ -21,10 +21,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const targetUrl = `${serverUrl}/api/rooms/create`;
 
+    const clientIp = req.headers.get('x-forwarded-for') || req.ip || '';
     const serverRes = await fetch(targetUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-forwarded-for': clientIp,
       },
       body: JSON.stringify(body),
     });

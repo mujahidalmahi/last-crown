@@ -4,6 +4,8 @@ export class SoundManager {
   private volume: number = 0.5;
 
   private boundSettingsListener: (() => void) | null = null;
+  private noiseBuffer: AudioBuffer | null = null;
+  private decapitationTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
     this.loadSettings();
@@ -11,7 +13,42 @@ export class SoundManager {
       this.boundSettingsListener = () => this.loadSettings();
       window.addEventListener('storage', this.boundSettingsListener);
       window.addEventListener('last_crown_settings_changed', this.boundSettingsListener);
+
+      const unlock = () => {
+        this.unlockAudio();
+        window.removeEventListener('pointerdown', unlock);
+        window.removeEventListener('keydown', unlock);
+      };
+      window.addEventListener('pointerdown', unlock, { once: true });
+      window.addEventListener('keydown', unlock, { once: true });
     }
+  }
+
+  public unlockAudio(): void {
+    const ctx = this.initContext();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    try {
+      const buffer = ctx.createBuffer(1, 1, 22050);
+      const source = ctx.createBufferSource();
+      source.buffer = buffer;
+      source.connect(ctx.destination);
+      source.start(0);
+    } catch {}
+  }
+
+  private getNoiseBuffer(ctx: AudioContext): AudioBuffer {
+    if (!this.noiseBuffer || this.noiseBuffer.sampleRate !== ctx.sampleRate) {
+      const size = Math.floor(ctx.sampleRate * 2);
+      this.noiseBuffer = ctx.createBuffer(1, size, ctx.sampleRate);
+      const data = this.noiseBuffer.getChannelData(0);
+      for (let i = 0; i < size; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+    }
+    return this.noiseBuffer;
   }
 
   public loadSettings(): void {
@@ -233,7 +270,7 @@ export class SoundManager {
       sliceOsc.stop(now + 0.23);
 
       // 3. Wet arterial severing gush
-      setTimeout(() => this.playBloodGush(), 80);
+      this.decapitationTimeout = setTimeout(() => this.playBloodGush(), 80);
     } catch {
       // Audio error handling
     }
@@ -600,15 +637,8 @@ export class SoundManager {
     try {
       const now = ctx.currentTime;
       const duration = intensity === 'roar' ? 1.6 : 0.8;
-      const bufferSize = Math.floor(ctx.sampleRate * duration);
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
-
       const noise = ctx.createBufferSource();
-      noise.buffer = buffer;
+      noise.buffer = this.getNoiseBuffer(ctx);
 
       const filter = ctx.createBiquadFilter();
       filter.type = 'bandpass';
@@ -624,6 +654,14 @@ export class SoundManager {
       noise.connect(filter);
       filter.connect(gain);
       gain.connect(ctx.destination);
+
+      noise.onended = () => {
+        try {
+          noise.disconnect();
+          filter.disconnect();
+          gain.disconnect();
+        } catch {}
+      };
 
       noise.start(now);
       noise.stop(now + duration);
@@ -663,6 +701,10 @@ export class SoundManager {
   }
 
   public destroy(): void {
+    if (this.decapitationTimeout) {
+      clearTimeout(this.decapitationTimeout);
+      this.decapitationTimeout = null;
+    }
     if (typeof window !== 'undefined' && this.boundSettingsListener) {
       window.removeEventListener('storage', this.boundSettingsListener);
       window.removeEventListener('last_crown_settings_changed', this.boundSettingsListener);

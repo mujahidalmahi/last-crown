@@ -27,6 +27,13 @@ export class InMemoryRateLimiter {
 
     let record = this.records.get(key);
     if (!record) {
+      if (this.records.size >= 10000) {
+        this.cleanup();
+        if (this.records.size >= 10000) {
+          const firstKey = this.records.keys().next().value;
+          if (firstKey) this.records.delete(firstKey);
+        }
+      }
       record = { timestamps: [] };
       this.records.set(key, record);
     }

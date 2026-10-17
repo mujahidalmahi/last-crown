@@ -266,6 +266,7 @@ export class DualPlayerInputManager {
   }
 
   public destroy(): void {
+    this.gamepadAdapter.destroy();
     if (typeof window !== 'undefined') {
       window.removeEventListener('keydown', this.onKeyDownHandler);
       window.removeEventListener('keyup', this.onKeyUpHandler);

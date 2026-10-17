@@ -10,19 +10,32 @@ export class GamepadInputAdapter {
   // Previous button press state per gamepad index for edge triggering
   private prevButtonStates: Map<number, boolean[]> = new Map();
   private sequence: number = 0;
+  private onConnectHandler: (e: Event) => void;
+  private onDisconnectHandler: (e: Event) => void;
 
   constructor() {
+    this.onConnectHandler = (e: Event) => {
+      const gp = (e as GamepadEvent).gamepad;
+      console.info(`[Gamepad] Connected at index ${gp.index}: ${gp.id}`);
+    };
+    this.onDisconnectHandler = (e: Event) => {
+      const gp = (e as GamepadEvent).gamepad;
+      console.info(`[Gamepad] Disconnected from index ${gp.index}: ${gp.id}`);
+      this.prevButtonStates.delete(gp.index);
+    };
+
     if (typeof window !== 'undefined') {
-      window.addEventListener('gamepadconnected', e => {
-        const gp = (e as GamepadEvent).gamepad;
-        console.info(`[Gamepad] Connected at index ${gp.index}: ${gp.id}`);
-      });
-      window.addEventListener('gamepaddisconnected', e => {
-        const gp = (e as GamepadEvent).gamepad;
-        console.info(`[Gamepad] Disconnected from index ${gp.index}: ${gp.id}`);
-        this.prevButtonStates.delete(gp.index);
-      });
+      window.addEventListener('gamepadconnected', this.onConnectHandler);
+      window.addEventListener('gamepaddisconnected', this.onDisconnectHandler);
     }
+  }
+
+  public destroy(): void {
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('gamepadconnected', this.onConnectHandler);
+      window.removeEventListener('gamepaddisconnected', this.onDisconnectHandler);
+    }
+    this.prevButtonStates.clear();
   }
 
   public getConnectedGamepads(): GamepadInfo[] {

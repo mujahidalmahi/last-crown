@@ -292,8 +292,10 @@ export class GameSimulation {
     attacker.combat.markHitConfirmed();
 
     const isDefenderFacingAttacker =
-      (attacker.movement.facing === 'right' && defender.movement.facing === 'left') ||
-      (attacker.movement.facing === 'left' && defender.movement.facing === 'right');
+      (defender.movement.position.x >= attacker.movement.position.x &&
+        defender.movement.facing === 'left') ||
+      (defender.movement.position.x <= attacker.movement.position.x &&
+        defender.movement.facing === 'right');
 
     const result = defender.combat.resolveIncomingHit(
       attacker.id,

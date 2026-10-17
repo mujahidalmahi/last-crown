@@ -267,6 +267,7 @@ export class CombatController {
       staminaDamage = 0;
       stunMs = 0; // Defender is NOT stunned!
       this._parryTimerMs = 0;
+      stateMachine.forceState('idle'); // Clear parry state so defender isn't locked!
       return {
         resolution,
         attackerId,
@@ -305,6 +306,7 @@ export class CombatController {
             : BALANCE_CONFIG.combat.blockStaminaCostPerDamage;
         staminaDamage = attack.damage * staminaMultiplier;
         stunMs = Math.floor(attack.hitstunMs * 0.4); // Greatly reduced hitstun on block
+        this._hitstunTimerMs = stunMs; // Ensure blockstun applies so attacker has frame advantage
       }
     } else {
       // Clean Hit
@@ -332,7 +334,7 @@ export class CombatController {
     const knockbackSign = attackerFacing === 'right' ? 1 : -1;
     const knockback: Vector2 = {
       x: attack.knockback.x * knockbackSign * (resolution === 'blocked' ? 0.35 : 1),
-      y: attack.knockback.y * (resolution === 'blocked' ? 0.2 : 1),
+      y: resolution === 'blocked' ? 0 : attack.knockback.y,
     };
 
     const isRiposteHit = resolution === 'hit' && (this._exhaustionTimerMs > 0 || isCritical);
@@ -380,8 +382,8 @@ export class CombatController {
   public applyExhaustion(durationMs: number, stateMachine: WarriorStateMachine): void {
     this.interruptAttack();
     stateMachine.forceState('hitstun');
-    this._hitstunTimerMs = durationMs;
-    this._exhaustionTimerMs = durationMs;
+    this._hitstunTimerMs = Math.min(durationMs, 450); // Initial guard-break stagger stun
+    this._exhaustionTimerMs = durationMs; // Halved move speed & no dash/attack for full duration
     this._staminaRegenDelayTimerMs = BALANCE_CONFIG.combat.staminaRegenDelayMs;
   }
 

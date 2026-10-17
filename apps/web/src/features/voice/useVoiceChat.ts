@@ -829,15 +829,28 @@ export function useVoiceChat({ room, autoJoin = false }: UseVoiceChatOptions = {
           iceServers?: { urls: string | string[]; username?: string; credential?: string }[];
         };
         if (payload.iceServers && payload.iceServers.length > 0) {
-          iceServersRef.current = { iceServers: payload.iceServers };
-          console.info(
-            '[VoiceChat] Received active ICE / TURN servers via Colyseus signaling:',
-            payload.iceServers.map(s => s.urls)
+          const hasIncomingTurn = payload.iceServers.some(s =>
+            Array.isArray(s.urls)
+              ? s.urls.some(u => u.startsWith('turn:'))
+              : s.urls.startsWith('turn:')
           );
-          if (pcRef.current && pcRef.current.signalingState !== 'closed') {
-            try {
-              pcRef.current.setConfiguration({ iceServers: payload.iceServers });
-            } catch {}
+          const hasCurrentTurn = iceServersRef.current.iceServers?.some(s =>
+            Array.isArray(s.urls)
+              ? s.urls.some(u => u.startsWith('turn:'))
+              : s.urls.startsWith('turn:')
+          );
+
+          if (hasIncomingTurn || !hasCurrentTurn) {
+            iceServersRef.current = { iceServers: payload.iceServers };
+            console.info(
+              '[VoiceChat] Received active ICE / TURN servers via Colyseus signaling:',
+              payload.iceServers.map(s => s.urls)
+            );
+            if (pcRef.current && pcRef.current.signalingState !== 'closed') {
+              try {
+                pcRef.current.setConfiguration({ iceServers: payload.iceServers });
+              } catch {}
+            }
           }
         }
         return;

@@ -8,6 +8,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/controller',
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
   openGraph: {
     title: 'Wireless Phone Gamepad Controller | Last Crown',
     description:

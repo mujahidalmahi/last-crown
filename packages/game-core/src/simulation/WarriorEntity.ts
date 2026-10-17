@@ -39,6 +39,7 @@ export class WarriorEntity {
   public readonly movement: MovementController;
   public readonly stateMachine: WarriorStateMachine;
   public readonly combat: CombatController;
+  private _hitboxSeq: number = 0;
 
   constructor(
     id: string,
@@ -98,7 +99,7 @@ export class WarriorEntity {
     );
 
     return {
-      id: `${this.id}_${attack.id}_${Date.now()}`,
+      id: `${this.id}_${attack.id}_${++this._hitboxSeq}`,
       ownerId: this.id,
       attackId: attack.id,
       bounds,
@@ -125,6 +126,10 @@ export class WarriorEntity {
           x: dashDir * BALANCE_CONFIG.combat.dashSpeed,
           y: this.movement.velocity.y,
         });
+      } else if (input.parry) {
+        this.combat.startParry(this.stamina, this.stateMachine);
+      } else if (input.block) {
+        this.stateMachine.transitionTo('blocking');
       }
       return;
     }
@@ -147,7 +152,7 @@ export class WarriorEntity {
       ) {
         attackId = 'dash_lunge';
       } else if (input.attackType === 'aerial') {
-        attackId = 'aerial_strike';
+        attackId = !this.movement.isGrounded ? 'aerial_strike' : 'light_slash';
       } else {
         attackId = 'light_slash';
       }

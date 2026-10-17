@@ -53,10 +53,12 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     if (typeof window === 'undefined') return;
 
     const check = () => {
+      const isCoarse =
+        window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
       const hasTouch =
-        'ontouchstart' in window || navigator.maxTouchPoints > 0 || window.innerWidth <= 1024;
-      setIsTouchMobile(hasTouch);
-      setIsPortrait(window.innerHeight > window.innerWidth);
+        (navigator.maxTouchPoints > 0 && isCoarse) || ('ontouchstart' in window && isCoarse);
+      setIsTouchMobile(Boolean(hasTouch));
+      setIsPortrait(Boolean(hasTouch && window.innerHeight > window.innerWidth));
       setTimeout(() => bootstrapRef.current?.refreshScale(), 120);
     };
 
@@ -164,23 +166,23 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     };
     autoEnterFullscreen();
 
-    // Ensure game enters fullscreen on ANY user interaction (click, tap, keypress)
-    const handleUserGesture = async (e: Event) => {
-      const target = e.target as HTMLElement | null;
-      if (
-        target &&
-        (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-      ) {
-        return;
-      }
-
-      // 'F' key toggles fullscreen
-      if (e instanceof KeyboardEvent && e.code === 'KeyF') {
+    // 'F' key toggles fullscreen
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'KeyF') {
+        const target = e.target as HTMLElement | null;
+        if (
+          target &&
+          (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
+        ) {
+          return;
+        }
         e.preventDefault();
         toggleFullscreen();
-        return;
       }
+    };
 
+    // Initial user gesture enters fullscreen if not already
+    const handleInitialGesture = async () => {
       if (!isBrowserFullscreen()) {
         try {
           await requestBrowserFullscreen(document.documentElement);
@@ -190,8 +192,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       }
     };
 
-    window.addEventListener('pointerdown', handleUserGesture);
-    window.addEventListener('keydown', handleUserGesture);
+    window.addEventListener('pointerdown', handleInitialGesture, { once: true });
+    window.addEventListener('keydown', handleKeyDown);
 
     // Window resize observer to ensure Phaser scale is always synchronized
     const handleResize = () => {
@@ -205,8 +207,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
       document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
       document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
-      window.removeEventListener('pointerdown', handleUserGesture);
-      window.removeEventListener('keydown', handleUserGesture);
+      window.removeEventListener('pointerdown', handleInitialGesture);
+      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
     };
   }, [toggleFullscreen]);
@@ -293,8 +295,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        width: '100vw',
-        height: '100vh',
+        width: '100dvw',
+        height: '100dvh',
         backgroundColor: '#050810',
         zIndex: 9999,
         display: 'flex',
@@ -309,8 +311,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       <div
         style={{
           position: 'relative',
-          width: 'min(100vw, calc(100vh * (16 / 9)))',
-          height: 'min(100vh, calc(100vw * (9 / 16)))',
+          width: 'min(100dvw, calc(100dvh * (16 / 9)))',
+          height: 'min(100dvh, calc(100dvw * (9 / 16)))',
           maxWidth: '100%',
           maxHeight: '100%',
           aspectRatio: '16 / 9',

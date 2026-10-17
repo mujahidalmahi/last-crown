@@ -77,6 +77,7 @@ export class BattleScene extends Phaser.Scene {
   private p2RenderX: number = 920;
   private p2RenderY: number = 625;
   private hasInitializedRenderPos: boolean = false;
+  private colyseusUnsubscribers: (() => void)[] = [];
 
   public setPaused(paused: boolean): void {
     this.isPaused = paused;
@@ -211,23 +212,27 @@ export class BattleScene extends Phaser.Scene {
     } else if (this.config.mode === 'multiplayer' && this.config.colyseusRoom) {
       const room = this.config.colyseusRoom;
 
-      room.onMessage(ServerMessageType.COMBAT_EVENT, (data: { result?: HitResult } | HitResult) => {
-        const result: HitResult =
-          'result' in data && data.result ? data.result : (data as HitResult);
-        this.handleCombatEvent(result);
-        if (this.config.onCombatEvent) {
-          this.config.onCombatEvent(result);
+      const unsubCombat = room.onMessage(
+        ServerMessageType.COMBAT_EVENT,
+        (data: { result?: HitResult } | HitResult) => {
+          if (!this.effects) return; // Guard against destroyed scene
+          const result: HitResult =
+            'result' in data && data.result ? data.result : (data as HitResult);
+          this.handleCombatEvent(result);
+          if (this.config.onCombatEvent) {
+            this.config.onCombatEvent(result);
+          }
         }
-      });
+      );
+      if (typeof unsubCombat === 'function') this.colyseusUnsubscribers.push(unsubCombat);
 
-      room.onMessage(
+      const unsubRound = room.onMessage(
         ServerMessageType.ROUND_START,
         (data: { roundNumber: number; isSuddenDeath?: boolean }) => {
+          if (!this.effects) return;
           this.currentRoundNumber = data.roundNumber;
           this.hitStopRemainingMs = 0;
-          if (this.effects) {
-            this.effects.resetRound();
-          }
+          this.effects.resetRound();
           if (data.isSuddenDeath) {
             this.soundManager?.playSuddenDeathGong();
             this.soundManager?.playCrowdCheer('roar');
@@ -236,19 +241,22 @@ export class BattleScene extends Phaser.Scene {
           }
         }
       );
+      if (typeof unsubRound === 'function') this.colyseusUnsubscribers.push(unsubRound);
 
-      room.onMessage(ServerMessageType.MATCH_START, () => {
+      const unsubMatch = room.onMessage(ServerMessageType.MATCH_START, () => {
+        if (!this.effects) return;
         this.currentRoundNumber = 1;
         this.previousMatchState = 'in_progress';
         this.hitStopRemainingMs = 0;
-        if (this.effects) {
-          this.effects.resetRound();
-        }
+        this.effects.resetRound();
       });
+      if (typeof unsubMatch === 'function') this.colyseusUnsubscribers.push(unsubMatch);
 
-      room.onStateChange((state: BattleRoomState) => {
+      const unsubState = room.onStateChange((state: BattleRoomState) => {
+        if (!this.p1Renderer || !this.p2Renderer) return;
         this.syncRoomState(state);
       });
+      if (typeof unsubState === 'function') this.colyseusUnsubscribers.push(unsubState);
 
       // Synchronize immediately if room state is already populated
       if (room.state && room.state.warriors && room.state.warriors.size > 0) {
@@ -354,6 +362,11 @@ export class BattleScene extends Phaser.Scene {
     // 1. Process Hit-Stop (fighting game impact freeze)
     if (this.hitStopRemainingMs > 0) {
       this.hitStopRemainingMs -= delta;
+      // In multiplayer, keep polling and transmitting player inputs to prevent network stalls
+      if (this.config.mode === 'multiplayer' && this.config.colyseusRoom && this.inputAdapter) {
+        const input = this.inputAdapter.pollInput();
+        this.config.colyseusRoom.send(ClientMessageType.PLAYER_INPUT, input);
+      }
       return;
     }
 
@@ -955,6 +968,13 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private cleanUp(): void {
+    this.colyseusUnsubscribers.forEach(unsub => {
+      try {
+        unsub();
+      } catch {}
+    });
+    this.colyseusUnsubscribers = [];
+
     if (this.simulation) {
       this.simulation = null;
     }

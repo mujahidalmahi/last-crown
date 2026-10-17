@@ -68,8 +68,9 @@ export class PartyControllerRoom extends Room {
 
     this.onMessage(
       PartyMessageType.VIBRATE_CONTROLLER,
-      (_client: Client, data: VibrateControllerMessage) => {
-        // Forward haptic rumble events from host to the phone controllers
+      (client: Client, data: VibrateControllerMessage) => {
+        // Forward haptic rumble events strictly from host to the phone controllers
+        if (!data || client !== this.hostClient) return;
         if (data.slot === 'p1' || data.slot === 'all') {
           this.p1Client?.send(PartyMessageType.VIBRATE_CONTROLLER, data);
         }
@@ -162,9 +163,15 @@ export class PartyControllerRoom extends Room {
     }
   }
 
+  public onUncaughtException(err: Error, methodName: string): void {
+    console.error(`[PartyControllerRoom ${this.roomId}] Uncaught exception in ${methodName}:`, err);
+  }
+
   public onLeave(client: Client): void {
     if (client === this.hostClient) {
       this.hostClient = null;
+      this.disconnect();
+      return;
     }
     if (client === this.p1Client) {
       this.p1Client = null;

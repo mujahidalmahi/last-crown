@@ -36,12 +36,22 @@ export class PartyControllerBridge {
   }
 
   public getWsEndpoint(): string {
+    if (process.env.NEXT_PUBLIC_SERVER_WS_URL) {
+      return process.env.NEXT_PUBLIC_SERVER_WS_URL;
+    }
     if (typeof window === 'undefined') return 'ws://localhost:2567';
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname;
-    // In local dev, server runs on 2567
-    const port = window.location.port === '3000' ? '2567' : window.location.port || '2567';
-    return `${protocol}//${host}:${port}`;
+
+    const isLocal =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname === '0.0.0.0';
+
+    if (isLocal) {
+      return `ws://${window.location.hostname}:2567`;
+    }
+
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${wsProtocol}//${window.location.host}`;
   }
 
   public async connectHost(partyCode: string): Promise<Room> {

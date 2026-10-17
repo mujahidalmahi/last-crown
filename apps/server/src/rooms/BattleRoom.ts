@@ -142,15 +142,16 @@ export class BattleRoom extends Room<BattleRoomState> {
     // Voice Signaling Relay: routes WebRTC offer/answer/candidates strictly to opponent in THIS room
     this.onMessage(
       ClientMessageType.VOICE_SIGNAL,
-      (client, rawMessage: VoiceSignalClientMessage) => {
+      async (client, rawMessage: VoiceSignalClientMessage) => {
         if (!rawMessage || !rawMessage.signal) return;
         const { signal } = rawMessage;
         if (signal.type === 'ice_servers') {
+          const iceServers = await IceServerService.getIceServers();
           client.send(ServerMessageType.VOICE_SIGNAL, {
             from: 'server',
             signal: {
               type: 'ice_servers',
-              data: { iceServers: IceServerService.getDefaultIceServers() },
+              data: { iceServers },
             },
           });
           return;
@@ -159,11 +160,12 @@ export class BattleRoom extends Room<BattleRoomState> {
         if (signal.type === 'ready') {
           this.voiceClients.add(client.sessionId);
           // Push active ICE / TURN servers directly to client over Colyseus WebSocket
+          const iceServers = await IceServerService.getIceServers();
           client.send(ServerMessageType.VOICE_SIGNAL, {
             from: 'server',
             signal: {
               type: 'ice_servers',
-              data: { iceServers: IceServerService.getDefaultIceServers() },
+              data: { iceServers },
             },
           });
         } else if (signal.type === 'leave') {
@@ -824,11 +826,13 @@ export class BattleRoom extends Room<BattleRoomState> {
         p1Input.attack = false;
         p1Input.dash = false;
         p1Input.parry = false;
+        p1Input.jump = false;
       }
       if (p2Input) {
         p2Input.attack = false;
         p2Input.dash = false;
         p2Input.parry = false;
+        p2Input.jump = false;
       }
 
       // Synchronize simulation output with Colyseus state schema
@@ -916,7 +920,14 @@ export class BattleRoom extends Room<BattleRoomState> {
     warrior.comboCount = snap.comboCount || 0;
   }
 
+  public onUncaughtException(err: Error, methodName: string): void {
+    console.error(`[BattleRoom ${this.roomId}] Uncaught exception in ${methodName}:`, err);
+  }
+
   public onDispose(): void {
+    if (this.simulation) {
+      this.simulation = null;
+    }
     this.clearQuickmatchTimers();
     if (this.reconnectGraceInterval) {
       clearInterval(this.reconnectGraceInterval);
