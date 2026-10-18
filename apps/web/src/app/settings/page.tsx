@@ -19,7 +19,9 @@ export default function SettingsPage() {
   const [sfxMuted, setSfxMuted] = useState<boolean>(false);
   const [highContrast, setHighContrast] = useState<boolean>(false);
   const [reducedMotion, setReducedMotion] = useState<boolean>(false);
-  const [botDifficulty, setBotDifficulty] = useState<'novice' | 'adept' | 'master'>('adept');
+  const [botDifficulty, setBotDifficulty] = useState<'novice' | 'adept' | 'expert' | 'master'>(
+    'adept'
+  );
   const [controlPreset, setControlPreset] = useState<'modern' | 'classic'>('modern');
 
   const [stats, setStats] = useState<PlayerStatistics>(DEFAULT_PLAYER_STATISTICS);
@@ -51,7 +53,7 @@ export default function SettingsPage() {
           setReducedMotion(parsed.reducedMotion);
           document.body.classList.toggle('reduced-motion', parsed.reducedMotion);
         }
-        if (['novice', 'adept', 'master'].includes(parsed.botDifficulty)) {
+        if (['novice', 'adept', 'expert', 'master'].includes(parsed.botDifficulty)) {
           setBotDifficulty(parsed.botDifficulty);
         }
         if (['modern', 'classic'].includes(parsed.controlPreset)) {
@@ -76,7 +78,7 @@ export default function SettingsPage() {
       sfxMuted: boolean;
       highContrast: boolean;
       reducedMotion: boolean;
-      botDifficulty: 'novice' | 'adept' | 'master';
+      botDifficulty: 'novice' | 'adept' | 'expert' | 'master';
       controlPreset: 'modern' | 'classic';
     }>
   ) => {
@@ -128,7 +130,7 @@ export default function SettingsPage() {
     persistSettings({ reducedMotion: checked });
   };
 
-  const handleDifficultyChange = (diff: 'novice' | 'adept' | 'master') => {
+  const handleDifficultyChange = (diff: 'novice' | 'adept' | 'expert' | 'master') => {
     setBotDifficulty(diff);
     persistSettings({ botDifficulty: diff });
   };
@@ -233,7 +235,7 @@ export default function SettingsPage() {
           {/* COMPARTMENT 2: Bot AI Sparring Partner */}
           <section className={styles.boxBotAI} aria-label="Bot AI Sparring Partner options">
             <div className={styles.diffGroup}>
-              {(['novice', 'adept', 'master'] as const).map(diff => {
+              {(['novice', 'adept', 'expert', 'master'] as const).map(diff => {
                 const isActive = botDifficulty === diff;
                 return (
                   <button

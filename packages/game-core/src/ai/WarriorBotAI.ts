@@ -1,6 +1,6 @@
 import { PlayerInputMessage, WarriorSnapshot, AttackType } from '@last-crown/shared';
 
-export type BotDifficulty = 'novice' | 'adept' | 'master';
+export type BotDifficulty = 'novice' | 'adept' | 'expert' | 'master';
 
 export type BotStance =
   'berserker' | 'leaping_slayer' | 'sweep_trickster' | 'tactical_counter' | 'bloodlust_executioner';
@@ -51,6 +51,21 @@ const DIFFICULTY_PROFILES: Record<BotDifficulty, DifficultyConfig> = {
     feintChance: 0.15,
     blockChance: 0.55,
     retreatStaminaThreshold: 20,
+  },
+  expert: {
+    decisionIntervalMinMs: 80,
+    decisionIntervalMaxMs: 140,
+    reactionDelayMs: 110,
+    parryChance: 0.65,
+    attackChance: 0.68,
+    heavyAttackChance: 0.3,
+    thrustAttackChance: 0.25,
+    sweepAttackChance: 0.25,
+    jumpChance: 0.42,
+    dashChance: 0.42,
+    feintChance: 0.2,
+    blockChance: 0.6,
+    retreatStaminaThreshold: 16,
   },
   master: {
     decisionIntervalMinMs: 60,

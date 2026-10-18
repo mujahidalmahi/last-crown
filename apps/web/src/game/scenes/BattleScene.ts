@@ -13,7 +13,7 @@ import {
   MatchState,
 } from '@last-crown/shared';
 import { GameSimulation, WarriorBotAI, GameSimulationSnapshot } from '@last-crown/game-core';
-import { getArenaConfig } from '@last-crown/game-config';
+import { getArenaConfig, getWarriorPreset } from '@last-crown/game-config';
 import { WarriorRenderer } from '../rendering/WarriorRenderer';
 import { CombatEffects } from '../effects/CombatEffects';
 import { SoundManager } from '../audio/SoundManager';
@@ -25,6 +25,8 @@ export interface BattleSceneConfig {
   mode: 'singleplayer' | 'multiplayer' | 'local_multiplayer';
   playerPreset?: string;
   opponentPreset?: string;
+  botDifficulty?: 'novice' | 'adept' | 'expert' | 'master';
+  botName?: string;
   arenaId?: string;
   colyseusRoom?: Room<BattleRoomState>;
   onSnapshot?: (snapshot: GameSimulationSnapshot) => void;
@@ -152,30 +154,39 @@ export class BattleScene extends Phaser.Scene {
 
     // If in singleplayer mode, initialize local offline GameSimulation + AI
     if (this.config.mode === 'singleplayer') {
+      const opponentPreset = this.config.opponentPreset || 'knight';
+      const botPresetConfig = getWarriorPreset(opponentPreset);
+      const opponentName =
+        this.config.botName ||
+        (botPresetConfig?.name ? `${botPresetConfig.name} (AI)` : 'Iron Marauder (AI)');
+
       this.simulation = new GameSimulation(
         'p1',
         'Crown Champion',
         this.config.playerPreset || 'knight',
         'p2',
-        'Iron Marauder',
-        this.config.opponentPreset || 'knight',
+        opponentName,
+        opponentPreset,
         effectiveArenaId
       );
 
-      // Load bot difficulty from settings if present
-      let botDifficulty: 'novice' | 'adept' | 'master' = 'adept';
-      try {
-        if (typeof window !== 'undefined') {
-          const raw = window.localStorage.getItem('last_crown_player_settings_v1');
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (['novice', 'adept', 'master'].includes(parsed.botDifficulty)) {
-              botDifficulty = parsed.botDifficulty;
+      // Load bot difficulty: prioritize explicitly configured difficulty, fallback to saved settings, then 'adept'
+      let botDifficulty: 'novice' | 'adept' | 'expert' | 'master' =
+        this.config.botDifficulty || 'adept';
+      if (!this.config.botDifficulty) {
+        try {
+          if (typeof window !== 'undefined') {
+            const raw = window.localStorage.getItem('last_crown_player_settings_v1');
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (['novice', 'adept', 'expert', 'master'].includes(parsed.botDifficulty)) {
+                botDifficulty = parsed.botDifficulty;
+              }
             }
           }
+        } catch {
+          // Fallback to default adept
         }
-      } catch {
-        // Fallback to default adept
       }
       this.botAI = new WarriorBotAI(botDifficulty);
 

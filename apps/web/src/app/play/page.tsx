@@ -51,7 +51,21 @@ const PhaserGameContainer = dynamic(
 function PlayContent() {
   const searchParams = useSearchParams();
   const arena = searchParams.get('arena') || 'coloseum';
-  return <PhaserGameContainer mode="singleplayer" arenaId={arena} />;
+  const bot = searchParams.get('bot') || 'knight';
+  const difficulty =
+    (searchParams.get('difficulty') as 'novice' | 'adept' | 'expert' | 'master' | null) ||
+    undefined;
+  const botName = searchParams.get('botName') || undefined;
+
+  return (
+    <PhaserGameContainer
+      mode="singleplayer"
+      arenaId={arena}
+      opponentPreset={bot}
+      botDifficulty={difficulty}
+      botName={botName}
+    />
+  );
 }
 
 export default function PlayPage() {

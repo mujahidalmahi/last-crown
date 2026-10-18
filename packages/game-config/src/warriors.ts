@@ -69,6 +69,25 @@ export const WARRIOR_PRESETS: Record<string, WarriorClassPreset> = {
       height: 84,
     },
   },
+  marauder: {
+    id: 'marauder',
+    name: 'Iron Marauder',
+    title: 'The Blood Cleaver',
+    description:
+      'Brutal close-quarters berserker with relentless offensive momentum and high-impact swings.',
+    attributes: {
+      maxHealth: 110,
+      maxStamina: 95,
+      staminaRegenRate: 22,
+      walkSpeed: 285,
+      jumpVelocity: -580,
+      weight: 1.15,
+    },
+    hurtbox: {
+      width: 48,
+      height: 82,
+    },
+  },
 };
 
 export function getWarriorPreset(id: string): WarriorClassPreset {

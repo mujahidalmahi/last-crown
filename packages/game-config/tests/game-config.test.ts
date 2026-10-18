@@ -10,11 +10,13 @@ import {
 } from '../src/index.js';
 
 describe('Game Config', () => {
-  it('provides knight, duelist, and vanguard warrior presets', () => {
+  it('provides knight, duelist, vanguard, and marauder warrior presets', () => {
     expect(WARRIOR_PRESETS.knight).toBeDefined();
     expect(WARRIOR_PRESETS.duelist).toBeDefined();
     expect(WARRIOR_PRESETS.vanguard).toBeDefined();
+    expect(WARRIOR_PRESETS.marauder).toBeDefined();
     expect(getWarriorPreset('knight').name).toBe('Crown Knight');
+    expect(getWarriorPreset('marauder').name).toBe('Iron Marauder');
   });
 
   it('provides light, heavy, and thrust attack definitions with positive timings', () => {

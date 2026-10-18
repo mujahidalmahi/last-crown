@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PixelButton } from '../../components/ui/PixelButton';
 import { ArenaSelectModal } from '../../components/arena/ArenaSelectModal';
+import { BotSelectModal, BotCharacter } from '../../components/bot/BotSelectModal';
 import {
   requestBrowserFullscreen,
   isBrowserFullscreen,
@@ -18,6 +19,8 @@ export default function GamePage() {
   const [screen, setScreen] = useState<Screen>('cover1');
   const [isFadingToGame, setIsFadingToGame] = useState(false);
   const [isArenaModalOpen, setIsArenaModalOpen] = useState(false);
+  const [isBotModalOpen, setIsBotModalOpen] = useState(false);
+  const [selectedArena, setSelectedArena] = useState<string>('coloseum');
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'reverse'>('forward');
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -110,13 +113,26 @@ export default function GamePage() {
     [router]
   );
 
-  const handleSelectArena = useCallback(
-    (arenaId: string) => {
-      setIsArenaModalOpen(false);
-      handleModeClick(`/play?arena=${arenaId}`);
+  const handleSelectArena = useCallback((arenaId: string) => {
+    setSelectedArena(arenaId);
+    setIsArenaModalOpen(false);
+    setIsBotModalOpen(true);
+  }, []);
+
+  const handleSelectBot = useCallback(
+    (bot: BotCharacter) => {
+      setIsBotModalOpen(false);
+      handleModeClick(
+        `/play?arena=${selectedArena}&bot=${bot.preset}&difficulty=${bot.difficulty}&botName=${encodeURIComponent(bot.name)}`
+      );
     },
-    [handleModeClick]
+    [handleModeClick, selectedArena]
   );
+
+  const handleBackToArena = useCallback(() => {
+    setIsBotModalOpen(false);
+    setIsArenaModalOpen(true);
+  }, []);
 
   const renderCover2 = () => (
     <div className={styles.coverContainer} role="region" aria-label="Game modes">
@@ -241,12 +257,21 @@ export default function GamePage() {
         </ul>
       </article>
 
-      {/* Map / Arena Selection Modal */}
+      {/* Map / Arena Selection Modal (Step 1) */}
       <ArenaSelectModal
         isOpen={isArenaModalOpen}
         onSelect={handleSelectArena}
         onClose={() => setIsArenaModalOpen(false)}
         title="SELECT ARENA"
+      />
+
+      {/* Bot / AI Rival Selection Modal (Step 2) */}
+      <BotSelectModal
+        isOpen={isBotModalOpen}
+        selectedArenaId={selectedArena}
+        onSelect={handleSelectBot}
+        onBackToArena={handleBackToArena}
+        onClose={() => setIsBotModalOpen(false)}
       />
 
       {/* Fade Out Curtain for Mode Selection */}

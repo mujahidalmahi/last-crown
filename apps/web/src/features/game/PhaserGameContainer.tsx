@@ -20,6 +20,8 @@ export interface PhaserGameContainerProps {
   mode?: 'singleplayer' | 'multiplayer' | 'local_multiplayer';
   playerPreset?: string;
   opponentPreset?: string;
+  botDifficulty?: 'novice' | 'adept' | 'expert' | 'master';
+  botName?: string;
   arenaId?: string;
   colyseusRoom?: Room<BattleRoomState>;
   voiceState?: VoiceChatState;
@@ -31,6 +33,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   mode = 'singleplayer',
   playerPreset = 'knight',
   opponentPreset = 'knight',
+  botDifficulty,
+  botName,
   arenaId = 'coloseum',
   colyseusRoom,
   voiceState,
@@ -262,6 +266,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       mode,
       playerPreset,
       opponentPreset,
+      botDifficulty,
+      botName,
       arenaId,
       colyseusRoom,
       onSnapshot: (snap: GameSimulationSnapshot) => {
@@ -295,7 +301,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       bootstrap.destroy();
       bootstrapRef.current = null;
     };
-  }, [mode, playerPreset, opponentPreset, arenaId, colyseusRoom]);
+  }, [mode, playerPreset, opponentPreset, botDifficulty, botName, arenaId, colyseusRoom]);
 
   return (
     <div
