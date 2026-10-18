@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 import { PartyControllerBridge } from '../../game/input/PartyControllerBridge';
 import { GamepadInputAdapter } from '../../game/input/GamepadInputAdapter';
@@ -45,7 +44,6 @@ const PhaserGameContainer = dynamic(
 );
 
 export default function LocalDuelPage() {
-  const router = useRouter();
   const [isPlaying, setIsPlaying] = useState(false);
   const [partyCode, setPartyCode] = useState<string>('');
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
@@ -185,22 +183,14 @@ export default function LocalDuelPage() {
         <div className={styles.navBadge}>LOCAL 2-PLAYER DUEL</div>
       </nav>
 
-      {/* Central Non-Scrolling Stage Wrapper */}
-      <div className={styles.stageWrapper} aria-label="Local 2-Player Setup">
+      {/* Central 16:9 Stage Wrapper */}
+      <main className={styles.stageWrapper} role="main" aria-label="Local 2-Player Setup">
         <div className={styles.stoneCard}>
-          {/* Metallic Corner Screws */}
-          <div className={styles.cornerRivetTL} aria-hidden="true" />
-          <div className={styles.cornerRivetTR} aria-hidden="true" />
-          <div className={styles.cornerRivetBL} aria-hidden="true" />
-          <div className={styles.cornerRivetBR} aria-hidden="true" />
+          {/* Top Embossed Plaque Title */}
+          <h1 className={styles.plaqueTitle}>LOCAL 2-PLAYER DUEL</h1>
 
-          {/* Card Header */}
-          <header className={styles.cardHeader}>
-            <h1 className={styles.cardTitle}>⚔️ LOCAL 2-PLAYER DUEL</h1>
-          </header>
-
-          {/* 2-Column Content Grid */}
-          <div className={styles.cardGrid}>
+          {/* Inner Canvas Compartment */}
+          <div className={styles.innerCanvas}>
             {/* Left Column: Phone Controller QR */}
             <div className={styles.qrCard} role="region" aria-label="Phone Controller Setup">
               <h2 className={styles.qrTitle}>📱 PHONE CONTROLLER</h2>
@@ -360,14 +350,9 @@ export default function LocalDuelPage() {
 
               {/* Action Buttons Row */}
               <div className={styles.actionsRow}>
-                <button
-                  type="button"
-                  className={styles.backBtn}
-                  onClick={() => router.push('/game')}
-                  title="Return to Main Menu"
-                >
-                  ← BACK
-                </button>
+                <div className={styles.hintText}>
+                  💡 Scan QR code with phones to claim Slot 1 &amp; 2!
+                </div>
 
                 <button
                   type="button"
@@ -382,7 +367,7 @@ export default function LocalDuelPage() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

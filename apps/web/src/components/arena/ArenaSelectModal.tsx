@@ -228,80 +228,65 @@ export const ArenaSelectModal: React.FC<ArenaSelectModalProps> = ({
           <div className={styles.navBadge}>ARENA SELECTION (STEP 1/2)</div>
         </nav>
 
-        {/* Central Pixel-Art Stone Card Frame */}
-        <div className={styles.stageContainer}>
-          {/* Metallic Corner Plates with Screws */}
-          <div className={styles.cornerRivetTL} aria-hidden="true" />
-          <div className={styles.cornerRivetTR} aria-hidden="true" />
-          <div className={styles.cornerRivetBL} aria-hidden="true" />
-          <div className={styles.cornerRivetBR} aria-hidden="true" />
+        {/* Central Pixel-Art Stone Card Frame matching Settings */}
+        <div className={styles.stageWrapper}>
+          <div className={styles.stoneCard}>
+            {/* Top Embossed Plaque Title */}
+            <h2 className={styles.plaqueTitle}>{title || 'ARENA SELECTION'}</h2>
 
-          {/* Dark Dungeon Stone Canvas */}
-          <div className={styles.stoneCanvas}>
-            {/* Subtle CRT Scanline Overlay */}
-            <div className={styles.scanlineOverlay} aria-hidden="true" />
+            {/* Inner Canvas Compartment */}
+            <div className={styles.innerCanvas}>
+              {/* Subtle CRT Scanline Overlay */}
+              <div className={styles.scanlineOverlay} aria-hidden="true" />
 
-            {/* Top Header Section */}
-            <header className={styles.header}>
-              <h2 className={styles.headerTitle}>{title}</h2>
-              <p className={styles.headerSubtitle}>
-                Choose your battleground before entering the crucible.
-              </p>
-            </header>
+              {/* 2x2 Arena Compartment Cards Grid */}
+              <div className={styles.arenaGrid}>
+                {ARENA_LIST.map(arena => (
+                  <div key={arena.id} className={styles.arenaSlot}>
+                    {/* Compartment Header */}
+                    <div className={styles.badgeHeader}>
+                      {arena.iconPosition === 'left' && (
+                        <span className={styles.badgeIcon}>{arena.icon}</span>
+                      )}
+                      <span className={styles.badgeName}>{arena.displayName}</span>
+                      {arena.iconPosition === 'right' && (
+                        <span className={styles.badgeIcon}>{arena.icon}</span>
+                      )}
+                    </div>
 
-            {/* 2x2 Arena Compartment Cards Grid */}
-            <div className={styles.arenaGrid}>
-              {ARENA_LIST.map(arena => (
-                <div key={arena.id} className={styles.arenaSlot}>
-                  {/* Compartment Corner Rivets */}
-                  <div className={styles.slotRivetTL} aria-hidden="true" />
-                  <div className={styles.slotRivetTR} aria-hidden="true" />
-                  <div className={styles.slotRivetBL} aria-hidden="true" />
-                  <div className={styles.slotRivetBR} aria-hidden="true" />
+                    {/* Stone Frame Button with Live Playground Preview */}
+                    <button
+                      type="button"
+                      className={styles.stoneButton}
+                      onClick={() => onSelect(arena.id)}
+                      aria-label={`Select ${arena.displayName} Arena`}
+                      title={`Play in ${arena.displayName}`}
+                    >
+                      <div
+                        className={styles.buttonBgImage}
+                        style={{ backgroundImage: `url('${arena.bgImage}')` }}
+                      />
+                      <div className={styles.buttonInnerFrame} />
 
-                  {/* Compartment Header */}
-                  <div className={styles.badgeHeader}>
-                    {arena.iconPosition === 'left' && (
-                      <span className={styles.badgeIcon}>{arena.icon}</span>
-                    )}
-                    <span className={styles.badgeName}>{arena.displayName}</span>
-                    {arena.iconPosition === 'right' && (
-                      <span className={styles.badgeIcon}>{arena.icon}</span>
-                    )}
+                      <span className={styles.buttonActionTag}>
+                        <span className={styles.selectBtnText}>CHOOSE ARENA</span>
+                      </span>
+                    </button>
                   </div>
+                ))}
+              </div>
 
-                  {/* Stone Frame Button with Live Playground Preview */}
-                  <button
-                    type="button"
-                    className={styles.stoneButton}
-                    onClick={() => onSelect(arena.id)}
-                    aria-label={`Select ${arena.displayName} Arena`}
-                    title={`Play in ${arena.displayName}`}
-                  >
-                    <div
-                      className={styles.buttonBgImage}
-                      style={{ backgroundImage: `url('${arena.bgImage}')` }}
-                    />
-                    <div className={styles.buttonInnerFrame} />
-
-                    <span className={styles.buttonActionTag}>
-                      <span className={styles.selectBtnText}>CHOOSE ARENA</span>
-                    </span>
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            {/* Bottom Bar: Back Button */}
-            <div className={styles.bottomNav}>
-              <button
-                type="button"
-                className={styles.backBtn}
-                onClick={onClose}
-                title="Return to menu"
-              >
-                ← BACK TO MENU
-              </button>
+              {/* Bottom Bar: Back Button */}
+              <div className={styles.bottomNav}>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={onClose}
+                  title="Return to menu"
+                >
+                  ← BACK TO MENU
+                </button>
+              </div>
             </div>
           </div>
         </div>

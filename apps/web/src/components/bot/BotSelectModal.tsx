@@ -134,120 +134,104 @@ export const BotSelectModal: React.FC<BotSelectModalProps> = ({
           >
             <span>←</span> SCENARIOS
           </button>
-          <div className={styles.navBadge}>BOT WARRIOR SELECTION (STEP 2/2)</div>
+          <div className={styles.navBadge}>{arenaDisplayName.toUpperCase()} (STEP 2/2)</div>
         </nav>
 
-        {/* Central Pixel-Art Stone Card Frame */}
-        <div className={styles.stageContainer}>
-          {/* Metallic Corner Plates with Screws */}
-          <div className={styles.cornerRivetTL} aria-hidden="true" />
-          <div className={styles.cornerRivetTR} aria-hidden="true" />
-          <div className={styles.cornerRivetBL} aria-hidden="true" />
-          <div className={styles.cornerRivetBR} aria-hidden="true" />
+        {/* Central Pixel-Art Stone Card Frame matching Settings */}
+        <div className={styles.stageWrapper}>
+          <div className={styles.stoneCard}>
+            {/* Top Embossed Plaque Title */}
+            <h2 className={styles.plaqueTitle}>BATTLE AI WARRIOR</h2>
 
-          {/* Dark Dungeon Stone Canvas */}
-          <div className={styles.stoneCanvas}>
-            {/* Subtle CRT Scanline Overlay */}
-            <div className={styles.scanlineOverlay} aria-hidden="true" />
+            {/* Inner Canvas Compartment */}
+            <div className={styles.innerCanvas}>
+              {/* Subtle CRT Scanline Overlay */}
+              <div className={styles.scanlineOverlay} aria-hidden="true" />
 
-            {/* Top Header Section */}
-            <header className={styles.header}>
-              <h2 className={styles.headerTitle}>SELECT BOT OPPONENT</h2>
-              <p className={styles.headerSubtitle}>
-                Scenario: <span className={styles.highlightArena}>{arenaDisplayName}</span> • Choose
-                your rival AI gladiator:
-              </p>
-            </header>
-
-            {/* 2x2 Bot Compartment Cards Grid */}
-            <div className={styles.botGrid}>
-              {BOT_CHARACTERS.map(bot => (
-                <div
-                  key={bot.id}
-                  className={styles.botSlot}
-                  onClick={() => onSelect(bot)}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Select bot ${bot.name}, difficulty ${bot.difficultyLabel}`}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      onSelect(bot);
-                    }
-                  }}
-                >
-                  {/* Compartment Corner Rivets */}
-                  <div className={styles.slotRivetTL} aria-hidden="true" />
-                  <div className={styles.slotRivetTR} aria-hidden="true" />
-                  <div className={styles.slotRivetBL} aria-hidden="true" />
-                  <div className={styles.slotRivetBR} aria-hidden="true" />
-
-                  {/* Compartment Header */}
-                  <div className={styles.slotHeader}>
-                    <div className={styles.botIdentity}>
-                      <span className={styles.botIcon}>{bot.icon}</span>
-                      <span className={styles.botName}>{bot.name}</span>
-                    </div>
-                    <span
-                      className={styles.difficultyBadge}
-                      style={{
-                        color: bot.difficultyColor,
-                        border: `1.5px solid ${bot.difficultyColor}`,
-                        backgroundColor: 'rgba(5, 8, 16, 0.85)',
-                      }}
-                    >
-                      <span>{bot.difficultyLabel}</span>
-                      <span style={{ fontSize: '0.85em' }}>{bot.stars}</span>
-                    </span>
-                  </div>
-
-                  <div className={styles.botTitle}>{bot.title}</div>
-                  <p className={styles.botLore}>{bot.lore}</p>
-
-                  {/* Trait Pills */}
-                  <div className={styles.traitsRow}>
-                    {bot.combatTraits.map((trait, idx) => (
-                      <span key={idx} className={styles.traitTag}>
-                        {trait}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* 3D Gold Action Tag Button */}
-                  <button
-                    type="button"
-                    className={styles.chooseBotBtn}
-                    onClick={e => {
-                      e.stopPropagation();
-                      onSelect(bot);
+              {/* 2x2 Bot Compartment Cards Grid */}
+              <div className={styles.botGrid}>
+                {BOT_CHARACTERS.map(bot => (
+                  <div
+                    key={bot.id}
+                    className={styles.botSlot}
+                    onClick={() => onSelect(bot)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Select bot ${bot.name}, difficulty ${bot.difficultyLabel}`}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelect(bot);
+                      }
                     }}
-                    aria-label={`Fight against ${bot.name}`}
                   >
-                    <span>⚔️</span>
-                    <span>CHOOSE BOT</span>
-                  </button>
-                </div>
-              ))}
-            </div>
+                    {/* Compartment Header */}
+                    <div className={styles.slotHeader}>
+                      <div className={styles.botIdentity}>
+                        <span className={styles.botIcon}>{bot.icon}</span>
+                        <span className={styles.botName}>{bot.name}</span>
+                      </div>
+                      <span
+                        className={styles.difficultyBadge}
+                        style={{
+                          color: bot.difficultyColor,
+                          border: `1.5px solid ${bot.difficultyColor}`,
+                          backgroundColor: 'rgba(5, 8, 16, 0.85)',
+                        }}
+                      >
+                        <span>{bot.difficultyLabel}</span>
+                        <span style={{ fontSize: '0.85em' }}>{bot.stars}</span>
+                      </span>
+                    </div>
 
-            {/* Bottom Navigation Bar */}
-            <div className={styles.bottomNav}>
-              <button
-                type="button"
-                className={styles.backBtn}
-                onClick={onBackToArena}
-                title="Return to Arena Selection"
-              >
-                ← BACK TO SCENARIOS
-              </button>
-              <button
-                type="button"
-                className={styles.backBtn}
-                onClick={onClose}
-                title="Cancel and return to menu"
-              >
-                ✕ CANCEL
-              </button>
+                    <div className={styles.botTitle}>{bot.title}</div>
+                    <p className={styles.botLore}>{bot.lore}</p>
+
+                    {/* Trait Pills */}
+                    <div className={styles.traitsRow}>
+                      {bot.combatTraits.map((trait, idx) => (
+                        <span key={idx} className={styles.traitTag}>
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* 3D Gold Action Tag Button */}
+                    <button
+                      type="button"
+                      className={styles.chooseBotBtn}
+                      onClick={e => {
+                        e.stopPropagation();
+                        onSelect(bot);
+                      }}
+                      aria-label={`Fight against ${bot.name}`}
+                    >
+                      <span>⚔️</span>
+                      <span>CHOOSE BOT</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom Navigation Bar */}
+              <div className={styles.bottomNav}>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={onBackToArena}
+                  title="Return to Arena Selection"
+                >
+                  ← BACK TO SCENARIOS
+                </button>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={onClose}
+                  title="Cancel and return to menu"
+                >
+                  ✕ CANCEL
+                </button>
+              </div>
             </div>
           </div>
         </div>

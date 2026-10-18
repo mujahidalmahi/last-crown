@@ -36,7 +36,7 @@
 /* Top Navigation Bar: Matching Settings & Room Menubars */
 .topNav {
   width: 100%;
-  max-width: 920px;
+  max-width: 1024px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -95,150 +95,83 @@
     0 4px 14px rgba(0, 0, 0, 0.8);
 }
 
-/* Central Stage Wrapper Container */
+/* Central 16:9 Stage Container matching Settings */
 .stageWrapper {
   position: relative;
   width: 100%;
-  max-width: 920px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex: 1;
   min-height: 0;
   z-index: 10;
-  padding: clamp(4px, 1vh, 8px) 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
-/* Authentic Pixel-Art Stone Card Frame */
+/* The exact 1024x572 Pixel Art Stone Card */
 .stoneCard {
   position: relative;
-  width: 100%;
-  max-height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(30, 42, 60, 0.45) 0%, transparent 70%),
-    linear-gradient(180deg, #151d28 0%, #0d131c 55%, #080c12 100%);
-  border: clamp(6px, 1.1vw, 10px) solid #283342;
-  border-radius: 4px;
-  box-shadow:
-    0 0 0 3px #0c1017,
-    0 0 0 6px #3e4c62,
-    0 20px 50px rgba(0, 0, 0, 0.98),
-    0 0 24px rgba(212, 175, 55, 0.15),
-    inset 0 0 30px rgba(0, 0, 0, 0.95),
-    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.12),
-    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.85);
-  padding: clamp(8px, 1.4vh, 16px) clamp(10px, 1.8vw, 18px);
-  display: flex;
-  flex-direction: column;
-  gap: clamp(8px, 1.2vh, 12px);
-  box-sizing: border-box;
+  width: min(96vw, calc(82vh * (1024 / 572)));
+  aspect-ratio: 1024 / 572;
+  background: url('/assets/ui/stone-board-frame.png') no-repeat center center;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.95));
 }
 
-/* Custom Pixel Scrollbar for internal card scroll when on small phone screens */
-.stoneCard::-webkit-scrollbar {
-  width: 6px;
-}
-.stoneCard::-webkit-scrollbar-track {
-  background: #090d14;
-}
-.stoneCard::-webkit-scrollbar-thumb {
-  background: #2d3848;
-  border: 1px solid #4a5568;
-  border-radius: 2px;
-}
-.stoneCard::-webkit-scrollbar-thumb:hover {
-  background: #d4af37;
-}
-
-/* Metallic Corner Screws matching Settings and Pause menubars */
-.cornerRivetTL,
-.cornerRivetTR,
-.cornerRivetBL,
-.cornerRivetBR {
+/* Embossed Plaque Title matching Settings & Controls */
+.plaqueTitle {
   position: absolute;
-  width: clamp(12px, 1.5vw, 16px);
-  height: clamp(12px, 1.5vw, 16px);
-  background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
-  border: 1.5px solid #0f172a;
-  border-radius: 2px;
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.9);
-  z-index: 25;
-  pointer-events: none;
-}
-
-.cornerRivetTL {
-  top: 2px;
-  left: 2px;
-}
-.cornerRivetTR {
-  top: 2px;
-  right: 2px;
-}
-.cornerRivetBL {
-  bottom: 2px;
-  left: 2px;
-}
-.cornerRivetBR {
-  bottom: 2px;
-  right: 2px;
-}
-
-/* Card Header Banner */
-.cardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-shrink: 0;
-  text-align: center;
-}
-
-.cardTitle {
+  top: 9.2%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.56rem, 1.15vw, 0.82rem);
   color: #f1c40f;
-  font-size: clamp(0.7rem, 1.2vw, 0.95rem);
-  font-weight: 900;
+  text-shadow: 2px 2px 0px #000000;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
   margin: 0;
-  text-shadow:
-    2px 2px 0 #000,
-    0 0 10px rgba(241, 196, 15, 0.4);
 }
 
-/* Content Grid: Left QR Column + Right Setup Column */
-.cardGrid {
-  display: grid;
-  grid-template-columns: clamp(170px, 24vw, 220px) 1fr;
-  gap: clamp(8px, 1.4vw, 14px);
-  align-items: stretch;
-  flex: 1;
-  min-height: 0;
+/* Inner Canvas Container sitting inside the stone frame and chains */
+.innerCanvas {
+  position: absolute;
+  left: 17%;
+  top: 21.2%;
+  width: 66%;
+  height: 67%;
+  display: flex;
+  gap: clamp(8px, 1.2vw, 12px);
+  box-sizing: border-box;
+  padding: 4px;
 }
 
 /* Left Column: Phone Controller QR */
 .qrCard {
-  background: rgba(10, 15, 24, 0.85);
+  background: rgba(14, 19, 29, 0.9);
   border: 1.5px solid #2d3848;
   outline: 1px solid #090e17;
   box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.9);
-  padding: clamp(6px, 1vh, 10px);
+  padding: clamp(5px, 0.9vh, 8px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  gap: 6px;
+  gap: 4px;
   box-sizing: border-box;
+  width: 38%;
+  flex-shrink: 0;
 }
 
 .qrTitle {
   color: #e2e8f0;
-  font-size: clamp(6px, 0.75vw, 7.5px);
+  font-size: clamp(5.5px, 0.65vw, 7px);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -247,14 +180,14 @@
 
 .qrSubtitle {
   color: #94a3b8;
-  font-size: clamp(5px, 0.6vw, 6px);
+  font-size: clamp(4.5px, 0.55vw, 5.5px);
   letter-spacing: 0.02em;
   margin: 0;
 }
 
 .qrImageWrapper {
-  width: clamp(75px, 10vw, 105px);
-  height: clamp(75px, 10vw, 105px);
+  width: clamp(65px, 8.5vw, 92px);
+  height: clamp(65px, 8.5vw, 92px);
   aspect-ratio: 1 / 1;
   background-color: #ffdb15;
   border: 2px solid #b45309;
@@ -276,7 +209,7 @@
 }
 
 .qrGenerating {
-  font-size: 6.5px;
+  font-size: 6px;
   color: #000000;
   font-weight: 700;
   text-align: center;
@@ -286,8 +219,8 @@
   background: #090e17;
   border: 1.5px solid #334155;
   outline: 1px solid #000;
-  padding: 3px 8px;
-  font-size: clamp(6px, 0.72vw, 7.5px);
+  padding: 3px 6px;
+  font-size: clamp(5.5px, 0.65vw, 7px);
   color: #94a3b8;
   letter-spacing: 0.04em;
   display: inline-flex;
@@ -306,9 +239,9 @@
   color: #cbd5e1;
   border: 1.5px solid #475569;
   outline: 1px solid #0a0e16;
-  padding: 5px 8px;
+  padding: 4px 6px;
   font-family: inherit;
-  font-size: clamp(5.5px, 0.7vw, 7px);
+  font-size: clamp(5px, 0.6vw, 6.5px);
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -336,30 +269,32 @@
   transform: translateY(-1px);
 }
 
-/* Right Column: Player Presets & Arena Setup */
+/* Right Column: Player Presets, Arena, and Actions */
 .setupColumn {
   display: flex;
   flex-direction: column;
-  gap: clamp(6px, 1vh, 10px);
+  gap: clamp(5px, 0.8vh, 8px);
   justify-content: space-between;
+  width: 62%;
+  flex: 1;
 }
 
 .playersGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(6px, 1vw, 10px);
+  gap: clamp(5px, 0.8vw, 8px);
 }
 
 /* Player 1 Card (Gold Themed) */
 .playerCardP1 {
-  background: rgba(10, 15, 24, 0.85);
-  border: 1.5px solid #3b485d;
+  background: rgba(14, 19, 29, 0.9);
+  border: 1.5px solid #4a3e28;
   outline: 1px solid #090e17;
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
-  padding: clamp(6px, 1vh, 10px);
+  padding: clamp(4px, 0.8vh, 7px);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   box-sizing: border-box;
 }
 
@@ -368,23 +303,23 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1.5px solid #856122;
-  padding-bottom: 4px;
+  padding-bottom: 3px;
   color: #f6e05e;
-  font-size: clamp(7px, 0.9vw, 9px);
+  font-size: clamp(6px, 0.75vw, 7.5px);
   font-weight: 900;
   letter-spacing: 0.05em;
 }
 
 /* Player 2 Card (Crimson Themed) */
 .playerCardP2 {
-  background: rgba(10, 15, 24, 0.85);
+  background: rgba(14, 19, 29, 0.9);
   border: 1.5px solid #3b485d;
   outline: 1px solid #090e17;
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
-  padding: clamp(6px, 1vh, 10px);
+  padding: clamp(4px, 0.8vh, 7px);
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   box-sizing: border-box;
 }
 
@@ -393,15 +328,15 @@
   align-items: center;
   justify-content: space-between;
   border-bottom: 1.5px solid #991b1b;
-  padding-bottom: 4px;
+  padding-bottom: 3px;
   color: #f87171;
-  font-size: clamp(7px, 0.9vw, 9px);
+  font-size: clamp(6px, 0.75vw, 7.5px);
   font-weight: 900;
   letter-spacing: 0.05em;
 }
 
 .playerTag {
-  font-size: clamp(5.5px, 0.7vw, 7px);
+  font-size: clamp(4.8px, 0.6vw, 6px);
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -411,12 +346,12 @@
   background: rgba(34, 197, 94, 0.16);
   border: 1px solid #22c55e;
   color: #4ade80;
-  padding: 3px 6px;
-  font-size: clamp(5.5px, 0.72vw, 7px);
+  padding: 2px 4px;
+  font-size: clamp(4.8px, 0.6vw, 6px);
   letter-spacing: 0.03em;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   box-shadow: inset 0 0 6px rgba(34, 197, 94, 0.2);
 }
 
@@ -424,12 +359,12 @@
   background: rgba(59, 130, 246, 0.16);
   border: 1px solid #3b82f6;
   color: #60a5fa;
-  padding: 3px 6px;
-  font-size: clamp(5.5px, 0.72vw, 7px);
+  padding: 2px 4px;
+  font-size: clamp(4.8px, 0.6vw, 6px);
   letter-spacing: 0.03em;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   box-shadow: inset 0 0 6px rgba(59, 130, 246, 0.2);
 }
 
@@ -437,23 +372,23 @@
   background: rgba(148, 163, 184, 0.12);
   border: 1px solid #475569;
   color: #cbd5e1;
-  padding: 3px 6px;
-  font-size: clamp(5.5px, 0.72vw, 7px);
+  padding: 2px 4px;
+  font-size: clamp(4.8px, 0.6vw, 6px);
   letter-spacing: 0.03em;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 /* Select Group & Custom Retro Dropdowns */
 .selectGroup {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .label {
-  font-size: clamp(5.5px, 0.7vw, 7px);
+  font-size: clamp(4.8px, 0.6vw, 6px);
   font-weight: 700;
   color: #94a3b8;
   letter-spacing: 0.05em;
@@ -472,9 +407,9 @@
   outline: 1px solid #090e17;
   color: #ffffff;
   font-family: inherit;
-  font-size: clamp(6px, 0.8vw, 8px);
+  font-size: clamp(5.2px, 0.68vw, 7px);
   font-weight: 700;
-  padding: clamp(4px, 0.7vh, 6px) clamp(18px, 2vw, 24px) clamp(4px, 0.7vh, 6px) clamp(6px, 0.8vw, 8px);
+  padding: 3px clamp(16px, 1.8vw, 20px) 3px 5px;
   border-radius: 2px;
   cursor: pointer;
   appearance: none;
@@ -501,24 +436,24 @@
 
 .chevronDown {
   position: absolute;
-  right: 8px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
   color: #94a3b8;
-  font-size: 7px;
+  font-size: 6px;
 }
 
 /* Arena Selection Row */
 .arenaRow {
-  background: rgba(10, 15, 24, 0.85);
+  background: rgba(14, 19, 29, 0.9);
   border: 1.5px solid #3b485d;
   outline: 1px solid #090e17;
   box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
-  padding: clamp(5px, 0.9vh, 8px) clamp(8px, 1.2vw, 12px);
+  padding: clamp(3px, 0.6vh, 6px) clamp(6px, 1vw, 10px);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   box-sizing: border-box;
 }
 
@@ -526,49 +461,21 @@
   flex-shrink: 0;
 }
 
-/* Bottom Action Buttons Row */
+/* Bottom Action Row */
 .actionsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   margin-top: auto;
-  padding-top: 2px;
 }
 
-/* Back Button */
-.backBtn {
-  background: linear-gradient(180deg, #2b3648 0%, #1a202c 100%);
-  color: #cbd5e1;
-  border: 1.5px solid #475569;
-  outline: 1px solid #0f141e;
-  padding: clamp(6px, 1vh, 9px) clamp(10px, 1.4vw, 14px);
-  font-family: inherit;
-  font-size: clamp(6px, 0.75vw, 8px);
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.15),
-    inset -1px -1px 0 rgba(0, 0, 0, 0.6),
-    0 3px 6px rgba(0, 0, 0, 0.7);
-  transition:
-    transform 0.12s ease,
-    background 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
-  flex-shrink: 0;
-}
-
-.backBtn:hover {
-  background: linear-gradient(180deg, #7f1d1d 0%, #450a0a 100%);
-  color: #ffffff;
-  border-color: #ef4444;
-  transform: translateY(-1px);
+.hintText {
+  font-size: clamp(4.5px, 0.55vw, 5.8px);
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+  line-height: 1.3;
+  flex: 1;
 }
 
 /* Start Duel Gold Button */
@@ -577,9 +484,9 @@
   color: #0f172a;
   border: 2px solid #fef9c3;
   outline: 2px solid #713f12;
-  padding: clamp(6px, 1.1vh, 10px) clamp(14px, 2vw, 22px);
+  padding: clamp(5px, 0.9vh, 8px) clamp(10px, 1.5vw, 16px);
   font-family: inherit;
-  font-size: clamp(7px, 0.95vw, 9.5px);
+  font-size: clamp(5.8px, 0.78vw, 7.5px);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -589,42 +496,29 @@
   justify-content: center;
   gap: 6px;
   box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.8),
-    inset -2px -2px 0 rgba(113, 63, 18, 0.7),
-    0 0 16px rgba(250, 204, 21, 0.6),
-    0 4px 12px rgba(0, 0, 0, 0.8);
+    inset 0 2px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(234, 179, 8, 0.45);
+  transform: translate3d(0, 0, 0);
   transition:
-    transform 0.12s ease,
+    transform 0.12s cubic-bezier(0.16, 1, 0.3, 1),
     filter 0.14s ease,
     box-shadow 0.14s ease;
-  flex: 1;
+  flex-shrink: 0;
 }
 
 .startBtn:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.1);
+  filter: brightness(1.12);
   box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.9),
-    0 0 24px rgba(254, 240, 138, 0.9),
-    0 8px 18px rgba(0, 0, 0, 0.95);
+    inset 0 2px 0 #ffffff,
+    inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+    0 0 16px rgba(250, 204, 21, 0.75);
+  transform: translateY(-1px);
 }
 
 .startBtn:active {
   transform: translateY(1px);
-}
-
-/* Responsive Handling: Small Phone Screens */
-@media (max-width: 640px) {
-  .cardGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .playersGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .arenaRow {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    0 2px 6px rgba(234, 179, 8, 0.3);
 }

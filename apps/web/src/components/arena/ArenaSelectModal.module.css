@@ -31,10 +31,10 @@
   }
 }
 
-/* Modal Wrapper holding TopNav and Central Stage */
+/* Modal Container */
 .modalContainer {
   width: 100%;
-  max-width: 920px;
+  max-width: 1024px;
   height: 100%;
   max-height: 100%;
   display: flex;
@@ -105,98 +105,60 @@
     0 4px 14px rgba(0, 0, 0, 0.8);
 }
 
-/* Central Pixel-Art Stone Card Frame */
-.stageContainer {
+/* Central 16:9 Stage Container matching Settings */
+.stageWrapper {
   position: relative;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1;
   min-height: 0;
-  max-height: calc(100% - 38px);
-  aspect-ratio: 16 / 9;
-  background-color: #0c1017;
-  border: clamp(6px, 1.1vw, 10px) solid #283342;
-  border-radius: 4px;
-  box-shadow:
-    0 0 0 3px #0c1017,
-    0 0 0 6px #3e4c62,
-    0 20px 50px rgba(0, 0, 0, 0.98),
-    0 0 24px rgba(212, 175, 55, 0.15),
-    inset 0 0 30px rgba(0, 0, 0, 0.95),
-    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.12),
-    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.85);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  z-index: 10;
   box-sizing: border-box;
-  user-select: none;
 }
 
-/* Metallic Corner Plates with Screws */
-.cornerRivetTL,
-.cornerRivetTR,
-.cornerRivetBL,
-.cornerRivetBR {
-  position: absolute;
-  width: clamp(12px, 1.5vw, 16px);
-  height: clamp(12px, 1.5vw, 16px);
-  background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
-  border: 1.5px solid #0f172a;
-  border-radius: 2px;
-  box-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.9);
-  z-index: 25;
-  pointer-events: none;
-}
-
-.cornerRivetTL {
-  top: 2px;
-  left: 2px;
-}
-.cornerRivetTR {
-  top: 2px;
-  right: 2px;
-}
-.cornerRivetBL {
-  bottom: 2px;
-  left: 2px;
-}
-.cornerRivetBR {
-  bottom: 2px;
-  right: 2px;
-}
-
-/* Dark Dungeon Stone Canvas with Internal Scroll */
-.stoneCanvas {
+/* The exact 1024x572 Pixel Art Stone Card */
+.stoneCard {
   position: relative;
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(30, 42, 60, 0.45) 0%, transparent 70%),
-    linear-gradient(180deg, #151d28 0%, #0d131c 55%, #080c12 100%);
+  width: min(96vw, calc(82vh * (1024 / 572)));
+  aspect-ratio: 1024 / 572;
+  background: url('/assets/ui/stone-board-frame.png') no-repeat center center;
+  background-size: 100% 100%;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.95));
+}
+
+/* Embossed Plaque Title matching Settings & Controls */
+.plaqueTitle {
+  position: absolute;
+  top: 9.2%;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.58rem, 1.25vw, 0.88rem);
+  color: #f1c40f;
+  text-shadow: 2px 2px 0px #000000;
+  letter-spacing: 0.08em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 5;
+  margin: 0;
+}
+
+/* Inner Canvas Container sitting inside stone borders and chains */
+.innerCanvas {
+  position: absolute;
+  left: 17%;
+  top: 21.2%;
+  width: 66%;
+  height: 67%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(6px, 1.2vh, 12px) clamp(8px, 1.5vw, 16px);
   box-sizing: border-box;
-  z-index: 10;
-  overflow-y: auto;
-  overflow-x: hidden;
-}
-
-/* Custom Scrollbar for Stone Canvas */
-.stoneCanvas::-webkit-scrollbar {
-  width: 5px;
-}
-.stoneCanvas::-webkit-scrollbar-track {
-  background: #090d14;
-}
-.stoneCanvas::-webkit-scrollbar-thumb {
-  background: #2d3848;
-  border-radius: 2px;
-}
-.stoneCanvas::-webkit-scrollbar-thumb:hover {
-  background: #d4af37;
+  padding: 4px;
 }
 
 /* Subtle CRT Scanline Overlay */
@@ -209,68 +171,28 @@
   z-index: 2;
 }
 
-/* Top Header Section with Glowing Gold Title */
-.header {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  z-index: 15;
-  width: 100%;
-  flex-shrink: 0;
-}
-
-.headerTitle {
-  font-family: 'Press Start 2P', monospace;
-  font-size: clamp(9px, 1.4vw, 15px);
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  color: #f1c40f;
-  text-transform: uppercase;
-  text-shadow:
-    -1.5px -1.5px 0 #000000,
-    1.5px -1.5px 0 #000000,
-    -1.5px 1.5px 0 #000000,
-    1.5px 1.5px 0 #000000,
-    0 3px 0 #000000,
-    0 0 12px rgba(241, 196, 15, 0.5);
-  margin: 0;
-}
-
-.headerSubtitle {
-  color: #94a3b8;
-  font-family: 'Press Start 2P', monospace;
-  font-size: clamp(5.5px, 0.72vw, 7.5px);
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  margin: 2px 0 0 0;
-  line-height: 1.3;
-}
-
 /* 2x2 Arena Compartment Cards Grid */
 .arenaGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: clamp(6px, 1vw, 10px);
+  gap: clamp(5px, 0.8vw, 8px);
   width: 100%;
   flex: 1;
   min-height: 0;
   z-index: 15;
   box-sizing: border-box;
-  margin: clamp(3px, 0.6vh, 6px) 0;
 }
 
-/* Individual Arena Compartment Card (Clean Inset Dark Stone Panel) */
+/* Individual Arena Compartment Card */
 .arenaSlot {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: clamp(4px, 0.7vh, 8px);
-  background: rgba(10, 15, 24, 0.85);
+  padding: clamp(3px, 0.6vh, 6px);
+  background: rgba(14, 19, 29, 0.9);
   border: 1.5px solid #2d3848;
   outline: 1px solid #090e17;
   border-radius: 3px;
@@ -283,54 +205,22 @@
   min-height: 0;
 }
 
-/* Compartment Corner Rivets */
-.slotRivetTL,
-.slotRivetTR,
-.slotRivetBL,
-.slotRivetBR {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  background: radial-gradient(circle at 35% 35%, #cbd5e1 0%, #475569 65%, #0f172a 100%);
-  border-radius: 50%;
-  border: 1px solid #0f172a;
-  z-index: 8;
-  pointer-events: none;
-}
-
-.slotRivetTL {
-  top: 3px;
-  left: 3px;
-}
-.slotRivetTR {
-  top: 3px;
-  right: 3px;
-}
-.slotRivetBL {
-  bottom: 3px;
-  left: 3px;
-}
-.slotRivetBR {
-  bottom: 3px;
-  right: 3px;
-}
-
 /* Compartment Header */
 .badgeHeader {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   width: 100%;
   border-bottom: 1.5px solid #2a3444;
-  padding-bottom: 3px;
-  margin-bottom: 3px;
+  padding-bottom: 2px;
+  margin-bottom: 2px;
   z-index: 5;
   flex-shrink: 0;
 }
 
 .badgeName {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(6.5px, 0.85vw, 9px);
+  font-size: clamp(5.5px, 0.72vw, 7.5px);
   font-weight: 900;
   color: #f1c40f;
   letter-spacing: 0.04em;
@@ -338,7 +228,7 @@
 }
 
 .badgeIcon {
-  font-size: clamp(10px, 1.2vw, 13px);
+  font-size: clamp(8px, 1vw, 11px);
   line-height: 1;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
@@ -348,7 +238,7 @@
   position: relative;
   width: 100%;
   flex: 1;
-  min-height: clamp(38px, 6vh, 60px);
+  min-height: clamp(32px, 5vh, 50px);
   background-color: #0b0f16;
   border: 1.5px solid #3b485d;
   outline: 1px solid #0a0e16;
@@ -371,7 +261,7 @@
 }
 
 .stoneButton:hover {
-  transform: translate3d(0, -2px, 0);
+  transform: translate3d(0, -1px, 0);
   border-color: #f1c40f;
   outline-color: #d97706;
   box-shadow:
@@ -414,11 +304,11 @@
 .buttonActionTag {
   position: relative;
   z-index: 6;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   background: linear-gradient(180deg, #fef08a 0%, #facc15 35%, #eab308 70%, #a16207 100%);
   border: 1px solid #ffffff;
   border-radius: 2px;
-  padding: clamp(2px, 0.4vh, 4px) clamp(8px, 1.2vw, 14px);
+  padding: 2px clamp(6px, 1vw, 10px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
     inset 0 -1.5px 0 rgba(0, 0, 0, 0.75),
@@ -439,7 +329,7 @@
 
 .selectBtnText {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(6px, 0.8vw, 8px);
+  font-size: clamp(5.2px, 0.7vw, 7px);
   font-weight: 900;
   letter-spacing: 0.04em;
   color: #070b12;
@@ -452,7 +342,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 3px;
   z-index: 15;
   flex-shrink: 0;
 }
@@ -463,9 +353,9 @@
   border: 1.5px solid #4a5568;
   outline: 1px solid #0f141e;
   border-radius: 2px;
-  padding: clamp(5px, 0.8vh, 7px) clamp(14px, 2vw, 22px);
+  padding: clamp(3px, 0.6vh, 5px) clamp(10px, 1.5vw, 16px);
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(6.5px, 0.85vw, 8.5px);
+  font-size: clamp(5.5px, 0.75vw, 7.5px);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -491,24 +381,4 @@
 
 .backBtn:active {
   transform: translateY(1px);
-}
-
-/* ==============================================================================
-   Mobile & Responsive Adaptations (Portrait mode)
-   ============================================================================== */
-@media (max-width: 580px) and (orientation: portrait) {
-  .stageContainer {
-    aspect-ratio: auto;
-    height: min(84vh, 580px);
-  }
-
-  .arenaGrid {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(4, auto);
-    gap: 8px;
-  }
-
-  .stoneButton {
-    min-height: 52px;
-  }
 }
