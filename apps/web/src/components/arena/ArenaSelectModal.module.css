@@ -6,6 +6,7 @@
   inset: 0;
   width: 100%;
   height: 100%;
+  height: 100dvh;
   background-color: rgba(3, 6, 12, 0.94);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
@@ -13,7 +14,7 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: clamp(8px, 2vw, 24px);
+  padding: clamp(4px, 1.2vw, 16px);
   box-sizing: border-box;
   animation: modalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -29,18 +30,20 @@
   }
 }
 
-/* Master 16:9 Frame Stage Container matching the online duel arena */
+/* Master 16:9 Frame Stage Container - Guaranteed Non-Zero Dimensions on All Devices */
 .stageContainer {
   position: relative;
-  width: min(96vw, calc(92vh * (16 / 9)), 980px);
+  width: min(96%, calc(94% * (16 / 9)), 940px);
+  max-width: 940px;
+  max-height: 94%;
   aspect-ratio: 16 / 9;
   background-color: #0c1017;
   border-radius: 4px;
   box-shadow:
-    0 0 0 4px #0c1017,
-    0 0 0 8px #3e4c62,
-    0 24px 60px rgba(0, 0, 0, 0.98),
-    0 0 32px rgba(212, 175, 55, 0.2);
+    0 0 0 3px #0c1017,
+    0 0 0 6px #3e4c62,
+    0 20px 50px rgba(0, 0, 0, 0.98),
+    0 0 28px rgba(212, 175, 55, 0.2);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -52,11 +55,11 @@
 .stoneFrame {
   position: absolute;
   inset: 0;
-  border: clamp(14px, 2.2vw, 22px) solid #283342;
+  border: clamp(8px, 1.4vw, 16px) solid #283342;
   box-shadow:
-    inset 0 0 20px rgba(0, 0, 0, 0.95),
-    inset 2px 2px 0 rgba(255, 255, 255, 0.15),
-    inset -2px -2px 0 rgba(0, 0, 0, 0.85);
+    inset 0 0 16px rgba(0, 0, 0, 0.95),
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.15),
+    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.85);
   pointer-events: none;
   z-index: 20;
 }
@@ -67,57 +70,57 @@
 .cornerRivetBL,
 .cornerRivetBR {
   position: absolute;
-  width: clamp(18px, 2.4vw, 26px);
-  height: clamp(18px, 2.4vw, 26px);
+  width: clamp(12px, 1.6vw, 18px);
+  height: clamp(12px, 1.6vw, 18px);
   background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
-  border: 2px solid #0f172a;
+  border: 1.5px solid #0f172a;
   border-radius: 2px;
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.3),
-    0 2px 6px rgba(0, 0, 0, 0.9);
+    0 2px 4px rgba(0, 0, 0, 0.9);
   z-index: 25;
   pointer-events: none;
 }
 
 .cornerRivetTL {
-  top: 3px;
-  left: 3px;
+  top: 2px;
+  left: 2px;
 }
 .cornerRivetTR {
-  top: 3px;
-  right: 3px;
+  top: 2px;
+  right: 2px;
 }
 .cornerRivetBL {
-  bottom: 3px;
-  left: 3px;
+  bottom: 2px;
+  left: 2px;
 }
 .cornerRivetBR {
-  bottom: 3px;
-  right: 3px;
+  bottom: 2px;
+  right: 2px;
 }
 
 /* Mid-rail Screws along Top and Bottom Frame Rails */
 .borderRivetTop,
 .borderRivetBottom {
   position: absolute;
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   background: radial-gradient(circle at 35% 35%, #cbd5e1 0%, #475569 65%, #0f172a 100%);
   border-radius: 50%;
-  border: 1.5px solid #0f172a;
+  border: 1px solid #0f172a;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
   z-index: 25;
   pointer-events: none;
 }
 
 .borderRivetTop {
-  top: 6px;
+  top: 4px;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .borderRivetBottom {
-  bottom: 6px;
+  bottom: 4px;
   left: 50%;
   transform: translateX(-50%);
 }
@@ -126,9 +129,9 @@
 .mossTL {
   position: absolute;
   top: -2px;
-  left: 18px;
-  width: 54px;
-  height: 22px;
+  left: 14px;
+  width: 38px;
+  height: 16px;
   background:
     radial-gradient(circle at 20% 30%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
     radial-gradient(circle at 70% 60%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
@@ -142,9 +145,9 @@
 .mossTR {
   position: absolute;
   top: -2px;
-  right: 18px;
-  width: 50px;
-  height: 24px;
+  right: 14px;
+  width: 36px;
+  height: 18px;
   background:
     radial-gradient(circle at 60% 30%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
     radial-gradient(circle at 20% 70%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
@@ -158,9 +161,9 @@
 .mossBL {
   position: absolute;
   bottom: -2px;
-  left: 18px;
-  width: 50px;
-  height: 22px;
+  left: 14px;
+  width: 36px;
+  height: 16px;
   background:
     radial-gradient(circle at 30% 70%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
     radial-gradient(circle at 80% 30%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
@@ -174,9 +177,9 @@
 .mossBR {
   position: absolute;
   bottom: -2px;
-  right: 18px;
-  width: 56px;
-  height: 22px;
+  right: 14px;
+  width: 40px;
+  height: 16px;
   background:
     radial-gradient(circle at 70% 70%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
     radial-gradient(circle at 20% 30%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
@@ -191,8 +194,8 @@
   position: absolute;
   top: -2px;
   left: 45%;
-  width: 44px;
-  height: 18px;
+  width: 32px;
+  height: 14px;
   background: radial-gradient(
     circle at 40% 40%,
     #4ade80 0%,
@@ -209,7 +212,7 @@
 /* Dark Dungeon Stone Canvas */
 .stoneCanvas {
   position: absolute;
-  inset: clamp(14px, 2.2vw, 22px);
+  inset: clamp(8px, 1.4vw, 16px);
   background:
     radial-gradient(ellipse at top left, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
     linear-gradient(180deg, #18202d 0%, #0f1520 60%, #090c13 100%),
@@ -220,15 +223,30 @@
       transparent 2px,
       transparent 6px
     );
-  box-shadow: inset 0 0 32px rgba(0, 0, 0, 0.95);
+  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.95);
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: space-between;
-  padding: clamp(8px, 1.4vh, 16px) clamp(14px, 2.4vw, 28px);
+  padding: clamp(6px, 1vh, 12px) clamp(8px, 1.5vw, 18px);
   box-sizing: border-box;
   z-index: 10;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Stone Canvas */
+.stoneCanvas::-webkit-scrollbar {
+  width: 5px;
+}
+.stoneCanvas::-webkit-scrollbar-track {
+  background: #090d14;
+}
+.stoneCanvas::-webkit-scrollbar-thumb {
+  background: #2d3848;
+  border-radius: 2px;
+}
+.stoneCanvas::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
 }
 
 /* Subtle CRT Scanline Overlay */
@@ -247,36 +265,37 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   z-index: 15;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .headerTitle {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(13px, 2.2vw, 21px);
+  font-size: clamp(10px, 1.6vw, 17px);
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: #f1c40f;
   text-transform: uppercase;
   text-shadow:
-    -2px -2px 0 #000000,
-    2px -2px 0 #000000,
-    -2px 2px 0 #000000,
-    2px 2px 0 #000000,
-    0 4px 0 #000000,
-    0 0 16px rgba(241, 196, 15, 0.5);
+    -1.5px -1.5px 0 #000000,
+    1.5px -1.5px 0 #000000,
+    -1.5px 1.5px 0 #000000,
+    1.5px 1.5px 0 #000000,
+    0 3px 0 #000000,
+    0 0 12px rgba(241, 196, 15, 0.5);
   margin: 0;
 }
 
 .headerSubtitle {
   color: #94a3b8;
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(7.5px, 1vw, 9.5px);
+  font-size: clamp(5.5px, 0.75vw, 8px);
   font-weight: 500;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   margin: 2px 0 0 0;
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 /* 2x2 Arena Compartment Cards Grid */
@@ -284,13 +303,13 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: clamp(8px, 1.4vw, 14px);
+  gap: clamp(6px, 1vw, 10px);
   width: 100%;
   flex: 1;
   min-height: 0;
   z-index: 15;
   box-sizing: border-box;
-  margin: clamp(4px, 0.8vh, 8px) 0;
+  margin: clamp(3px, 0.6vh, 6px) 0;
 }
 
 /* Individual Arena Compartment Card (Engraved Inset Stone Panel) */
@@ -300,19 +319,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: clamp(6px, 1vh, 10px);
+  padding: clamp(4px, 0.7vh, 8px);
   background:
     radial-gradient(ellipse at top right, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
     linear-gradient(180deg, #1d2534 0%, #121824 100%);
-  border: 2.5px solid #2d3848;
-  outline: 1.5px solid #0c1017;
-  border-radius: 4px;
+  border: 2px solid #2d3848;
+  outline: 1px solid #0c1017;
+  border-radius: 3px;
   box-shadow:
-    inset 0 0 16px rgba(0, 0, 0, 0.92),
-    inset 1px 1px 0 rgba(255, 255, 255, 0.12),
-    0 4px 10px rgba(0, 0, 0, 0.8);
+    inset 0 0 12px rgba(0, 0, 0, 0.92),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.1),
+    0 3px 8px rgba(0, 0, 0, 0.8);
   box-sizing: border-box;
   overflow: hidden;
+  min-height: 0;
 }
 
 /* Compartment Corner Rivets */
@@ -321,8 +341,8 @@
 .slotRivetBL,
 .slotRivetBR {
   position: absolute;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   background: radial-gradient(circle at 35% 35%, #cbd5e1 0%, #475569 65%, #0f172a 100%);
   border-radius: 50%;
   border: 1px solid #0f172a;
@@ -331,28 +351,28 @@
 }
 
 .slotRivetTL {
-  top: 4px;
-  left: 4px;
+  top: 3px;
+  left: 3px;
 }
 .slotRivetTR {
-  top: 4px;
-  right: 4px;
+  top: 3px;
+  right: 3px;
 }
 .slotRivetBL {
-  bottom: 4px;
-  left: 4px;
+  bottom: 3px;
+  left: 3px;
 }
 .slotRivetBR {
-  bottom: 4px;
-  right: 4px;
+  bottom: 3px;
+  right: 3px;
 }
 
 .slotMossTL {
   position: absolute;
   top: 0;
   left: 0;
-  width: 14px;
-  height: 10px;
+  width: 12px;
+  height: 8px;
   background: radial-gradient(circle at 20% 20%, #4ade80 0%, #15803d 70%, transparent 100%);
   border-radius: 2px;
   opacity: 0.85;
@@ -364,25 +384,26 @@
 .badgeHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
   border-bottom: 1.5px solid #2a3444;
-  padding-bottom: 4px;
-  margin-bottom: 4px;
+  padding-bottom: 3px;
+  margin-bottom: 3px;
   z-index: 5;
+  flex-shrink: 0;
 }
 
 .badgeName {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(8px, 1.1vw, 11px);
+  font-size: clamp(6.5px, 0.85vw, 9.5px);
   font-weight: 900;
   color: #f1c40f;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-shadow: 1px 1px 0 #000;
 }
 
 .badgeIcon {
-  font-size: clamp(12px, 1.5vw, 16px);
+  font-size: clamp(10px, 1.2vw, 14px);
   line-height: 1;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
 }
@@ -392,16 +413,16 @@
   position: relative;
   width: 100%;
   flex: 1;
-  min-height: clamp(48px, 9vh, 80px);
+  min-height: clamp(38px, 6vh, 65px);
   background-color: #0b0f16;
-  border: 2px solid #3b485d;
-  outline: 1.5px solid #0a0e16;
-  border-radius: 3px;
+  border: 1.5px solid #3b485d;
+  outline: 1px solid #0a0e16;
+  border-radius: 2px;
   overflow: hidden;
   cursor: pointer;
   box-shadow:
-    inset 0 0 14px rgba(0, 0, 0, 0.95),
-    0 4px 10px rgba(0, 0, 0, 0.8);
+    inset 0 0 10px rgba(0, 0, 0, 0.95),
+    0 3px 8px rgba(0, 0, 0, 0.8);
   transform: translate3d(0, 0, 0);
   transition:
     transform 0.12s ease,
@@ -419,8 +440,8 @@
   border-color: #f1c40f;
   outline-color: #d97706;
   box-shadow:
-    0 0 16px rgba(241, 196, 15, 0.65),
-    0 6px 14px rgba(0, 0, 0, 0.9);
+    0 0 14px rgba(241, 196, 15, 0.65),
+    0 4px 10px rgba(0, 0, 0, 0.9);
 }
 
 .stoneButton:active {
@@ -451,23 +472,23 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   pointer-events: none;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.8);
 }
 
 /* 3D Gold Action Tag Button at bottom of preview */
 .buttonActionTag {
   position: relative;
   z-index: 6;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   background: linear-gradient(180deg, #fef08a 0%, #facc15 35%, #eab308 70%, #a16207 100%);
-  border: 1.5px solid #ffffff;
+  border: 1px solid #ffffff;
   border-radius: 2px;
-  padding: clamp(3px, 0.5vh, 5px) clamp(10px, 1.4vw, 16px);
+  padding: clamp(2px, 0.4vh, 4px) clamp(8px, 1.2vw, 14px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.75),
-    0 2px 0 #000,
-    0 0 10px rgba(241, 196, 15, 0.45);
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.75),
+    0 1.5px 0 #000,
+    0 0 8px rgba(241, 196, 15, 0.45);
   pointer-events: none;
   transition: filter 0.1s ease;
 }
@@ -476,16 +497,16 @@
   filter: brightness(1.1);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.75),
-    0 2px 0 #000,
-    0 0 14px rgba(250, 204, 21, 0.8);
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.75),
+    0 1.5px 0 #000,
+    0 0 12px rgba(250, 204, 21, 0.8);
 }
 
 .selectBtnText {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(7.5px, 0.95vw, 9.5px);
+  font-size: clamp(6px, 0.8vw, 8px);
   font-weight: 900;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: #070b12;
   text-transform: uppercase;
 }
@@ -498,25 +519,26 @@
   width: 100%;
   margin-top: 2px;
   z-index: 15;
+  flex-shrink: 0;
 }
 
 .backBtn {
   background: linear-gradient(180deg, #242d3d 0%, #141a24 100%);
   color: #cbd5e1;
-  border: 2px solid #4a5568;
-  outline: 1.5px solid #0f141e;
-  border-radius: 3px;
-  padding: clamp(6px, 1vh, 9px) clamp(18px, 2.5vw, 28px);
+  border: 1.5px solid #4a5568;
+  outline: 1px solid #0f141e;
+  border-radius: 2px;
+  padding: clamp(5px, 0.8vh, 7px) clamp(14px, 2vw, 22px);
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(7.5px, 1vw, 9.5px);
+  font-size: clamp(6.5px, 0.85vw, 8.5px);
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.8),
-    0 3px 0 #000;
+    inset 0 -1.5px 0 rgba(0, 0, 0, 0.8),
+    0 2px 0 #000;
   transition:
     transform 0.12s ease,
     background 0.12s ease,
@@ -528,8 +550,8 @@
   background: linear-gradient(180deg, #333f54 0%, #1c2433 100%);
   color: #ffffff;
   border-color: #f1c40f;
-  transform: translateY(-2px);
-  box-shadow: 0 0 12px rgba(241, 196, 15, 0.45);
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.45);
 }
 
 .backBtn:active {
@@ -537,38 +559,22 @@
 }
 
 /* ==============================================================================
-   Mobile & Responsive Adaptations
+   Mobile & Responsive Adaptations (Portrait and Small Heights)
    ============================================================================== */
-@media (max-width: 768px), (max-height: 520px) {
+@media (max-width: 580px) and (orientation: portrait) {
   .stageContainer {
-    width: min(96vw, 560px);
+    width: min(96%, 480px);
+    height: min(94%, 600px);
     aspect-ratio: auto;
-    height: auto;
-    max-height: 92vh;
-    overflow-y: auto;
-  }
-
-  .stoneFrame {
-    border-width: 10px;
-  }
-
-  .stoneCanvas {
-    inset: 10px;
-    padding: 10px;
   }
 
   .arenaGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, auto);
     gap: 8px;
   }
 
   .stoneButton {
-    min-height: 54px;
-  }
-}
-
-@media (max-width: 440px) {
-  .arenaGrid {
-    grid-template-columns: 1fr;
-    gap: 8px;
+    min-height: 52px;
   }
 }

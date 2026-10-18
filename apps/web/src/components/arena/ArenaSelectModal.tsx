@@ -302,9 +302,9 @@ export const ArenaSelectModal: React.FC<ArenaSelectModalProps> = ({
               type="button"
               className={styles.backBtn}
               onClick={onClose}
-              title="Return without changing arena"
+              title="Return to menu"
             >
-              ← RETURN TO DUEL
+              ← BACK TO MENU
             </button>
           </div>
         </div>
