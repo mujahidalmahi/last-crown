@@ -151,6 +151,11 @@ export class WarriorRenderer {
     const goldTrim = isFlashing ? 0xffffff : 0xf1c40f;
     const shadowColor = 0x181e28;
 
+    // Forged Dark Gray Steel Blade Palette
+    const swordBladeOutline = 0x161a22; // Deep charcoal blade edge / outline
+    const swordBladeDark = isFlashing ? 0x94a3b8 : 0x3d4450; // Authentic dark gray steel blade body
+    const swordBladeFuller = isFlashing ? 0xcbd5e1 : 0x222730; // Dark fuller channel groove
+
     const breathBob = Math.sin(this.animTimer * 2) * 1.5;
     const torsoY = isDecapitated ? -42 : -68 + breathBob;
 
@@ -317,7 +322,12 @@ export class WarriorRenderer {
       // Fallen weapon dropped flat on the flagstone floor
       const droppedX = 16;
       const droppedY = -3;
-      this.weaponGraphics.lineStyle(4, steelHighlight, 1);
+      // Dark gray steel blade
+      this.weaponGraphics.lineStyle(5, swordBladeOutline, 1);
+      this.weaponGraphics.lineBetween(droppedX, droppedY, droppedX + 46, droppedY + 2);
+      this.weaponGraphics.lineStyle(3, swordBladeDark, 1);
+      this.weaponGraphics.lineBetween(droppedX, droppedY, droppedX + 46, droppedY + 2);
+      this.weaponGraphics.lineStyle(1.5, swordBladeFuller, 1);
       this.weaponGraphics.lineBetween(droppedX, droppedY, droppedX + 46, droppedY + 2);
       this.weaponGraphics.lineStyle(2.5, goldTrim, 1);
       this.weaponGraphics.lineBetween(droppedX, droppedY - 6, droppedX, droppedY + 6);
@@ -368,7 +378,7 @@ export class WarriorRenderer {
         swordBaseY = torsoY + 8;
 
         // Aerodynamic Pierce Streak
-        this.weaponGraphics.lineStyle(isDashLunge ? 7 : 5, 0xffffff, 0.9);
+        this.weaponGraphics.lineStyle(isDashLunge ? 7 : 5, 0x94a3b8, 0.9);
         this.weaponGraphics.lineBetween(
           swordBaseX - 35,
           swordBaseY,
@@ -438,14 +448,14 @@ export class WarriorRenderer {
 
         // Dynamic Curved Slash Arc Trail
         const arcCenter = { x: swordBaseX - 10, y: swordBaseY - 10 };
-        const arcColor = isHeavy ? 0xe74c3c : 0xffffff;
-        this.weaponGraphics.lineStyle(isHeavy ? 10 : 7, arcColor, 0.7);
+        const arcColor = isHeavy ? 0xe74c3c : 0x64748b;
+        this.weaponGraphics.lineStyle(isHeavy ? 10 : 7, arcColor, 0.75);
         this.weaponGraphics.beginPath();
         this.weaponGraphics.arc(arcCenter.x, arcCenter.y, swordBladeLength, -0.6, 1.45, false);
         this.weaponGraphics.strokePath();
 
-        // Inner glowing core
-        this.weaponGraphics.lineStyle(3, 0xffffff, 0.95);
+        // Inner tempered steel core
+        this.weaponGraphics.lineStyle(3, isHeavy ? 0xff7675 : 0x94a3b8, 0.9);
         this.weaponGraphics.beginPath();
         this.weaponGraphics.arc(arcCenter.x, arcCenter.y, swordBladeLength, -0.4, 1.45, false);
         this.weaponGraphics.strokePath();
@@ -456,12 +466,20 @@ export class WarriorRenderer {
       swordBaseY = torsoY + 14;
     }
 
-    // Blade Drawing
+    // Blade Drawing — Forged Dark Gray Steel Blade
     const swordTipX = swordBaseX + Math.cos(swordAngle) * swordBladeLength;
     const swordTipY = swordBaseY + Math.sin(swordAngle) * swordBladeLength;
 
-    // Glowing Fuller / Edge
-    this.weaponGraphics.lineStyle(isHeavy ? 5 : 4, steelHighlight, 1);
+    // 1. Outer Dark Silhouette Outline
+    this.weaponGraphics.lineStyle(isHeavy ? 6 : 5, swordBladeOutline, 1);
+    this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
+
+    // 2. Dark Gray Steel Blade Body
+    this.weaponGraphics.lineStyle(isHeavy ? 4 : 3, swordBladeDark, 1);
+    this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
+
+    // 3. Central Dark Fuller Groove
+    this.weaponGraphics.lineStyle(1.5, swordBladeFuller, 1);
     this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
 
     // Crossguard
