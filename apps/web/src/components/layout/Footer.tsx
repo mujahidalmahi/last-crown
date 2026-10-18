@@ -255,7 +255,6 @@ export const Footer: React.FC = () => {
 
           <div className={styles.quickActionButtons}>
             <Link href="/game" className={styles.playActionBtn}>
-              <span aria-hidden="true">⚔️</span>
               <span>PLAY THE GAME</span>
             </Link>
 

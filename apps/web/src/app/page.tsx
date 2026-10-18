@@ -319,7 +319,6 @@ export default function HomePage() {
 
           <div className={styles.heroCtaGroup}>
             <Link href="/game" className={styles.heroPrimaryBtn}>
-              <span>👑</span>
               <span>PLAY LAST-CROWN</span>
             </Link>
             <a
@@ -402,7 +401,7 @@ export default function HomePage() {
                 <p className={styles.stageLore}>{currentGalleryItem.lore}</p>
               </div>
               <Link href="/game" className={styles.stagePlayBtn}>
-                <span>FIGHT HERE ⚔</span>
+                <span>FIGHT HERE</span>
               </Link>
             </div>
           </div>
