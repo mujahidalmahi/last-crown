@@ -115,25 +115,28 @@
 }
 
 /* Compartment 1: Lifetime Combat Record */
-/* x: 17.68%, y: 27.97%, w: 30.66%, h: 13.11% */
+/* Unified full-width top compartment: left 17.68%, top 27.97%, width 64.64%, height 13.11% */
 .boxCombatRecord {
   position: absolute;
   left: 17.68%;
   top: 27.97%;
-  width: 30.66%;
+  width: 64.64%;
   height: 13.11%;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  padding: 4px 8px;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 16px;
   box-sizing: border-box;
+  gap: 4px;
 }
 
 .statsRow {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
   width: 100%;
+  max-width: 580px;
 }
 
 .miniStat {
@@ -179,9 +182,8 @@
 
 .resetRow {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
-  margin-top: 2px;
 }
 
 .miniResetBtn {
@@ -227,61 +229,6 @@
   font-family: 'Press Start 2P', monospace;
   font-size: clamp(0.38rem, 0.65vw, 0.45rem);
   cursor: pointer;
-}
-
-/* Compartment 2: Bot AI Sparring Partner */
-/* x: 51.66%, y: 27.97%, w: 30.66%, h: 13.11% */
-.boxBotAI {
-  position: absolute;
-  left: 51.66%;
-  top: 27.97%;
-  width: 30.66%;
-  height: 13.11%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 4px 8px;
-  box-sizing: border-box;
-  gap: 6px;
-}
-
-.diffGroup {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  justify-content: center;
-}
-
-.diffToggleBtn {
-  flex: 1;
-  background-color: #1a1622;
-  color: #8a8296;
-  border: 2px solid #383044;
-  padding: 6px 4px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: clamp(0.48rem, 0.85vw, 0.62rem);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: inset -1px -1px 0px 0px rgba(0, 0, 0, 0.8);
-  transition: all 0.1s ease;
-  text-align: center;
-}
-
-.diffToggleBtn:hover {
-  color: #cbd5e1;
-  background-color: #262030;
-}
-
-.diffToggleActive {
-  background-color: #f1c40f !important;
-  color: #080a10 !important;
-  border-color: #ffffff !important;
-  font-weight: 900;
-  box-shadow:
-    inset -1px -1px 0px 0px rgba(0, 0, 0, 0.6),
-    0 0 10px rgba(241, 196, 15, 0.6) !important;
 }
 
 /* Compartment 3: Sound & Acoustics */
