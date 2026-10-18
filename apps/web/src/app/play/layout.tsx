@@ -15,6 +15,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ForcedLandscapeView } from '../../components/layout/ForcedLandscapeView';
+
 export default function PlayLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <ForcedLandscapeView>{children}</ForcedLandscapeView>;
 }

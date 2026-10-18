@@ -14,8 +14,8 @@ const PhaserGameContainer = dynamic(
         style={{
           position: 'fixed',
           inset: 0,
-          width: '100vw',
-          height: '100vh',
+          width: '100%',
+          height: '100%',
           backgroundColor: '#050810',
           display: 'flex',
           flexDirection: 'column',
@@ -62,8 +62,8 @@ export default function PlayPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            width: '100vw',
-            height: '100vh',
+            width: '100%',
+            height: '100%',
             backgroundColor: '#050810',
           }}
         />

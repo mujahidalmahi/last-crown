@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { ForcedLandscapeView } from '../../components/layout/ForcedLandscapeView';
+
 export default function LocalLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return <ForcedLandscapeView>{children}</ForcedLandscapeView>;
 }

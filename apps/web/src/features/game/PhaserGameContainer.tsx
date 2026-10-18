@@ -47,8 +47,6 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   const [isFadingIn, setIsFadingIn] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [isTouchMobile, setIsTouchMobile] = useState(false);
-  const [isPortrait, setIsPortrait] = useState(false);
-
   // Helper to enter fullscreen and lock orientation to landscape on mobile
   const enterLandscapeFullscreen = useCallback(async () => {
     await requestLandscapeOrientation();
@@ -64,7 +62,6 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       const hasTouch =
         (navigator.maxTouchPoints > 0 && isCoarse) || ('ontouchstart' in window && isCoarse);
       setIsTouchMobile(Boolean(hasTouch));
-      setIsPortrait(Boolean(hasTouch && window.innerHeight > window.innerWidth));
       setTimeout(() => bootstrapRef.current?.refreshScale(), 200);
     };
 
@@ -307,8 +304,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        width: '100dvw',
-        height: '100dvh',
+        width: '100%',
+        height: '100%',
         backgroundColor: '#050810',
         zIndex: 9999,
         display: 'flex',
@@ -418,81 +415,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       </div>
 
       {/* Touch game controls — pinned to bottom corners of the full device viewport */}
-      {isTouchMobile && !isPortrait && <MobileGameControls isPortrait={false} />}
-
-      {/* Mobile Portrait Mode Gate — prompts player to rotate or one-tap enter landscape */}
-      {isTouchMobile && isPortrait && (
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(5, 8, 16, 0.97)',
-            zIndex: 10000,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px',
-            gap: '18px',
-            textAlign: 'center',
-            backdropFilter: 'blur(8px)',
-          }}
-        >
-          <div
-            style={{
-              fontSize: '3.6rem',
-              filter: 'drop-shadow(0 0 16px rgba(241, 196, 15, 0.6))',
-            }}
-          >
-            📱 ➔ 🔄
-          </div>
-          <h2
-            style={{
-              fontFamily: "'Press Start 2P', monospace",
-              color: '#f1c40f',
-              fontSize: 'clamp(0.72rem, 3.2vw, 0.95rem)',
-              lineHeight: 1.7,
-              letterSpacing: '0.06em',
-              margin: 0,
-              textShadow: '0 0 12px rgba(241, 196, 15, 0.4)',
-            }}
-          >
-            ROTATE PHONE FOR BATTLE
-          </h2>
-          <p
-            style={{
-              fontFamily: 'system-ui, sans-serif',
-              color: '#94a3b8',
-              fontSize: '0.85rem',
-              maxWidth: '320px',
-              lineHeight: 1.5,
-              margin: 0,
-            }}
-          >
-            Turn your phone sideways or tap below to enter fullscreen landscape mode.
-          </p>
-          <button
-            type="button"
-            onClick={enterLandscapeFullscreen}
-            style={{
-              marginTop: '6px',
-              backgroundColor: '#f1c40f',
-              color: '#070b12',
-              border: '2px solid #ffffff',
-              borderRadius: '6px',
-              padding: '12px 24px',
-              fontFamily: "'Press Start 2P', monospace",
-              fontSize: '0.7rem',
-              fontWeight: 900,
-              letterSpacing: '0.06em',
-              cursor: 'pointer',
-              boxShadow: '0 4px 0 #b7950b, 0 0 24px rgba(241, 196, 15, 0.5)',
-            }}
-          >
-            ⚔️ ENTER LANDSCAPE FULLSCREEN
-          </button>
-        </div>
-      )}
+      {isTouchMobile && <MobileGameControls isPortrait={false} />}
     </div>
   );
 };
