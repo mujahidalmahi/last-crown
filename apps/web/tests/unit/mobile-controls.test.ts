@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TouchInputBridge } from '../../src/game/input/TouchInputBridge';
 import { KeyboardInputAdapter } from '../../src/game/input/KeyboardInputAdapter';
 
@@ -128,5 +128,81 @@ describe('Mobile Touch Controls and Input Bridge', () => {
     expect(input.block).toBe(true);
 
     adapter.destroy();
+  });
+
+  it('maps desktop keyboard controls accurately: A=left, D=right, W/Space=jump, K=heavy, J=light, Shift=defence, L=parry', () => {
+    type KeyHandler = (e: { code: string; preventDefault?: () => void }) => void;
+    const listeners: Record<string, KeyHandler> = {};
+    vi.stubGlobal('window', {
+      addEventListener: vi.fn((event: string, cb: KeyHandler) => {
+        listeners[event] = cb;
+      }),
+      removeEventListener: vi.fn(),
+      localStorage: { getItem: vi.fn(), setItem: vi.fn() },
+    });
+
+    const adapter = new KeyboardInputAdapter();
+
+    const pressKey = (code: string) => {
+      listeners['keydown']?.({ code, preventDefault: vi.fn() });
+    };
+    const releaseKey = (code: string) => {
+      listeners['keyup']?.({ code, preventDefault: vi.fn() });
+    };
+
+    // 1. A = Move Left
+    pressKey('KeyA');
+    let input = adapter.pollInput();
+    expect(input.moveX).toBe(-1);
+    releaseKey('KeyA');
+
+    // 2. D = Move Right
+    pressKey('KeyD');
+    input = adapter.pollInput();
+    expect(input.moveX).toBe(1);
+    releaseKey('KeyD');
+
+    // 3. W = Jump
+    pressKey('KeyW');
+    input = adapter.pollInput();
+    expect(input.jump).toBe(true);
+    releaseKey('KeyW');
+
+    // Space = Jump
+    pressKey('Space');
+    input = adapter.pollInput();
+    expect(input.jump).toBe(true);
+    releaseKey('Space');
+
+    // 4. J = Light attack
+    pressKey('KeyJ');
+    input = adapter.pollInput();
+    expect(input.attack).toBe(true);
+    expect(input.attackType).toBe('light');
+
+    // 5. K = Heavy attack
+    pressKey('KeyK');
+    input = adapter.pollInput();
+    expect(input.attack).toBe(true);
+    expect(input.attackType).toBe('heavy');
+
+    // 6. Shift = Defence (ShiftLeft & ShiftRight)
+    pressKey('ShiftLeft');
+    input = adapter.pollInput();
+    expect(input.block).toBe(true);
+    releaseKey('ShiftLeft');
+
+    pressKey('ShiftRight');
+    input = adapter.pollInput();
+    expect(input.block).toBe(true);
+    releaseKey('ShiftRight');
+
+    // 7. L = Parry ("perry")
+    pressKey('KeyL');
+    input = adapter.pollInput();
+    expect(input.parry).toBe(true);
+
+    adapter.destroy();
+    vi.unstubAllGlobals();
   });
 });

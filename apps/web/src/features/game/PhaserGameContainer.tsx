@@ -101,7 +101,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   }, []);
 
   const handleTogglePause = useCallback(() => {
-    if (mode !== 'singleplayer') return;
+    if (mode === 'multiplayer') return;
     setIsPaused(prev => {
       const next = !prev;
       if (bootstrapRef.current) {
@@ -226,7 +226,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   }, [toggleFullscreen]);
 
   useEffect(() => {
-    if (mode !== 'singleplayer') return;
+    if (mode === 'multiplayer') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;

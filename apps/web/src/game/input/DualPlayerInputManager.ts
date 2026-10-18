@@ -44,11 +44,19 @@ export class DualPlayerInputManager {
       }
       this.keysPressed.add(e.code);
 
-      // P1 Keyboard Controls (WASD + Space + J/K/L/I/O/E)
+      // P1 Keyboard Controls (A/D move, W/Space jump, J light, K heavy, L parry, Shift defence, U thrust)
       if (e.code === 'KeyJ' || e.code === 'KeyZ') this.p1LightBuffer = true;
       if (e.code === 'KeyK' || e.code === 'KeyX') this.p1HeavyBuffer = true;
-      if (e.code === 'KeyL' || e.code === 'KeyU') this.p1ThrustBuffer = true;
-      if (e.code === 'KeyO' || e.code === 'KeyF') this.p1ParryBuffer = true;
+      if (e.code === 'KeyU') this.p1ThrustBuffer = true;
+      if (
+        e.code === 'KeyL' ||
+        e.code === 'KeyO' ||
+        e.code === 'KeyF' ||
+        e.code === 'AltLeft' ||
+        e.code === 'AltRight'
+      ) {
+        this.p1ParryBuffer = true;
+      }
       if (e.code === 'KeyE' || e.code === 'KeyC') this.p1DashBuffer = true;
 
       // P2 Keyboard Controls (Arrows + Numpad OR [ / ' \ etc.)

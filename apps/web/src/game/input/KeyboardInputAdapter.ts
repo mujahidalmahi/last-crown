@@ -54,35 +54,31 @@ export class KeyboardInputAdapter {
         this.dashBuffer = true;
       }
 
-      // Attack Buffer resolution based on active layout preset
+      // Attack & Combat Action Buffer resolution
+      // J = Light Attack
       if (e.code === 'KeyJ' || e.code === 'KeyZ') {
         this.lightAttackBuffer = true;
       }
 
-      if (this.controlPreset === 'modern') {
-        // Modern Preset: K = Direct Heavy Attack, L = Direct Thrust
-        if (e.code === 'KeyK' || e.code === 'KeyX') {
-          this.heavyAttackBuffer = true;
-        }
-        if (e.code === 'KeyL' || e.code === 'KeyU') {
-          this.thrustBuffer = true;
-        }
-        if (
-          e.code === 'KeyO' ||
-          e.code === 'KeyF' ||
-          e.code === 'AltLeft' ||
-          e.code === 'AltRight'
-        ) {
-          this.parryBuffer = true;
-        }
-      } else {
-        // Classic Preset: K = Block, L = Parry, U/I = Thrust, S+J = Heavy
-        if (e.code === 'KeyU' || e.code === 'KeyI') {
-          this.thrustBuffer = true;
-        }
-        if (e.code === 'KeyL' || e.code === 'AltLeft' || e.code === 'AltRight') {
-          this.parryBuffer = true;
-        }
+      // K = Heavy Attack
+      if (e.code === 'KeyK' || e.code === 'KeyX') {
+        this.heavyAttackBuffer = true;
+      }
+
+      // L = Parry (also AltLeft/AltRight, KeyO, KeyF for accessibility)
+      if (
+        e.code === 'KeyL' ||
+        e.code === 'KeyO' ||
+        e.code === 'KeyF' ||
+        e.code === 'AltLeft' ||
+        e.code === 'AltRight'
+      ) {
+        this.parryBuffer = true;
+      }
+
+      // U / I = Forward Thrust
+      if (e.code === 'KeyU' || e.code === 'KeyI') {
+        this.thrustBuffer = true;
       }
     };
 
@@ -164,21 +160,13 @@ export class KeyboardInputAdapter {
       touch.moveUp ||
       !!gp?.jump;
 
-    // Block mapping:
-    // Modern: Shift (left/right) or KeyI (home row defense)
-    // Classic: KeyK or Shift
+    // Defence / Block mapping: Shift (Left/Right) is primary defence, KeyI is secondary
     const block =
-      this.controlPreset === 'modern'
-        ? this.keysPressed.has('KeyI') ||
-          this.keysPressed.has('ShiftLeft') ||
-          this.keysPressed.has('ShiftRight') ||
-          touch.block ||
-          !!gp?.block
-        : this.keysPressed.has('KeyK') ||
-          this.keysPressed.has('ShiftLeft') ||
-          this.keysPressed.has('ShiftRight') ||
-          touch.block ||
-          !!gp?.block;
+      this.keysPressed.has('ShiftLeft') ||
+      this.keysPressed.has('ShiftRight') ||
+      this.keysPressed.has('KeyI') ||
+      touch.block ||
+      !!gp?.block;
 
     const dash = this.dashBuffer || touch.dashTrigger || !!gp?.dash;
     this.dashBuffer = false;

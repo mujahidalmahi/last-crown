@@ -385,32 +385,28 @@ export default function SettingsPage() {
               <span className={`${styles.keyTag} ${styles.tagOrange}`}>S + J</span>
             </div>
             <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Heavy/Exec</span>
-              <span className={`${styles.keyTag} ${styles.tagRed}`}>
-                {controlPreset === 'modern' ? 'K' : 'S+J'}
-              </span>
+              <span className={styles.keyAction}>Heavy</span>
+              <span className={`${styles.keyTag} ${styles.tagRed}`}>K</span>
             </div>
             <div className={styles.keyRow}>
               <span className={styles.keyAction}>Thrust</span>
-              <span className={`${styles.keyTag} ${styles.tagPurple}`}>
-                {controlPreset === 'modern' ? 'L / U' : 'U / I'}
-              </span>
+              <span className={`${styles.keyTag} ${styles.tagPurple}`}>U</span>
             </div>
             <div className={styles.keyRow}>
               <span className={styles.keyAction}>Feint</span>
               <span className={`${styles.keyTag} ${styles.tagBlue}`}>WINDUP+DASH</span>
             </div>
             <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Guard</span>
-              <span className={`${styles.keyTag} ${styles.tagBlue}`}>
-                {controlPreset === 'modern' ? 'SHIFT / I' : 'K'}
-              </span>
+              <span className={styles.keyAction}>Defence</span>
+              <span className={`${styles.keyTag} ${styles.tagBlue}`}>SHIFT</span>
             </div>
             <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Parry/Riposte</span>
-              <span className={`${styles.keyTag} ${styles.tagYellow}`}>
-                {controlPreset === 'modern' ? 'ALT / O' : 'L'}
-              </span>
+              <span className={styles.keyAction}>Parry</span>
+              <span className={`${styles.keyTag} ${styles.tagYellow}`}>L</span>
+            </div>
+            <div className={styles.keyRow}>
+              <span className={styles.keyAction}>Pause</span>
+              <span className={`${styles.keyTag} ${styles.tagYellow}`}>P</span>
             </div>
           </section>
         </div>

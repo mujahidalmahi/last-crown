@@ -931,16 +931,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             <div className={victoryStyles.srOnly}>
               <h3>Combat Controls Reference</h3>
               <ul>
-                <li>A / D / Arrows: Move Left / Right</li>
-                <li>Space (or W / ↑): Jump</li>
+                <li>A / D: Move Left / Right</li>
+                <li>W / Space: Jump</li>
+                <li>J: Light Attack (3-Hit Combo)</li>
+                <li>K: Heavy Attack & Execution</li>
+                <li>Shift: Defence / Guard</li>
+                <li>L: Parry & Riposte Counter</li>
+                <li>P: Pause Duel</li>
                 <li>C / E: Tactical Dash</li>
-                <li>J: Light Slash (3-Hit Combo)</li>
-                <li>S + J: Low Sweep (Trips High Guard; Jump to evade)</li>
-                <li>K: Heavy Strike & Execution</li>
-                <li>L / U: Forward Thrust (Reach)</li>
-                <li>Windup + Dash/Guard: Feint Cancel (Bait Parries)</li>
-                <li>Shift / I: Block (Absorbs 75%)</li>
-                <li>Alt / O: Parry & Riposte Counter</li>
+                <li>S + J: Low Sweep (Trips High Guard)</li>
+                <li>U: Forward Thrust (Reach)</li>
+                <li>Windup + Dash/Guard: Feint Cancel</li>
               </ul>
             </div>
           </div>
@@ -1233,8 +1234,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 </div>
                 <div>
                   <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed parry with{' '}
-                  <strong style={{ color: '#fff' }}>Alt / O / L</strong> deflects blows and causes
-                  heavy posture exhaustion.
+                  <strong style={{ color: '#fff' }}>L</strong> deflects blows and causes heavy
+                  posture exhaustion.
                 </div>
               </div>
             </div>
@@ -1254,11 +1255,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>Space</strong> Jump
-          </span>
-          <span style={{ color: '#4a5568' }}>•</span>
-          <span>
-            <strong style={{ color: '#f1c40f' }}>C / E</strong> Dash
+            <strong style={{ color: '#f1c40f' }}>W / Space</strong> Jump
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
@@ -1266,29 +1263,21 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>S+J</strong> Sweep
+            <strong style={{ color: '#f1c40f' }}>K</strong> Heavy
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>K</strong> Heavy/Exec
+            <strong style={{ color: '#f1c40f' }}>Shift</strong> Defence
           </span>
           <span style={{ color: '#4a5568' }}>•</span>
           <span>
-            <strong style={{ color: '#f1c40f' }}>L / U</strong> Thrust
+            <strong style={{ color: '#f1c40f' }}>L</strong> Parry
           </span>
-          <span style={{ color: '#4a5568' }}>•</span>
-          <span>
-            <strong style={{ color: '#f1c40f' }}>Shift</strong> Guard
-          </span>
-          <span style={{ color: '#4a5568' }}>•</span>
-          <span>
-            <strong style={{ color: '#f1c40f' }}>Alt / O</strong> Parry/Riposte
-          </span>
-          {mode === 'singleplayer' && (
+          {mode !== 'multiplayer' && (
             <>
               <span style={{ color: '#4a5568' }}>•</span>
               <span>
-                <strong style={{ color: '#f1c40f' }}>P / Esc</strong> Pause
+                <strong style={{ color: '#f1c40f' }}>P</strong> Pause
               </span>
             </>
           )}
