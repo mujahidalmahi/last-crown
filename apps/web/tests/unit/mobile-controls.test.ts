@@ -23,6 +23,11 @@ describe('Mobile Touch Controls and Input Bridge', () => {
     expect(polled.moveUp).toBe(true);
     expect(polled.jump).toBe(true);
 
+    TouchInputBridge.setDirection({ up: false });
+    polled = TouchInputBridge.poll();
+    expect(polled.moveUp).toBe(false);
+    expect(polled.jump).toBe(false);
+
     TouchInputBridge.setDirection({ down: true });
     polled = TouchInputBridge.poll();
     expect(polled.moveDown).toBe(true);

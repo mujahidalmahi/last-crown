@@ -39,14 +39,14 @@ class TouchInputBridgeClass {
     if (direction.right !== undefined) this.state.moveRight = direction.right;
     if (direction.up !== undefined) {
       this.state.moveUp = direction.up;
-      if (direction.up) this.state.jump = true;
+      this.state.jump = direction.up;
     }
     if (direction.down !== undefined) this.state.moveDown = direction.down;
   }
 
   public setJump(jumping: boolean): void {
     this.state.jump = jumping;
-    if (jumping) this.state.moveUp = true;
+    this.state.moveUp = jumping;
   }
 
   public setBlock(blocking: boolean): void {

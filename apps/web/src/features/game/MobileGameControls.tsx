@@ -112,6 +112,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
     (e: React.PointerEvent) => {
       e.preventDefault();
       updateDirection({ up: true });
+      TouchInputBridge.setJump(true);
       setActiveVisuals(prev => ({ ...prev, up: true }));
       triggerHaptic(10);
     },
@@ -122,6 +123,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
     (e: React.PointerEvent) => {
       e.preventDefault();
       updateDirection({ up: false });
+      TouchInputBridge.setJump(false);
       setActiveVisuals(prev => ({ ...prev, up: false }));
     },
     [updateDirection]
@@ -223,6 +225,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
           onPointerDown={handleJumpDown}
           onPointerUp={handleJumpUp}
           onPointerCancel={handleJumpUp}
+          onPointerLeave={handleJumpUp}
           aria-label="Jump"
         >
           <span className={styles.btnIcon}>↑</span>
@@ -237,6 +240,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerDown={handleLeftDown}
             onPointerUp={handleLeftUp}
             onPointerCancel={handleLeftUp}
+            onPointerLeave={handleLeftUp}
             aria-label="Move Left"
           >
             <span className={styles.btnIcon}>◀</span>
@@ -249,6 +253,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerDown={handleDashDown}
             onPointerUp={handleDashUp}
             onPointerCancel={handleDashUp}
+            onPointerLeave={handleDashUp}
             aria-label="Dash"
           >
             <span className={styles.btnIcon}>»</span>
@@ -261,6 +266,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerDown={handleRightDown}
             onPointerUp={handleRightUp}
             onPointerCancel={handleRightUp}
+            onPointerLeave={handleRightUp}
             aria-label="Move Right"
           >
             <span className={styles.btnIcon}>▶</span>
@@ -281,6 +287,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerDown={handleBlockDown}
             onPointerUp={handleBlockUp}
             onPointerCancel={handleBlockUp}
+            onPointerLeave={handleBlockUp}
             aria-label="Block"
           >
             <span className={styles.btnIcon}>▣</span>
@@ -293,6 +300,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerDown={handleParryDown}
             onPointerUp={handleParryUp}
             onPointerCancel={handleParryUp}
+            onPointerLeave={handleParryUp}
             aria-label="Parry"
           >
             <span className={styles.btnIcon}>◈</span>
@@ -308,6 +316,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerDown={handleHeavyDown}
             onPointerUp={handleHeavyUp}
             onPointerCancel={handleHeavyUp}
+            onPointerLeave={handleHeavyUp}
             aria-label="Heavy Strike"
           >
             <span className={styles.btnIcon}>★</span>
@@ -320,6 +329,7 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
             onPointerDown={handleLightDown}
             onPointerUp={handleLightUp}
             onPointerCancel={handleLightUp}
+            onPointerLeave={handleLightUp}
             aria-label="Light Attack"
           >
             <span className={styles.btnIcon}>†</span>
