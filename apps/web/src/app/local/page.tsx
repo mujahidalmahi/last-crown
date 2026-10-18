@@ -186,7 +186,7 @@ export default function LocalDuelPage() {
       </nav>
 
       {/* Central Non-Scrolling Stage Wrapper */}
-      <main className={styles.stageWrapper} role="main" aria-label="Local 2-Player Setup">
+      <div className={styles.stageWrapper} aria-label="Local 2-Player Setup">
         <div className={styles.stoneCard}>
           {/* Metallic Corner Screws */}
           <div className={styles.cornerRivetTL} aria-hidden="true" />
@@ -382,7 +382,7 @@ export default function LocalDuelPage() {
             </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

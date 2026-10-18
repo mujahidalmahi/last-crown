@@ -214,12 +214,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <body
+        style={{
+          minHeight: '100dvh',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <SkipLink />
         <main
           id="main-content"
           tabIndex={-1}
-          style={{ flex: 1, display: 'flex', flexDirection: 'column', outline: 'none' }}
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            outline: 'none',
+            minHeight: '100%',
+            height: '100%',
+          }}
         >
           {children}
         </main>

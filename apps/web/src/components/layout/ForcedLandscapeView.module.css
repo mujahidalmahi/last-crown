@@ -17,10 +17,14 @@
 .naturalLandscapeWrapper {
   width: 100% !important;
   height: 100% !important;
+  min-height: 100% !important;
   min-height: 100dvh !important;
   overflow: hidden !important;
   position: relative !important;
   background-color: #050810 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
 }
 
 /* Subtle 180° Orientation Flip Button for player comfort */
