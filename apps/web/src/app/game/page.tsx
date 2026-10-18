@@ -4,7 +4,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PixelButton } from '../../components/ui/PixelButton';
 import { ArenaSelectModal } from '../../components/arena/ArenaSelectModal';
-import { requestBrowserFullscreen, isBrowserFullscreen } from '../../utils/fullscreen';
+import {
+  requestBrowserFullscreen,
+  isBrowserFullscreen,
+  requestLandscapeOrientation,
+} from '../../utils/fullscreen';
 import styles from './page.module.css';
 
 type Screen = 'cover1' | 'transition' | 'cover2';
@@ -43,7 +47,7 @@ export default function GamePage() {
 
   const handlePlayClick = useCallback(async () => {
     try {
-      await requestBrowserFullscreen();
+      await requestLandscapeOrientation();
     } catch {
       // Handled gracefully
     }
@@ -94,7 +98,7 @@ export default function GamePage() {
   const handleModeClick = useCallback(
     async (destination: string) => {
       try {
-        await requestBrowserFullscreen();
+        await requestLandscapeOrientation();
       } catch {
         // Handled gracefully
       }

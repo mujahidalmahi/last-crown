@@ -77,3 +77,18 @@ export function isBrowserFullscreen(): boolean {
   }
   return false;
 }
+
+export async function requestLandscapeOrientation(): Promise<void> {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!isBrowserFullscreen()) {
+      await requestBrowserFullscreen();
+    }
+    if (typeof screen !== 'undefined' && screen.orientation && 'lock' in screen.orientation) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (screen.orientation as any).lock('landscape').catch(() => {});
+    }
+  } catch {
+    /* gracefully ignored */
+  }
+}

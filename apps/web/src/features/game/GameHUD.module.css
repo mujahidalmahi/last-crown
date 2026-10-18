@@ -75,7 +75,9 @@
   border-radius: 4px;
   overflow: hidden;
   border: 2px solid #3d495c;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
+  box-shadow:
+    inset 0 2px 6px rgba(0, 0, 0, 0.8),
+    0 0 8px rgba(0, 0, 0, 0.5);
 }
 
 /* Stamina Bar Shell */
@@ -146,7 +148,9 @@
 }
 .pauseBtn:active {
   transform: translateY(2px);
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.8), 0 1px 0 #000;
+  box-shadow:
+    inset 0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 1px 0 #000;
 }
 
 /* Bottom Utility Bar (Desktop Base) */
@@ -184,7 +188,10 @@
     inset 0 -2px 0 rgba(0, 0, 0, 0.8),
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 3px 0 #000;
-  transition: transform 0.08s ease, border-color 0.12s ease, color 0.12s ease;
+  transition:
+    transform 0.08s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
   white-space: nowrap;
   -webkit-tap-highlight-color: transparent;
 }
@@ -197,7 +204,9 @@
 
 .utilityBtn:active {
   transform: translateY(2px);
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.8), 0 1px 0 #000;
+  box-shadow:
+    inset 0 -1px 0 rgba(0, 0, 0, 0.8),
+    0 1px 0 #000;
 }
 
 /* ==============================================================================
@@ -205,7 +214,8 @@
    ============================================================================== */
 @media (max-width: 1024px), (hover: none), (pointer: coarse) {
   .hudRoot {
-    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 8px max(10px, env(safe-area-inset-left));
+    padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 8px
+      max(10px, env(safe-area-inset-left));
   }
 
   .topBar {
@@ -229,23 +239,23 @@
   }
 
   .timerMedallion {
-    min-width: clamp(58px, 11vw, 96px);
-    padding: 3px clamp(6px, 1.2vw, 14px);
+    min-width: 58px;
+    padding: 2px 8px;
     border-radius: 6px;
   }
 
   .roundLabel {
-    font-size: clamp(0.5rem, 1vw, 0.65rem);
+    font-size: 0.5rem;
   }
 
   .timerDigits {
-    font-size: clamp(1.2rem, 3.2vw, 1.8rem);
+    font-size: 1.25rem;
   }
 
   .pauseBtn {
-    padding: 2px 8px;
-    font-size: clamp(0.55rem, 1vw, 0.65rem);
-    margin-top: 3px;
+    padding: 2px 6px;
+    font-size: 0.52rem;
+    margin-top: 2px;
   }
 
   .keyboardOnly {
@@ -360,4 +370,3 @@
     display: none !important;
   }
 }
-

@@ -460,7 +460,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               }}
               title="Pause duel (Hotkey: P or Escape)"
             >
-              {isPaused ? '▶️ Resume' : '⏸️ Pause (P)'}
+              {isPaused ? '▶️ Resume' : '⏸️ Pause'}
             </button>
           )}
         </div>

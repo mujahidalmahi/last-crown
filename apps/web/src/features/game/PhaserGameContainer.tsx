@@ -13,6 +13,7 @@ import {
   requestBrowserFullscreen,
   exitBrowserFullscreen,
   isBrowserFullscreen,
+  requestLandscapeOrientation,
 } from '../../utils/fullscreen';
 
 export interface PhaserGameContainerProps {
@@ -48,18 +49,14 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   const [isTouchMobile, setIsTouchMobile] = useState(false);
   const [isPortrait, setIsPortrait] = useState(false);
 
-  // Detect mobile touch device and attempt landscape lock
+  // Helper to enter fullscreen and lock orientation to landscape on mobile
+  const enterLandscapeFullscreen = useCallback(async () => {
+    await requestLandscapeOrientation();
+  }, []);
+
+  // Detect mobile touch device and handle landscape lock
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
-    const tryLockLandscape = () => {
-      if (typeof screen !== 'undefined' && screen.orientation && 'lock' in screen.orientation) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (screen.orientation as any).lock('landscape').catch(() => {
-          /* Silently ignore — iOS Safari does not support lock outside fullscreen */
-        });
-      }
-    };
 
     const check = () => {
       const isCoarse =
@@ -68,22 +65,18 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         (navigator.maxTouchPoints > 0 && isCoarse) || ('ontouchstart' in window && isCoarse);
       setIsTouchMobile(Boolean(hasTouch));
       setIsPortrait(Boolean(hasTouch && window.innerHeight > window.innerWidth));
-      // 300ms lets CSS rotation transition settle before Phaser re-reads canvas size
-      setTimeout(() => bootstrapRef.current?.refreshScale(), 300);
+      setTimeout(() => bootstrapRef.current?.refreshScale(), 200);
     };
 
     check();
-    // Attempt immediately (works in Chrome Android even before fullscreen)
-    tryLockLandscape();
 
-    window.addEventListener('resize', check);
-    window.addEventListener('orientationchange', check);
-
-    // On first user gesture also re-attempt the lock (required for fullscreen contexts)
+    // On user gesture, enter fullscreen and lock to landscape
     const onFirstGesture = () => {
-      tryLockLandscape();
+      enterLandscapeFullscreen();
     };
     window.addEventListener('pointerdown', onFirstGesture, { once: true });
+    window.addEventListener('resize', check);
+    window.addEventListener('orientationchange', check);
 
     return () => {
       window.removeEventListener('resize', check);
@@ -98,7 +91,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         }
       }
     };
-  }, []);
+  }, [enterLandscapeFullscreen]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -141,13 +134,20 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     try {
       if (isBrowserFullscreen()) {
         await exitBrowserFullscreen();
+        if (typeof screen !== 'undefined' && screen.orientation && 'unlock' in screen.orientation) {
+          try {
+            screen.orientation.unlock();
+          } catch {
+            /* ignore */
+          }
+        }
       } else {
-        await requestBrowserFullscreen(document.documentElement);
+        await enterLandscapeFullscreen();
       }
     } catch {
       // Ignore
     }
-  }, []);
+  }, [enterLandscapeFullscreen]);
 
   // Fullscreen state listener & auto-fullscreen on entry
   useEffect(() => {
@@ -300,10 +300,6 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     };
   }, [mode, playerPreset, opponentPreset, arenaId, colyseusRoom]);
 
-  // When screen.orientation.lock fails (iOS Safari, etc.) we rotate the whole
-  // game container 90° with CSS so the battle is always displayed landscape.
-  const needsCssRotate = isTouchMobile && isPortrait;
-
   return (
     <div
       ref={fullscreenContainerRef}
@@ -311,13 +307,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        // When rotating we swap width↔height so the rotated content fills the screen
-        width: needsCssRotate ? '100dvh' : '100dvw',
-        height: needsCssRotate ? '100dvw' : '100dvh',
-        top: needsCssRotate ? '50%' : 0,
-        left: needsCssRotate ? '50%' : 0,
-        transform: needsCssRotate ? 'translate(-50%, -50%) rotate(90deg)' : 'none',
-        transformOrigin: 'center center',
+        width: '100dvw',
+        height: '100dvh',
         backgroundColor: '#050810',
         zIndex: 9999,
         display: 'flex',
@@ -328,15 +319,15 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         userSelect: 'none',
       }}
     >
-      {/* 16:9 Aspect Ratio Arena Stage: fills screen in landscape or sits at top 44vh in portrait */}
+      {/* 16:9 Aspect Ratio Arena Stage: fills 100% of the screen height, centered horizontally */}
       <div
         style={{
           position: 'relative',
-          width: 'min(100dvw, calc(100dvh * (16 / 9)))',
-          height: 'min(100dvh, calc(100dvw * (9 / 16)))',
+          aspectRatio: '16 / 9',
+          height: '100%',
+          width: 'auto',
           maxWidth: '100%',
           maxHeight: '100%',
-          aspectRatio: '16 / 9',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -363,8 +354,8 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           onTogglePause={handleTogglePause}
         />
 
-        {/* Floating prompt if browser was opened in windowed mode */}
-        {!isFullscreen && (
+        {/* Floating prompt if browser was opened in windowed mode on desktop */}
+        {!isFullscreen && !isTouchMobile && (
           <button
             type="button"
             onClick={toggleFullscreen}
@@ -424,10 +415,84 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           }}
           aria-hidden="true"
         />
-
-        {/* Touch game controls — overlaid directly on the arena canvas */}
-        {isTouchMobile && <MobileGameControls isPortrait={false} />}
       </div>
+
+      {/* Touch game controls — pinned to bottom corners of the full device viewport */}
+      {isTouchMobile && !isPortrait && <MobileGameControls isPortrait={false} />}
+
+      {/* Mobile Portrait Mode Gate — prompts player to rotate or one-tap enter landscape */}
+      {isTouchMobile && isPortrait && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: 'rgba(5, 8, 16, 0.97)',
+            zIndex: 10000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+            gap: '18px',
+            textAlign: 'center',
+            backdropFilter: 'blur(8px)',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '3.6rem',
+              filter: 'drop-shadow(0 0 16px rgba(241, 196, 15, 0.6))',
+            }}
+          >
+            📱 ➔ 🔄
+          </div>
+          <h2
+            style={{
+              fontFamily: "'Press Start 2P', monospace",
+              color: '#f1c40f',
+              fontSize: 'clamp(0.72rem, 3.2vw, 0.95rem)',
+              lineHeight: 1.7,
+              letterSpacing: '0.06em',
+              margin: 0,
+              textShadow: '0 0 12px rgba(241, 196, 15, 0.4)',
+            }}
+          >
+            ROTATE PHONE FOR BATTLE
+          </h2>
+          <p
+            style={{
+              fontFamily: 'system-ui, sans-serif',
+              color: '#94a3b8',
+              fontSize: '0.85rem',
+              maxWidth: '320px',
+              lineHeight: 1.5,
+              margin: 0,
+            }}
+          >
+            Turn your phone sideways or tap below to enter fullscreen landscape mode.
+          </p>
+          <button
+            type="button"
+            onClick={enterLandscapeFullscreen}
+            style={{
+              marginTop: '6px',
+              backgroundColor: '#f1c40f',
+              color: '#070b12',
+              border: '2px solid #ffffff',
+              borderRadius: '6px',
+              padding: '12px 24px',
+              fontFamily: "'Press Start 2P', monospace",
+              fontSize: '0.7rem',
+              fontWeight: 900,
+              letterSpacing: '0.06em',
+              cursor: 'pointer',
+              boxShadow: '0 4px 0 #b7950b, 0 0 24px rgba(241, 196, 15, 0.5)',
+            }}
+          >
+            ⚔️ ENTER LANDSCAPE FULLSCREEN
+          </button>
+        </div>
+      )}
     </div>
   );
 };
