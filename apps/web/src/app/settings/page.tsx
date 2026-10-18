@@ -159,7 +159,7 @@ export default function SettingsPage() {
 
       {/* Top Floating Bar: MAIN HALL on left, PREFERENCES on right */}
       <header className={styles.topNav} aria-label="Settings navigation">
-        <Link href="/" className={styles.mainHallBtn}>
+        <Link href="/game" className={styles.mainHallBtn}>
           <span>←</span> MAIN HALL
         </Link>
         <div className={styles.prefBadge}>PREFERENCES &amp; RECORDS</div>

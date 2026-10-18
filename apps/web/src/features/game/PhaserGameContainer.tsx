@@ -127,7 +127,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     if (onExit) {
       onExit();
     } else {
-      router.push('/');
+      router.push('/game');
     }
   }, [onExit, router]);
 

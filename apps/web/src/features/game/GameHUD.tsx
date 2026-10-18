@@ -845,7 +845,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                   />
                 ) : (
                   <Link
-                    href="/"
+                    href="/game"
                     className={victoryStyles.castleHallLink}
                     aria-label="Castle Hall"
                     title="Return to Castle Hall"
@@ -863,7 +863,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         <div className={hudStyles.utilityGroup}>
           <button
             type="button"
-            onClick={onExit ? onExit : () => (window.location.href = '/')}
+            onClick={onExit ? onExit : () => (window.location.href = '/game')}
             title="Return to Main Hall"
             className={hudStyles.utilityBtn}
           >
@@ -1051,15 +1051,26 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                     🔄 Restart Match
                   </button>
                 )}
-                <Link href="/" style={{ textDecoration: 'none' }}>
+                {onExit ? (
                   <button
                     type="button"
+                    onClick={onExit}
                     className={hudStyles.pauseExitBtn}
                     title="Return to Castle Hall"
                   >
                     🏰 Castle Hall
                   </button>
-                </Link>
+                ) : (
+                  <Link href="/game" style={{ textDecoration: 'none' }}>
+                    <button
+                      type="button"
+                      className={hudStyles.pauseExitBtn}
+                      title="Return to Castle Hall"
+                    >
+                      🏰 Castle Hall
+                    </button>
+                  </Link>
+                )}
               </div>
 
               {/* Audio Settings Compartment */}

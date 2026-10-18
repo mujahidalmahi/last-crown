@@ -459,7 +459,7 @@ export default function RoomPage() {
       <div className={styles.stageWrapper}>
         {/* Top Navigation Pill Bar */}
         <nav className={styles.topNav} aria-label="Duel arena navigation">
-          <Link href="/" className={styles.mainHallBtn} title="Return to Main Hall">
+          <Link href="/game" className={styles.mainHallBtn} title="Return to Main Hall">
             <span>←</span> MAIN HALL
           </Link>
           <div className={styles.arenaBadge}>MULTIPLAYER ARENA</div>

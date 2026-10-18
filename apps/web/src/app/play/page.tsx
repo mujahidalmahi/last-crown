@@ -1,7 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
 // Dynamic client-only import with ssr: false ensures Phaser never evaluates in Node SSR
@@ -49,6 +49,7 @@ const PhaserGameContainer = dynamic(
 );
 
 function PlayContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const arena = searchParams.get('arena') || 'coloseum';
   const bot = searchParams.get('bot') || 'knight';
@@ -64,6 +65,7 @@ function PlayContent() {
       opponentPreset={bot}
       botDifficulty={difficulty}
       botName={botName}
+      onExit={() => router.push('/game')}
     />
   );
 }

@@ -440,7 +440,7 @@ export default function LocalDuelPage() {
           <button
             type="button"
             className={styles.backBtn}
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/game')}
             title="Return to Main Menu"
           >
             ← BACK TO MENU
