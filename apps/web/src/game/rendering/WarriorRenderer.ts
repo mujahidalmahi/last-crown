@@ -44,7 +44,7 @@ export class WarriorRenderer {
     this.weaponGraphics = this.scene.add.graphics();
     this.container.add(this.weaponGraphics);
 
-    // Floating heraldic name banner
+    // Floating heraldic name banner (kept outside the flipped body container so text never mirrors/reverses)
     this.nameText = this.scene.add.text(0, -108, '', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '13px',
@@ -55,7 +55,7 @@ export class WarriorRenderer {
       shadow: { offsetX: 0, offsetY: 2, color: '#000000', blur: 4, fill: true, stroke: true },
     });
     this.nameText.setOrigin(0.5);
-    this.container.add(this.nameText);
+    this.nameText.setDepth(10);
 
     // Initialize cape trailing points
     for (let i = 0; i < 5; i++) {
@@ -68,6 +68,7 @@ export class WarriorRenderer {
     // and aura pulses at 60Hz, 120Hz, 144Hz, and 240Hz)
     this.animTimer += Math.max(0.001, Math.min(deltaSec, 0.1)) * 3.125;
     this.container.setPosition(snapshot.position.x, snapshot.position.y);
+    this.nameText.setPosition(snapshot.position.x, snapshot.position.y - 108);
     this.nameText.setText(snapshot.name);
 
     const facingSign = snapshot.facing === 'right' ? 1 : -1;
@@ -484,6 +485,11 @@ export class WarriorRenderer {
   }
 
   public destroy(): void {
-    this.container.destroy();
+    if (this.nameText && this.nameText.scene) {
+      this.nameText.destroy();
+    }
+    if (this.container && this.container.scene) {
+      this.container.destroy();
+    }
   }
 }
