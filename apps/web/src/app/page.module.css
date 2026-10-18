@@ -786,6 +786,8 @@
 .devLinks {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .devLinkBtn {
@@ -800,12 +802,26 @@
   text-transform: uppercase;
   box-shadow: 0 3px 0 #000;
   transition: all 0.12s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .devLinkBtn:hover {
   background: #f1c40f;
   color: #000000;
   transform: translateY(-2px);
+  box-shadow: 0 5px 0 #000;
+}
+
+.devPortfolioBtn {
+  color: #38bdf8;
+  border-color: #38bdf8;
+}
+
+.devPortfolioBtn:hover {
+  background: #38bdf8;
+  color: #000000;
   box-shadow: 0 5px 0 #000;
 }
 

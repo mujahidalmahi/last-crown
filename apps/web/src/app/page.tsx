@@ -135,6 +135,7 @@ interface Developer {
   avatar: string;
   bio: string;
   github: string;
+  portfolio: string;
 }
 
 const DEVELOPERS: Developer[] = [
@@ -145,6 +146,7 @@ const DEVELOPERS: Developer[] = [
     avatar: '/assets/developers/mujahid-al-mahi.jpg',
     bio: 'Engineered Last-Crown’s deterministic 60Hz physics core, custom integer collision hitboxes, frame-cancel windows, responsive player controlling mechanics, and server-authoritative Colyseus netcode.',
     github: 'https://github.com/mujahidalmahi',
+    portfolio: 'https://mujahidmahi.me',
   },
   {
     name: 'Shahariar Hossain Jibon',
@@ -153,6 +155,7 @@ const DEVELOPERS: Developer[] = [
     avatar: '/assets/developers/shahariar-hossain-jibon.jpg',
     bio: 'Crafted the 16-bit visual identity, responsive multi-device layout, retro interface, arena cinematography, and touch controller experience across desktop, mobile, and tablets.',
     github: 'https://github.com/ShahariarJibon',
+    portfolio: 'https://portfolio-v2-smoky-phi.vercel.app/',
   },
 ];
 
@@ -491,6 +494,14 @@ export default function HomePage() {
                   className={styles.devLinkBtn}
                 >
                   GitHub Profile ↗
+                </a>
+                <a
+                  href={dev.portfolio}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${styles.devLinkBtn} ${styles.devPortfolioBtn}`}
+                >
+                  Portfolio ↗
                 </a>
               </div>
             </div>
