@@ -188,5 +188,42 @@ describe('Dual Controller & Gamepad System', () => {
       expect(bridge.pollP1Input()).toBeNull();
       expect(bridge.pollP2Input()).toBeNull();
     });
+
+    it('buffers and merges phone controller inputs into DualPlayerInputManager', () => {
+      const bridge = PartyControllerBridge.getInstance();
+      const manager = new DualPlayerInputManager();
+
+      // Simulate incoming controller input for P1 (e.g. from mobile phone gamepad)
+      (bridge as unknown as { p1CurrentInput: unknown }).p1CurrentInput = {
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 1,
+        moveY: 0,
+        jump: true,
+        attack: true,
+        attackType: 'thrust',
+        block: true,
+        parry: true,
+        dash: true,
+      };
+      (bridge as unknown as { p1AttackBuffer: unknown }).p1AttackBuffer = {
+        attack: true,
+        attackType: 'thrust',
+      };
+      (bridge as unknown as { p1DashBuffer: boolean }).p1DashBuffer = true;
+
+      const p1Input = manager.pollP1();
+      expect(p1Input.moveX).toBe(1);
+      expect(p1Input.jump).toBe(true);
+      expect(p1Input.attack).toBe(true);
+      expect(p1Input.attackType).toBe('thrust');
+      expect(p1Input.block).toBe(true);
+      expect(p1Input.parry).toBe(true);
+      expect(p1Input.dash).toBe(true);
+
+      // Clean up bridge buffer
+      (bridge as unknown as { p1CurrentInput: unknown }).p1CurrentInput = null;
+      manager.destroy();
+    });
   });
 });

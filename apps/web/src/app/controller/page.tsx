@@ -1,13 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PartyControllerBridge } from '../../game/input/PartyControllerBridge';
 import { PartySlotState, PlayerInputMessage, AttackType } from '@last-crown/shared';
 import { requestBrowserFullscreen } from '../../utils/fullscreen';
 import styles from './controller.module.css';
 
-export default function MobileControllerPage() {
+function ControllerContent() {
   const searchParams = useSearchParams();
   const roomCode = searchParams.get('room') || 'CROWN';
   const preferredSlot = (searchParams.get('slot') as 'p1' | 'p2') || undefined;
@@ -17,28 +17,41 @@ export default function MobileControllerPage() {
   const [assignedSlot, setAssignedSlot] = useState<'p1' | 'p2' | 'spectator'>('p1');
   const [isConnected, setIsConnected] = useState(false);
   const [hapticsEnabled, setHapticsEnabled] = useState(true);
+  const [autoJump, setAutoJump] = useState(false);
 
-  // Active touch states
-  const [activeDpad, setActiveDpad] = useState<{
+  // Direction and action tracking in refs to avoid multi-touch stale closures
+  const directionsRef = useRef({ up: false, down: false, left: false, right: false });
+  const activeBlockRef = useRef(false);
+  const activeDashRef = useRef(false);
+  const activeParryRef = useRef(false);
+  const activeAttackRef = useRef<AttackType | null>(null);
+
+  // Visual active states for retro button bevel depression
+  const [activeVisuals, setActiveVisuals] = useState<{
     up: boolean;
-    down: boolean;
     left: boolean;
     right: boolean;
+    dash: boolean;
+    block: boolean;
+    parry: boolean;
+    heavy: boolean;
+    thrust: boolean;
+    light: boolean;
   }>({
     up: false,
-    down: false,
     left: false,
     right: false,
+    dash: false,
+    block: false,
+    parry: false,
+    heavy: false,
+    thrust: false,
+    light: false,
   });
-  const [activeBlock, setActiveBlock] = useState(false);
-  const [activeDash, setActiveDash] = useState(false);
-  const [activeParry, setActiveParry] = useState(false);
-  const [activeAttack, setActiveAttack] = useState<AttackType | null>(null);
 
   const bridgeRef = useRef<PartyControllerBridge>(PartyControllerBridge.getInstance());
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
   const inputSeqRef = useRef<number>(0);
-  const dpadRef = useRef<HTMLDivElement>(null);
 
   // Trigger haptic vibration safely
   const vibrate = useCallback(
@@ -53,28 +66,33 @@ export default function MobileControllerPage() {
     [hapticsEnabled]
   );
 
-  // Transmit input state to host
+  // Transmit input state to host via Colyseus
   const transmitInput = useCallback(
-    (customAttack?: AttackType, customDash?: boolean, customParry?: boolean) => {
+    (
+      customAttack?: AttackType,
+      customDash?: boolean,
+      customParry?: boolean,
+      customJump?: boolean
+    ) => {
       const bridge = bridgeRef.current;
       if (!bridge.isConnected()) return;
 
       inputSeqRef.current++;
 
       let moveX = 0;
-      if (activeDpad.left) moveX -= 1;
-      if (activeDpad.right) moveX += 1;
+      if (directionsRef.current.left) moveX -= 1;
+      if (directionsRef.current.right) moveX += 1;
 
       let moveY = 0;
-      if (activeDpad.down) moveY += 1;
-      if (activeDpad.up) moveY -= 1;
+      if (directionsRef.current.down) moveY += 1;
+      if (directionsRef.current.up) moveY -= 1;
 
-      const jump = activeDpad.up;
-      const block = activeBlock;
-      const dash = customDash !== undefined ? customDash : activeDash;
-      const parry = customParry !== undefined ? customParry : activeParry;
+      const jump = customJump !== undefined ? customJump : autoJump || directionsRef.current.up;
+      const block = activeBlockRef.current;
+      const dash = customDash !== undefined ? customDash : activeDashRef.current;
+      const parry = customParry !== undefined ? customParry : activeParryRef.current;
 
-      const attackType = customAttack || activeAttack || undefined;
+      const attackType = customAttack || activeAttackRef.current || undefined;
       const attack = !!attackType;
 
       const payload: PlayerInputMessage = {
@@ -92,7 +110,7 @@ export default function MobileControllerPage() {
 
       bridge.sendControllerInput(payload);
     },
-    [activeDpad, activeBlock, activeDash, activeParry, activeAttack]
+    [autoJump]
   );
 
   // Setup connection to Colyseus party room
@@ -141,7 +159,7 @@ export default function MobileControllerPage() {
     };
   }, [roomCode, preferredSlot, vibrate]);
 
-  // Request screen wake lock
+  // Screen wake lock
   const requestWakeLock = async () => {
     try {
       if ('wakeLock' in navigator) {
@@ -169,72 +187,171 @@ export default function MobileControllerPage() {
     vibrate(20);
   };
 
-  // D-Pad Touch Handling
-  const handleDpadTouch = (e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (!dpadRef.current) return;
-    const rect = dpadRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-
-    const touch = e.touches[0];
-    if (!touch) return;
-
-    const dx = touch.clientX - centerX;
-    const dy = touch.clientY - centerY;
-    const deadzone = 18;
-
-    const left = dx < -deadzone;
-    const right = dx > deadzone;
-    const up = dy < -deadzone;
-    const down = dy > deadzone;
-
-    setActiveDpad({ up, down, left, right });
-    vibrate(10);
-  };
-
-  const handleDpadEnd = () => {
-    setActiveDpad({ up: false, down: false, left: false, right: false });
-  };
-
+  // Auto Jump continuous loop
   useEffect(() => {
-    transmitInput();
-  }, [activeDpad, activeBlock, transmitInput]);
+    if (!autoJump) return;
+    transmitInput(undefined, undefined, undefined, true);
+    const interval = setInterval(() => {
+      transmitInput(undefined, undefined, undefined, true);
+    }, 240);
+    return () => clearInterval(interval);
+  }, [autoJump, transmitInput]);
 
-  // Attack Trigger with auto-release
-  const triggerAttack = (type: AttackType) => {
-    vibrate(25);
-    setActiveAttack(type);
-    transmitInput(type);
-    setTimeout(() => {
-      setActiveAttack(null);
-      transmitInput(undefined);
-    }, 70);
-  };
+  // ── LEFT ZONE HANDLERS (POINTER EVENTS) ──
 
-  // Parry Trigger
-  const triggerParry = () => {
-    vibrate(25);
-    setActiveParry(true);
-    transmitInput(undefined, undefined, true);
-    setTimeout(() => {
-      setActiveParry(false);
-      transmitInput(undefined, undefined, false);
-    }, 70);
-  };
+  const handleLeftDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      directionsRef.current.left = true;
+      directionsRef.current.right = false;
+      setActiveVisuals(prev => ({ ...prev, left: true, right: false }));
+      vibrate(8);
+      transmitInput();
+    },
+    [transmitInput, vibrate]
+  );
 
-  // Dash Trigger
-  const triggerDash = () => {
-    vibrate(20);
-    setActiveDash(true);
-    transmitInput(undefined, true);
-    setTimeout(() => {
-      setActiveDash(false);
-      transmitInput(undefined, false);
-    }, 90);
-  };
+  const handleLeftUp = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      directionsRef.current.left = false;
+      setActiveVisuals(prev => ({ ...prev, left: false }));
+      transmitInput();
+    },
+    [transmitInput]
+  );
 
-  // Signal Ready to Start
+  const handleRightDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      directionsRef.current.right = true;
+      directionsRef.current.left = false;
+      setActiveVisuals(prev => ({ ...prev, right: true, left: false }));
+      vibrate(8);
+      transmitInput();
+    },
+    [transmitInput, vibrate]
+  );
+
+  const handleRightUp = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      directionsRef.current.right = false;
+      setActiveVisuals(prev => ({ ...prev, right: false }));
+      transmitInput();
+    },
+    [transmitInput]
+  );
+
+  const handleJumpDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      directionsRef.current.up = true;
+      setActiveVisuals(prev => ({ ...prev, up: true }));
+      vibrate(10);
+      transmitInput(undefined, undefined, undefined, true);
+    },
+    [transmitInput, vibrate]
+  );
+
+  const handleJumpUp = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      directionsRef.current.up = false;
+      setActiveVisuals(prev => ({ ...prev, up: false }));
+      transmitInput();
+    },
+    [transmitInput]
+  );
+
+  const handleToggleAutoJump = useCallback(
+    (e: React.PointerEvent | React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setAutoJump(prev => {
+        const next = !prev;
+        vibrate(15);
+        if (!next) {
+          transmitInput(undefined, undefined, undefined, false);
+        }
+        return next;
+      });
+    },
+    [vibrate, transmitInput]
+  );
+
+  const handleDashDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      activeDashRef.current = true;
+      setActiveVisuals(prev => ({ ...prev, dash: true }));
+      vibrate(12);
+      transmitInput(undefined, true);
+      setTimeout(() => {
+        activeDashRef.current = false;
+        setActiveVisuals(prev => ({ ...prev, dash: false }));
+        transmitInput(undefined, false);
+      }, 90);
+    },
+    [transmitInput, vibrate]
+  );
+
+  // ── RIGHT ZONE HANDLERS (POINTER EVENTS) ──
+
+  const handleBlockDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      activeBlockRef.current = true;
+      setActiveVisuals(prev => ({ ...prev, block: true }));
+      vibrate(10);
+      transmitInput();
+    },
+    [transmitInput, vibrate]
+  );
+
+  const handleBlockUp = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      activeBlockRef.current = false;
+      setActiveVisuals(prev => ({ ...prev, block: false }));
+      transmitInput();
+    },
+    [transmitInput]
+  );
+
+  const handleParryDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      activeParryRef.current = true;
+      setActiveVisuals(prev => ({ ...prev, parry: true }));
+      vibrate(15);
+      transmitInput(undefined, undefined, true);
+      setTimeout(() => {
+        activeParryRef.current = false;
+        setActiveVisuals(prev => ({ ...prev, parry: false }));
+        transmitInput(undefined, undefined, false);
+      }, 80);
+    },
+    [transmitInput, vibrate]
+  );
+
+  const triggerAttack = useCallback(
+    (type: AttackType) => {
+      vibrate(type === 'heavy' ? 24 : 12);
+      activeAttackRef.current = type;
+      setActiveVisuals(prev => ({ ...prev, [type]: true }));
+      transmitInput(type);
+      setTimeout(() => {
+        if (activeAttackRef.current === type) {
+          activeAttackRef.current = null;
+        }
+        setActiveVisuals(prev => ({ ...prev, [type]: false }));
+        transmitInput(undefined);
+      }, 75);
+    },
+    [transmitInput, vibrate]
+  );
+
   const handleReady = () => {
     vibrate(40);
     bridgeRef.current.sendStartMatch();
@@ -242,48 +359,44 @@ export default function MobileControllerPage() {
 
   return (
     <div className={styles.controllerWrapper}>
-      {/* Tap to Activate Modal for Audio & Fullscreen */}
+      {/* Subtle CRT Scanline Texture */}
+      <div className={styles.scanlineOverlay} />
+
+      {/* Retro Medieval Start Modal */}
       {!hasStarted && (
         <div className={styles.modalBackdrop}>
-          <h2
-            className={styles.modalTitle}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
-          >
-            <img
-              src="/icon.png"
-              alt=""
-              width={24}
-              height={24}
-              style={{ imageRendering: 'pixelated' }}
-            />
-            <span>LAST-CROWN GAMEPAD</span>
-          </h2>
-          <p className={styles.modalSubtitle}>
-            Tap below to pair your smartphone as a responsive controller for Room{' '}
-            <strong style={{ color: '#f1c40f' }}>{roomCode}</strong>.
-          </p>
-          <button className={styles.modalBtn} onClick={handleStartInteraction}>
-            START CONTROLLER
-          </button>
+          <div className={styles.stoneCard}>
+            <h2 className={styles.plaqueTitle}>LAST-CROWN GAMEPAD</h2>
+            <div className={styles.innerCanvas}>
+              <p className={styles.modalSubtitle}>
+                CONNECT SMARTPHONE AS CONTROLLER FOR ROOM{' '}
+                <strong className={styles.roomCodeHighlight}>{roomCode}</strong>
+              </p>
+              <button type="button" className={styles.modalBtn} onClick={handleStartInteraction}>
+                ⚔️ START CONTROLLER
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Top Status Ribbon */}
-      <div className={styles.topRibbon}>
-        <div
+      {/* Top Status Menubar matching Settings & Room aesthetic */}
+      <header className={styles.topRibbon}>
+        <button
+          type="button"
           className={`${styles.slotBadge} ${assignedSlot === 'p1' ? styles.slotP1 : styles.slotP2}`}
           onClick={handleClaimOtherSlot}
           title="Tap to switch slot"
         >
-          <span>{assignedSlot === 'p1' ? '👑' : '⚔️'}</span>
+          <span className={styles.badgeIcon}>{assignedSlot === 'p1' ? '👑' : '⚔️'}</span>
           <span>{assignedSlot === 'p1' ? 'PLAYER 1' : 'PLAYER 2'}</span>
-          <span style={{ fontSize: '0.55rem', opacity: 0.7 }}>⇄</span>
-        </div>
+          <span className={styles.switchHint}>⇄ SWITCH</span>
+        </button>
 
         <div className={styles.roomTag}>
-          ROOM: <strong>{roomCode}</strong>
+          ROOM: <strong className={styles.roomCodeText}>{roomCode}</strong>
           {partyState && (
-            <span style={{ marginLeft: '6px', fontSize: '0.55rem', opacity: 0.8 }}>
+            <span className={styles.roomCount}>
               {partyState.p1Connected && partyState.p2Connected ? '(2/2)' : '(1/2)'}
             </span>
           )}
@@ -291,6 +404,7 @@ export default function MobileControllerPage() {
 
         <div className={styles.ribbonActions}>
           <button
+            type="button"
             className={styles.iconBtn}
             onClick={() => setHapticsEnabled(!hapticsEnabled)}
             title="Toggle Haptic Feedback"
@@ -298,125 +412,187 @@ export default function MobileControllerPage() {
             {hapticsEnabled ? '📳 ON' : '📴 OFF'}
           </button>
           <button
+            type="button"
             className={styles.iconBtn}
             onClick={() => requestBrowserFullscreen()}
-            title="Fullscreen"
+            title="Toggle Fullscreen"
           >
             ⛶
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Main Controller Deck */}
-      <div className={styles.controllerDeck}>
-        {/* Left Thumb: 4-Way D-Pad + Dash */}
-        <div className={styles.leftCluster}>
-          <div
-            ref={dpadRef}
-            className={styles.dpad}
-            onTouchStart={handleDpadTouch}
-            onTouchMove={handleDpadTouch}
-            onTouchEnd={handleDpadEnd}
-            onTouchCancel={handleDpadEnd}
-          >
-            <div className={styles.dpadCenter} />
-            <div
-              className={`${styles.dpadBtn} ${styles.dpadUp} ${activeDpad.up ? styles.dpadActive : ''}`}
+      {/* Main Gamepad Deck */}
+      <main className={styles.controllerDeck}>
+        {/* ═══════════════════════════════════════════
+            LEFT ZONE — Movement, Jump & Auto Jump
+            ═══════════════════════════════════════════ */}
+        <section className={styles.leftCluster} aria-label="Movement Controls">
+          {/* Top Row: Manual Jump + Auto Jump Toggle */}
+          <div className={styles.jumpRow}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.jumpBtn} ${activeVisuals.up ? styles.active : ''}`}
+              onPointerDown={handleJumpDown}
+              onPointerUp={handleJumpUp}
+              onPointerCancel={handleJumpUp}
+              onPointerLeave={handleJumpUp}
+              aria-label="Manual Jump"
             >
-              ▲
-            </div>
-            <div
-              className={`${styles.dpadBtn} ${styles.dpadDown} ${activeDpad.down ? styles.dpadActive : ''}`}
+              <span className={styles.btnIcon}>↑</span>
+              <span className={styles.btnLabel}>JUMP</span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.autoJumpBtn} ${autoJump ? styles.autoJumpActive : ''}`}
+              onPointerDown={handleToggleAutoJump}
+              aria-label={
+                autoJump
+                  ? 'Auto Jump Active (Tap to Disable)'
+                  : 'Auto Jump Inactive (Tap to Enable)'
+              }
+              aria-pressed={autoJump}
             >
-              ▼
-            </div>
-            <div
-              className={`${styles.dpadBtn} ${styles.dpadLeft} ${activeDpad.left ? styles.dpadActive : ''}`}
-            >
-              ◄
-            </div>
-            <div
-              className={`${styles.dpadBtn} ${styles.dpadRight} ${activeDpad.right ? styles.dpadActive : ''}`}
-            >
-              ►
-            </div>
+              <span className={styles.btnIcon}>{autoJump ? '⚡' : '⟳'}</span>
+              <span className={styles.btnLabel}>{autoJump ? 'AUTO ON' : 'AUTO'}</span>
+            </button>
           </div>
 
-          <button
-            className={`${styles.dashBtn} ${activeDash ? styles.dashActive : ''}`}
-            onTouchStart={triggerDash}
-          >
-            ⚡ DASH
-          </button>
-        </div>
+          {/* Bottom Row: ◀ LEFT + » DASH + ▶ RIGHT */}
+          <div className={styles.lrRow}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.moveBtn} ${activeVisuals.left ? styles.active : ''}`}
+              onPointerDown={handleLeftDown}
+              onPointerUp={handleLeftUp}
+              onPointerCancel={handleLeftUp}
+              onPointerLeave={handleLeftUp}
+              aria-label="Move Left"
+            >
+              <span className={styles.btnIcon}>◀</span>
+              <span className={styles.btnLabel}>LEFT</span>
+            </button>
 
-        {/* Center: Status & Ready Button */}
-        <div className={styles.centerDeck}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.dashBtn} ${activeVisuals.dash ? styles.active : ''}`}
+              onPointerDown={handleDashDown}
+              aria-label="Dash"
+            >
+              <span className={styles.btnIcon}>»</span>
+              <span className={styles.btnLabel}>DASH</span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.moveBtn} ${activeVisuals.right ? styles.active : ''}`}
+              onPointerDown={handleRightDown}
+              onPointerUp={handleRightUp}
+              onPointerCancel={handleRightUp}
+              onPointerLeave={handleRightUp}
+              aria-label="Move Right"
+            >
+              <span className={styles.btnIcon}>▶</span>
+              <span className={styles.btnLabel}>RIGHT</span>
+            </button>
+          </div>
+        </section>
+
+        {/* ═══════════════════════════════════════════
+            CENTER ZONE — Status & Duel Ready Button
+            ═══════════════════════════════════════════ */}
+        <section className={styles.centerDeck} aria-label="Game Status and Ready">
           <div className={styles.statusIndicator}>
-            <span>{isConnected ? '●' : '○'}</span>
-            <span>{isConnected ? 'CONNECTED' : 'CONNECTING...'}</span>
+            <span className={isConnected ? styles.connectedDot : styles.connectingDot}>
+              {isConnected ? '●' : '○'}
+            </span>
+            <span className={styles.statusText}>{isConnected ? 'CONNECTED' : 'CONNECTING...'}</span>
           </div>
 
-          <button className={styles.readyBtn} onClick={handleReady}>
-            ⚔️ READY
+          <button type="button" className={styles.readyBtn} onClick={handleReady}>
+            ⚔️ READY FOR DUEL
           </button>
-        </div>
+        </section>
 
-        {/* Right Thumb: 5-Button Action Diamond */}
-        <div className={styles.rightCluster}>
-          <div className={styles.combatDiamond}>
-            {/* Heavy Strike (North) */}
+        {/* ═══════════════════════════════════════════
+            RIGHT ZONE — Defense & Combat Strikes
+            ═══════════════════════════════════════════ */}
+        <section className={styles.rightCluster} aria-label="Combat Actions">
+          {/* Top Row: Block & Parry */}
+          <div className={styles.defRow}>
             <button
-              className={`${styles.actionBtn} ${styles.btnHeavy} ${activeAttack === 'heavy' ? styles.heavyActive : ''}`}
-              onTouchStart={() => triggerAttack('heavy')}
+              type="button"
+              className={`${styles.btn} ${styles.blockBtn} ${activeVisuals.block ? styles.active : ''}`}
+              onPointerDown={handleBlockDown}
+              onPointerUp={handleBlockUp}
+              onPointerCancel={handleBlockUp}
+              onPointerLeave={handleBlockUp}
+              aria-label="Block"
             >
-              <span className={styles.btnIcon}>💥</span>
-              <span>HEAVY</span>
+              <span className={styles.btnIcon}>▣</span>
+              <span className={styles.btnLabel}>BLOCK</span>
             </button>
 
-            {/* Light Slash (East) */}
             <button
-              className={`${styles.actionBtn} ${styles.btnLight} ${activeAttack === 'light' ? styles.lightActive : ''}`}
-              onTouchStart={() => triggerAttack(activeDpad.down ? 'sweep' : 'light')}
+              type="button"
+              className={`${styles.btn} ${styles.parryBtn} ${activeVisuals.parry ? styles.active : ''}`}
+              onPointerDown={handleParryDown}
+              aria-label="Parry"
             >
-              <span className={styles.btnIcon}>⚔️</span>
-              <span>{activeDpad.down ? 'SWEEP' : 'LIGHT'}</span>
-            </button>
-
-            {/* Forward Thrust (South) */}
-            <button
-              className={`${styles.actionBtn} ${styles.btnThrust} ${activeAttack === 'thrust' ? styles.thrustActive : ''}`}
-              onTouchStart={() => triggerAttack('thrust')}
-            >
-              <span className={styles.btnIcon}>🗡️</span>
-              <span>THRUST</span>
-            </button>
-
-            {/* Parry / Riposte (West) */}
-            <button
-              className={`${styles.actionBtn} ${styles.btnParry} ${activeParry ? styles.parryActive : ''}`}
-              onTouchStart={triggerParry}
-            >
-              <span className={styles.btnIcon}>⚡</span>
-              <span>PARRY</span>
-            </button>
-
-            {/* Guard / Block (Center Diamond - Holdable) */}
-            <button
-              className={`${styles.actionBtn} ${styles.btnBlock} ${activeBlock ? styles.blockActive : ''}`}
-              onTouchStart={() => {
-                vibrate(15);
-                setActiveBlock(true);
-              }}
-              onTouchEnd={() => setActiveBlock(false)}
-              onTouchCancel={() => setActiveBlock(false)}
-            >
-              <span className={styles.btnIcon}>🛡️</span>
-              <span>BLOCK</span>
+              <span className={styles.btnIcon}>◈</span>
+              <span className={styles.btnLabel}>PARRY</span>
             </button>
           </div>
-        </div>
-      </div>
+
+          {/* Bottom Row: Heavy Strike + Thrust + Light Slash */}
+          <div className={styles.atkRow}>
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.heavyBtn} ${activeVisuals.heavy ? styles.active : ''}`}
+              onPointerDown={() => triggerAttack('heavy')}
+              aria-label="Heavy Strike"
+            >
+              <span className={styles.btnIcon}>★</span>
+              <span className={styles.btnLabel}>HEAVY</span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.thrustBtn} ${activeVisuals.thrust ? styles.active : ''}`}
+              onPointerDown={() => triggerAttack('thrust')}
+              aria-label="Thrust Attack"
+            >
+              <span className={styles.btnIcon}>🗡</span>
+              <span className={styles.btnLabel}>THRUST</span>
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.btn} ${styles.lightBtn} ${activeVisuals.light ? styles.active : ''}`}
+              onPointerDown={() => triggerAttack('light')}
+              aria-label="Light Attack"
+            >
+              <span className={styles.btnIcon}>†</span>
+              <span className={styles.btnLabel}>LIGHT</span>
+            </button>
+          </div>
+        </section>
+      </main>
     </div>
+  );
+}
+
+export default function MobileControllerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className={styles.controllerWrapper}>
+          <div className={styles.loadingFallback}>CONNECTING GAMEPAD...</div>
+        </div>
+      }
+    >
+      <ControllerContent />
+    </Suspense>
   );
 }
