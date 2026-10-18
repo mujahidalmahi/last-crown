@@ -871,7 +871,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 ← {mode === 'multiplayer' ? 'Leave Chamber' : 'Main Hall'}
               </button>
             )}
-            {mode === 'multiplayer' && colyseusRoom && <VoiceControls voice={voice} compact={true} />}
+            {mode === 'multiplayer' && colyseusRoom && (
+              <VoiceControls voice={voice} compact={true} />
+            )}
             {mode === 'multiplayer' && colyseusRoom && matchState === 'in_progress' && (
               <button
                 type="button"
