@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
@@ -84,13 +85,13 @@ export default function LocalDuelPage() {
     const fullUrl = `${origin}/controller?room=${partyCode}`;
     setControllerUrl(fullUrl);
 
-    // Generate gold & dark QR Code at 2x resolution (432px) so 216px display is 100% sharp
+    // Generate gold & dark QR Code with crisp 2x scaling (320px)
     QRCode.toDataURL(fullUrl, {
       margin: 1,
-      width: 432,
+      width: 320,
       errorCorrectionLevel: 'M',
       color: {
-        dark: '#111622',
+        dark: '#080d14',
         light: '#ffdb15',
       },
     })
@@ -172,298 +173,216 @@ export default function LocalDuelPage() {
   }
 
   return (
-    <div className={styles.pageWrapper}>
-      {/* Main Stone Frame Chamber */}
-      <div className={styles.chamberContainer}>
-        {/* Metallic Corner Plates with Screws */}
-        <div className={styles.cornerRivetTL} aria-hidden="true" />
-        <div className={styles.cornerRivetTR} aria-hidden="true" />
-        <div className={styles.cornerRivetBL} aria-hidden="true" />
-        <div className={styles.cornerRivetBR} aria-hidden="true" />
+    <div className={styles.viewport}>
+      {/* Subtle CRT Scanline Filter Overlay */}
+      <div className={styles.scanlineOverlay} aria-hidden="true" />
 
-        {/* Mid-rail Rivets */}
-        <div className={styles.borderRivetTop} aria-hidden="true" />
-        <div className={styles.borderRivetBottom} aria-hidden="true" />
+      {/* Top Navigation Bar: Consistent with Settings & Room */}
+      <nav className={styles.topNav} aria-label="Local duel navigation">
+        <Link href="/game" className={styles.mainHallBtn} title="Return to Main Hall">
+          <span>←</span> MAIN HALL
+        </Link>
+        <div className={styles.navBadge}>LOCAL 2-PLAYER DUEL</div>
+      </nav>
 
-        {/* Moss & Ivy Accents */}
-        <div className={styles.mossTL} aria-hidden="true" />
-        <div className={styles.mossTR} aria-hidden="true" />
-        <div className={styles.mossBL} aria-hidden="true" />
-        <div className={styles.mossBR} aria-hidden="true" />
-        <div className={styles.mossTopMid} aria-hidden="true" />
-        <div className={styles.mossBottomMid} aria-hidden="true" />
+      {/* Central Non-Scrolling Stage Wrapper */}
+      <main className={styles.stageWrapper} role="main" aria-label="Local 2-Player Setup">
+        <div className={styles.stoneCard}>
+          {/* Metallic Corner Screws */}
+          <div className={styles.cornerRivetTL} aria-hidden="true" />
+          <div className={styles.cornerRivetTR} aria-hidden="true" />
+          <div className={styles.cornerRivetBL} aria-hidden="true" />
+          <div className={styles.cornerRivetBR} aria-hidden="true" />
 
-        {/* Header */}
-        <header className={styles.header}>
-          <div className={styles.titleRow}>
-            <span className={styles.swordsIcon} aria-hidden="true">
-              ⚔️
-            </span>
-            <h1 className={styles.title}>LOCAL 2-PLAYER DUEL</h1>
-          </div>
-          <p className={styles.subtitle}>
-            1 Device &middot; 2 Controllers - Play together on one screen with 2 Phones, 2 Gamepads,
-            or Keyboard!
-          </p>
-        </header>
+          {/* Card Header */}
+          <header className={styles.cardHeader}>
+            <h1 className={styles.cardTitle}>⚔️ LOCAL 2-PLAYER DUEL</h1>
+          </header>
 
-        {/* Main 2-Column Grid */}
-        <div className={styles.mainGrid}>
-          {/* Left Column: QR Card */}
-          <div className={styles.qrCard} role="region" aria-label="Smartphone Controller Setup">
-            <div className={styles.cardRivetTL} aria-hidden="true" />
-            <div className={styles.cardRivetTR} aria-hidden="true" />
-            <div className={styles.cardRivetBL} aria-hidden="true" />
-            <div className={styles.cardRivetBR} aria-hidden="true" />
-            <div className={styles.cardMossTL} aria-hidden="true" />
+          {/* 2-Column Content Grid */}
+          <div className={styles.cardGrid}>
+            {/* Left Column: Phone Controller QR */}
+            <div className={styles.qrCard} role="region" aria-label="Phone Controller Setup">
+              <h2 className={styles.qrTitle}>📱 PHONE CONTROLLER</h2>
+              <p className={styles.qrSubtitle}>Scan to play wirelessly</p>
 
-            <p className={styles.qrInstruction}>SCAN WITH PHONE CAMERA TO PLAY AS CONTROLLER</p>
+              <div className={styles.qrImageWrapper}>
+                {qrCodeUrl ? (
+                  <img
+                    src={qrCodeUrl}
+                    alt={`Room QR Code for Party ${partyCode}`}
+                    className={styles.qrImage}
+                  />
+                ) : (
+                  <div className={styles.qrGenerating}>GENERATING...</div>
+                )}
+              </div>
 
-            {/* Dedicated Space ONLY for QR Code (Never blurry) */}
-            <div className={styles.qrImageWrapper}>
-              {qrCodeUrl ? (
-                <img
-                  src={qrCodeUrl}
-                  alt={`Room QR Code for Party ${partyCode}`}
-                  className={styles.qrImage}
-                />
-              ) : (
-                <div className={styles.qrGenerating}>GENERATING QR...</div>
-              )}
+              <div className={styles.roomCodeBox}>
+                <span>CODE:</span>
+                <span className={styles.roomCodeValue}>{partyCode || '----'}</span>
+              </div>
+
+              <button
+                type="button"
+                className={styles.copyBtn}
+                onClick={handleCopyLink}
+                title="Copy smartphone controller URL to clipboard"
+              >
+                <span>{copied ? '✓' : '🔗'}</span>
+                <span>{copied ? 'COPIED!' : 'COPY LINK'}</span>
+              </button>
             </div>
 
-            <div className={styles.roomCodeBox}>
-              ROOM CODE: <span className={styles.roomCodeValue}>{partyCode || '----'}</span>
-            </div>
-
-            <button
-              type="button"
-              className={styles.copyBtn}
-              onClick={handleCopyLink}
-              title="Copy smartphone controller URL to clipboard"
-            >
-              <span>{copied ? '✓' : '🔗'}</span>
-              <span>{copied ? 'COPIED!' : 'COPY CONTROLLER LINK'}</span>
-            </button>
-          </div>
-
-          {/* Right Column: Controllers & Preset Panels */}
-          <div className={styles.controllersSection}>
-            <div className={styles.playersGrid}>
-              {/* Player 1 Card */}
-              <div className={styles.playerCard}>
-                <div className={styles.cardRivetTL} aria-hidden="true" />
-                <div className={styles.cardRivetTR} aria-hidden="true" />
-                <div className={styles.cardRivetBL} aria-hidden="true" />
-                <div className={styles.cardRivetBR} aria-hidden="true" />
-                <div className={styles.cardMossTL} aria-hidden="true" />
-
-                <div className={styles.cardHeaderP1}>
-                  <span>👑 PLAYER 1</span>
-                  <span className={styles.selectTag}>
-                    {partyState?.p1Connected ? 'READY' : 'SELECT'}
-                  </span>
-                </div>
-
-                <div className={styles.deviceStatusList}>
-                  <div
-                    className={`${styles.deviceItem} ${
-                      partyState?.p1Connected ? styles.deviceActive : styles.deviceWaiting
-                    }`}
-                  >
-                    <span
-                      className={
-                        partyState?.p1Connected
-                          ? styles.statusBulletActive
-                          : styles.statusBulletWaiting
-                      }
-                    >
-                      {partyState?.p1Connected ? '●' : '▢'}
+            {/* Right Column: Player Presets, Arena, and Actions */}
+            <div className={styles.setupColumn}>
+              {/* Player 1 & Player 2 Side-by-Side Grid */}
+              <div className={styles.playersGrid}>
+                {/* Player 1 Card */}
+                <div className={styles.playerCardP1}>
+                  <div className={styles.playerHeaderP1}>
+                    <span>👑 PLAYER 1</span>
+                    <span className={styles.playerTag}>
+                      {partyState?.p1Connected ? 'READY' : 'LOCAL'}
                     </span>
-                    <span>📱 Phone 1: {partyState?.p1Connected ? 'Connected' : 'Waiting...'}</span>
                   </div>
 
-                  <div
-                    className={`${styles.deviceItem} ${
-                      hasGamepad0 ? styles.deviceActive : styles.deviceWaiting
-                    }`}
-                  >
-                    <span
-                      className={
-                        hasGamepad0 ? styles.statusBulletActive : styles.statusBulletWaiting
-                      }
-                    >
-                      {hasGamepad0 ? '●' : '▢'}
-                    </span>
-                    <span>🎮 Gamepad 1: {hasGamepad0 ? 'Connected' : 'Plug in USB/BT'}</span>
-                  </div>
+                  {/* Dynamic Controller Status */}
+                  {partyState?.p1Connected ? (
+                    <div className={styles.statusBadgePhone}>
+                      <span>📱 Phone 1 Connected</span>
+                    </div>
+                  ) : hasGamepad0 ? (
+                    <div className={styles.statusBadgeGamepad}>
+                      <span>🎮 Gamepad 1 Active</span>
+                    </div>
+                  ) : (
+                    <div className={styles.statusBadgeKeyboard}>
+                      <span>⌨️ Keyboard (WASD)</span>
+                    </div>
+                  )}
 
-                  <div className={`${styles.deviceItem} ${styles.deviceActive}`}>
-                    <span className={styles.statusBulletActive}>●</span>
-                    <span>⌨️ Keyboard: WASD + Space + J/K/L</span>
+                  {/* Preset Selector */}
+                  <div className={styles.selectGroup}>
+                    <label htmlFor="p1PresetSelect" className={styles.label}>
+                      WARRIOR:
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        id="p1PresetSelect"
+                        className={styles.select}
+                        value={p1Preset}
+                        onChange={e => setP1Preset(e.target.value)}
+                      >
+                        <option value="knight">Sir Cedric (Knight)</option>
+                        <option value="marauder">Grimwood (Heavy)</option>
+                        <option value="vanguard">Valerius (Vanguard)</option>
+                        <option value="duelist">Aurelia (Duelist)</option>
+                      </select>
+                      <span className={styles.chevronDown} aria-hidden="true">
+                        ▼
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className={styles.selectGroup}>
-                  <label htmlFor="p1PresetSelect" className={styles.label}>
-                    WARRIOR PRESET:
-                  </label>
-                  <div className={styles.selectWrapper}>
-                    <select
-                      id="p1PresetSelect"
-                      className={styles.select}
-                      value={p1Preset}
-                      onChange={e => setP1Preset(e.target.value)}
-                    >
-                      <option value="knight">Sir Cedric (Knight)</option>
-                      <option value="marauder">Grimwood (Heavy)</option>
-                      <option value="vanguard">Valerius (Vanguard)</option>
-                      <option value="duelist">Aurelia (Duelist)</option>
-                    </select>
-                    <span className={styles.chevronDown} aria-hidden="true">
-                      ▼
+                {/* Player 2 Card */}
+                <div className={styles.playerCardP2}>
+                  <div className={styles.playerHeaderP2}>
+                    <span>⚔️ PLAYER 2</span>
+                    <span className={styles.playerTag}>
+                      {partyState?.p2Connected ? 'READY' : 'LOCAL'}
                     </span>
+                  </div>
+
+                  {/* Dynamic Controller Status */}
+                  {partyState?.p2Connected ? (
+                    <div className={styles.statusBadgePhone}>
+                      <span>📱 Phone 2 Connected</span>
+                    </div>
+                  ) : hasGamepad1 ? (
+                    <div className={styles.statusBadgeGamepad}>
+                      <span>🎮 Gamepad 2 Active</span>
+                    </div>
+                  ) : (
+                    <div className={styles.statusBadgeKeyboard}>
+                      <span>⌨️ Keyboard (Arrows)</span>
+                    </div>
+                  )}
+
+                  {/* Preset Selector */}
+                  <div className={styles.selectGroup}>
+                    <label htmlFor="p2PresetSelect" className={styles.label}>
+                      WARRIOR:
+                    </label>
+                    <div className={styles.selectWrapper}>
+                      <select
+                        id="p2PresetSelect"
+                        className={styles.select}
+                        value={p2Preset}
+                        onChange={e => setP2Preset(e.target.value)}
+                      >
+                        <option value="marauder">Grimwood (Heavy)</option>
+                        <option value="knight">Sir Cedric (Knight)</option>
+                        <option value="vanguard">Valerius (Vanguard)</option>
+                        <option value="duelist">Aurelia (Duelist)</option>
+                      </select>
+                      <span className={styles.chevronDown} aria-hidden="true">
+                        ▼
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Player 2 Card */}
-              <div className={styles.playerCard}>
-                <div className={styles.cardRivetTL} aria-hidden="true" />
-                <div className={styles.cardRivetTR} aria-hidden="true" />
-                <div className={styles.cardRivetBL} aria-hidden="true" />
-                <div className={styles.cardRivetBR} aria-hidden="true" />
-                <div className={styles.cardMossBR} aria-hidden="true" />
-
-                <div className={styles.cardHeaderP2}>
-                  <span>⚔️ PLAYER 2</span>
-                  <span className={styles.selectTag}>
-                    {partyState?.p2Connected ? 'READY' : 'SELECT'}
+              {/* Arena Battleground Selector */}
+              <div className={styles.arenaRow}>
+                <label htmlFor="arenaSelect" className={styles.label}>
+                  ARENA:
+                </label>
+                <div className={styles.selectWrapper}>
+                  <select
+                    id="arenaSelect"
+                    className={styles.select}
+                    value={arenaId}
+                    onChange={e => setArenaId(e.target.value)}
+                  >
+                    <option value="coloseum">Bastion Courtyard (Colosseum)</option>
+                    <option value="dragonland">DragonLand</option>
+                    <option value="stormforce">StormForce</option>
+                    <option value="seaside">seaSide</option>
+                  </select>
+                  <span className={styles.chevronDown} aria-hidden="true">
+                    ▼
                   </span>
                 </div>
-
-                <div className={styles.deviceStatusList}>
-                  <div
-                    className={`${styles.deviceItem} ${
-                      partyState?.p2Connected ? styles.deviceActive : styles.deviceWaiting
-                    }`}
-                  >
-                    <span
-                      className={
-                        partyState?.p2Connected
-                          ? styles.statusBulletActive
-                          : styles.statusBulletWaiting
-                      }
-                    >
-                      {partyState?.p2Connected ? '●' : '▢'}
-                    </span>
-                    <span>📱 Phone 2: {partyState?.p2Connected ? 'Connected' : 'Waiting...'}</span>
-                  </div>
-
-                  <div
-                    className={`${styles.deviceItem} ${
-                      hasGamepad1 ? styles.deviceActive : styles.deviceWaiting
-                    }`}
-                  >
-                    <span
-                      className={
-                        hasGamepad1 ? styles.statusBulletActive : styles.statusBulletWaiting
-                      }
-                    >
-                      {hasGamepad1 ? '●' : '▢'}
-                    </span>
-                    <span>🎮 Gamepad 2: {hasGamepad1 ? 'Connected' : 'Plug in USB/BT'}</span>
-                  </div>
-
-                  <div className={`${styles.deviceItem} ${styles.deviceActive}`}>
-                    <span className={styles.statusBulletActive}>●</span>
-                    <span>⌨️ Keyboard: Arrows + Numpad</span>
-                  </div>
-                </div>
-
-                <div className={styles.selectGroup}>
-                  <label htmlFor="p2PresetSelect" className={styles.label}>
-                    WARRIOR PRESET:
-                  </label>
-                  <div className={styles.selectWrapper}>
-                    <select
-                      id="p2PresetSelect"
-                      className={styles.select}
-                      value={p2Preset}
-                      onChange={e => setP2Preset(e.target.value)}
-                    >
-                      <option value="marauder">Grimwood (Heavy)</option>
-                      <option value="knight">Sir Cedric (Knight)</option>
-                      <option value="vanguard">Valerius (Vanguard)</option>
-                      <option value="duelist">Aurelia (Duelist)</option>
-                    </select>
-                    <span className={styles.chevronDown} aria-hidden="true">
-                      ▼
-                    </span>
-                  </div>
-                </div>
               </div>
-            </div>
 
-            {/* Arena Selection */}
-            <div className={styles.arenaSection}>
-              <div className={styles.cardRivetTL} aria-hidden="true" />
-              <div className={styles.cardRivetTR} aria-hidden="true" />
-              <div className={styles.cardRivetBL} aria-hidden="true" />
-              <div className={styles.cardRivetBR} aria-hidden="true" />
-              <div className={styles.cardMossTL} aria-hidden="true" />
-              <label htmlFor="arenaSelect" className={styles.label}>
-                ARENA BATTLEGROUND:
-              </label>
-              <div className={styles.selectWrapper}>
-                <select
-                  id="arenaSelect"
-                  className={styles.select}
-                  value={arenaId}
-                  onChange={e => setArenaId(e.target.value)}
+              {/* Action Buttons Row */}
+              <div className={styles.actionsRow}>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  onClick={() => router.push('/game')}
+                  title="Return to Main Menu"
                 >
-                  <option value="coloseum">Bastion Courtyard (Colosseum)</option>
-                  <option value="dragonland">DragonLand</option>
-                  <option value="stormforce">StormForce</option>
-                  <option value="seaside">seaSide</option>
-                </select>
-                <span className={styles.chevronDown} aria-hidden="true">
-                  ▼
-                </span>
+                  ← BACK
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.startBtn}
+                  onClick={handleStartMatch}
+                  title="Commence Local 2-Player Combat"
+                >
+                  <span>⚔️</span>
+                  <span>START LOCAL DUEL</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Footer Actions */}
-        <footer className={styles.actionsFooter}>
-          <button
-            type="button"
-            className={styles.backBtn}
-            onClick={() => router.push('/game')}
-            title="Return to Main Menu"
-          >
-            ← BACK TO MENU
-          </button>
-
-          <div className={styles.tipBanner}>
-            <span className={styles.tipIcon} aria-hidden="true">
-              💡
-            </span>
-            <span>Tip: When phones scan the QR code, they automatically claim Slot 1 &amp; 2!</span>
-          </div>
-
-          <button
-            type="button"
-            className={styles.startBtn}
-            onClick={handleStartMatch}
-            title="Commence Local 2-Player Combat"
-          >
-            <span aria-hidden="true">⚔️</span>
-            <span>START LOCAL DUEL</span>
-          </button>
-        </footer>
-      </div>
+      </main>
     </div>
   );
 }
