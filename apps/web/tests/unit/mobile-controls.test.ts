@@ -205,4 +205,48 @@ describe('Mobile Touch Controls and Input Bridge', () => {
     adapter.destroy();
     vi.unstubAllGlobals();
   });
+
+  it('controls continuous auto-jumping via setAutoJump and poll', () => {
+    // Initially autoJump is false
+    expect(TouchInputBridge.isAutoJump()).toBe(false);
+    expect(TouchInputBridge.poll().jump).toBe(false);
+
+    // Turn autoJump ON
+    TouchInputBridge.setAutoJump(true);
+    expect(TouchInputBridge.isAutoJump()).toBe(true);
+
+    // Continuous jump persists across multiple polls (does not reset like one-shot actions)
+    expect(TouchInputBridge.poll().jump).toBe(true);
+    expect(TouchInputBridge.poll().jump).toBe(true);
+    expect(TouchInputBridge.poll().moveUp).toBe(true);
+
+    // Integrates with KeyboardInputAdapter
+    const adapter = new KeyboardInputAdapter();
+    expect(adapter.pollInput().jump).toBe(true);
+    expect(adapter.pollInput().jump).toBe(true);
+
+    // Turn autoJump OFF
+    TouchInputBridge.setAutoJump(false);
+    expect(TouchInputBridge.isAutoJump()).toBe(false);
+    expect(TouchInputBridge.poll().jump).toBe(false);
+    expect(adapter.pollInput().jump).toBe(false);
+
+    // When OFF, manual jump still functions as expected
+    TouchInputBridge.setJump(true);
+    expect(TouchInputBridge.poll().jump).toBe(true);
+    expect(adapter.pollInput().jump).toBe(true);
+
+    TouchInputBridge.setJump(false);
+    expect(TouchInputBridge.poll().jump).toBe(false);
+    expect(adapter.pollInput().jump).toBe(false);
+
+    // Reset clears autoJump state
+    TouchInputBridge.setAutoJump(true);
+    expect(TouchInputBridge.isAutoJump()).toBe(true);
+    TouchInputBridge.reset();
+    expect(TouchInputBridge.isAutoJump()).toBe(false);
+    expect(TouchInputBridge.poll().jump).toBe(false);
+
+    adapter.destroy();
+  });
 });

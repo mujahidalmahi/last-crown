@@ -10,6 +10,15 @@ interface MobileGameControlsProps {
 
 export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
+  const [autoJump, setAutoJump] = useState<boolean>(false);
+
+  // Clean up autoJump on unmount
+  useEffect(() => {
+    return () => {
+      TouchInputBridge.setAutoJump(false);
+      TouchInputBridge.reset();
+    };
+  }, []);
 
   // Direction and action state tracked in ref to avoid multi-touch stale closures and re-render lag
   const directionsRef = useRef({ up: false, down: false, left: false, right: false });
@@ -129,6 +138,20 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
     [updateDirection]
   );
 
+  const handleToggleAutoJump = useCallback(
+    (e: React.PointerEvent | React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setAutoJump(prev => {
+        const next = !prev;
+        TouchInputBridge.setAutoJump(next);
+        return next;
+      });
+      triggerHaptic(15);
+    },
+    [triggerHaptic]
+  );
+
   // ── DASH ──
   const handleDashDown = useCallback(
     (e: React.PointerEvent) => {
@@ -218,19 +241,34 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
           LEFT ZONE — Movement & Jump
           ═══════════════════════════════════════════ */}
       <div className={styles.leftZone}>
-        {/* JUMP — top centre of left zone */}
-        <button
-          type="button"
-          className={`${styles.jumpBtn} ${activeVisuals.up ? styles.active : ''}`}
-          onPointerDown={handleJumpDown}
-          onPointerUp={handleJumpUp}
-          onPointerCancel={handleJumpUp}
-          onPointerLeave={handleJumpUp}
-          aria-label="Jump"
-        >
-          <span className={styles.btnIcon}>↑</span>
-          <span className={styles.btnLabel}>JUMP</span>
-        </button>
+        {/* JUMP & AUTO JUMP — top row of left zone */}
+        <div className={styles.jumpRow}>
+          <button
+            type="button"
+            className={`${styles.jumpBtn} ${activeVisuals.up ? styles.active : ''}`}
+            onPointerDown={handleJumpDown}
+            onPointerUp={handleJumpUp}
+            onPointerCancel={handleJumpUp}
+            onPointerLeave={handleJumpUp}
+            aria-label="Manual Jump"
+          >
+            <span className={styles.btnIcon}>↑</span>
+            <span className={styles.btnLabel}>JUMP</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.autoJumpBtn} ${autoJump ? styles.autoJumpActive : ''}`}
+            onPointerDown={handleToggleAutoJump}
+            aria-label={
+              autoJump ? 'Auto Jump Active (Tap to Disable)' : 'Auto Jump Inactive (Tap to Enable)'
+            }
+            aria-pressed={autoJump}
+          >
+            <span className={styles.btnIcon}>{autoJump ? '⚡' : '⟳'}</span>
+            <span className={styles.btnLabel}>{autoJump ? 'AUTO ON' : 'AUTO'}</span>
+          </button>
+        </div>
 
         {/* LEFT + DASH + RIGHT — bottom row */}
         <div className={styles.lrRow}>

@@ -14,6 +14,7 @@ export interface TouchInputState {
 }
 
 class TouchInputBridgeClass {
+  private autoJump: boolean = false;
   private state: TouchInputState = {
     moveLeft: false,
     moveRight: false,
@@ -49,6 +50,14 @@ class TouchInputBridgeClass {
     this.state.moveUp = jumping;
   }
 
+  public setAutoJump(enabled: boolean): void {
+    this.autoJump = enabled;
+  }
+
+  public isAutoJump(): boolean {
+    return this.autoJump;
+  }
+
   public setBlock(blocking: boolean): void {
     this.state.block = blocking;
   }
@@ -81,8 +90,13 @@ class TouchInputBridgeClass {
    * Polls current touch input state and resets single-frame triggers.
    */
   public poll(): TouchInputState {
+    const isJumping = this.autoJump || this.state.jump;
+    const isMovingUp = this.autoJump || this.state.moveUp;
+
     const snapshot: TouchInputState = {
       ...this.state,
+      jump: isJumping,
+      moveUp: isMovingUp,
     };
 
     // Reset one-shot tactical buffers on poll
@@ -97,6 +111,7 @@ class TouchInputBridgeClass {
   }
 
   public reset(): void {
+    this.autoJump = false;
     this.state = {
       moveLeft: false,
       moveRight: false,

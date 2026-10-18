@@ -125,6 +125,15 @@
   gap: 6px;
 }
 
+/* JUMP ROW: Manual Jump + Auto Jump Toggle */
+.jumpRow {
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
 /* JUMP */
 .jumpBtn {
   composes: btn;
@@ -134,6 +143,63 @@
   background: linear-gradient(175deg, rgba(22, 163, 74, 0.9) 0%, rgba(5, 42, 20, 0.9) 100%);
   border-color: #4ade80;
   color: #bbf7d0;
+}
+
+/* AUTO JUMP BUTTON */
+.autoJumpBtn {
+  composes: btn;
+  --btn-glow: rgba(148, 163, 184, 0.3);
+  min-width: 54px;
+  height: 38px;
+  padding: 0 4px;
+  background: linear-gradient(175deg, rgba(30, 41, 59, 0.92) 0%, rgba(15, 23, 42, 0.92) 100%);
+  border-color: #64748b;
+  color: #cbd5e1;
+  font-family: 'Press Start 2P', monospace;
+  transition: all 0.12s ease;
+}
+
+.autoJumpBtn .btnIcon {
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.autoJumpBtn .btnLabel {
+  font-size: 0.42rem;
+  letter-spacing: 0.04em;
+  font-weight: 800;
+}
+
+/* AUTO JUMP ACTIVE TOGGLE STATE */
+.autoJumpActive {
+  --btn-glow: rgba(250, 204, 21, 0.9);
+  background: linear-gradient(175deg, rgba(202, 138, 4, 0.95) 0%, rgba(113, 63, 18, 0.95) 100%) !important;
+  border-color: #facc15 !important;
+  color: #fef08a !important;
+  opacity: 1 !important;
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 2px 0 rgba(0, 0, 0, 0.9),
+    0 0 14px rgba(250, 204, 21, 0.8) !important;
+  animation: autoJumpPulse 1s infinite alternate;
+}
+
+@keyframes autoJumpPulse {
+  0% {
+    box-shadow:
+      inset 0 -2px 0 rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 2px 0 rgba(0, 0, 0, 0.9),
+      0 0 8px rgba(250, 204, 21, 0.5);
+  }
+  100% {
+    box-shadow:
+      inset 0 -2px 0 rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 2px 0 rgba(0, 0, 0, 0.9),
+      0 0 18px rgba(250, 204, 21, 0.95);
+  }
 }
 
 /* Bottom row: ◀  DASH  ▶ */

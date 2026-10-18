@@ -92,6 +92,25 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   const [p1GhostHealth, setP1GhostHealth] = useState<number>(100);
   const [p2GhostHealth, setP2GhostHealth] = useState<number>(100);
 
+  // Device detection: identify mobile and tablet touch devices to display touch controls instead of desktop keys
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const checkDevice = () => {
+      const hasTouch =
+        (navigator.maxTouchPoints > 0 &&
+          window.matchMedia &&
+          (window.matchMedia('(pointer: coarse)').matches ||
+            window.matchMedia('(hover: none)').matches)) ||
+        (navigator.maxTouchPoints > 0 && window.innerWidth <= 1280) ||
+        ('ontouchstart' in window && window.innerWidth <= 1280);
+      setIsTouchDevice(Boolean(hasTouch));
+    };
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
   // Round announcement banner splash
   const [roundSplash, setRoundSplash] = useState<string | null>(null);
   const lastRoundSeenRef = useRef<number>(0);
@@ -458,7 +477,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 color: isPaused ? '#070b12' : '#f1c40f',
                 border: '1px solid var(--border-gold)',
               }}
-              title="Pause duel (Hotkey: P or Escape)"
+              title={isTouchDevice ? 'Pause duel' : 'Pause duel (Hotkey: P or Escape)'}
             >
               {isPaused ? '▶️ Resume' : '⏸️ Pause'}
             </button>
@@ -874,18 +893,20 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
         {/* Bottom Right: Controls Guide & Fullscreen Toggle */}
         <div className={hudStyles.utilityGroup}>
-          <button
-            type="button"
-            onClick={() => setShowControls(prev => !prev)}
-            title="Toggle Controls Guide (H)"
-            className={`${hudStyles.utilityBtn} ${hudStyles.keyboardOnly}`}
-            style={{
-              color: showControls ? '#f1c40f' : '#cbd5e1',
-              borderColor: showControls ? '#f1c40f' : undefined,
-            }}
-          >
-            ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
-          </button>
+          {!isTouchDevice && (
+            <button
+              type="button"
+              onClick={() => setShowControls(prev => !prev)}
+              title="Toggle Controls Guide (H)"
+              className={`${hudStyles.utilityBtn} ${hudStyles.keyboardOnly}`}
+              style={{
+                color: showControls ? '#f1c40f' : '#cbd5e1',
+                borderColor: showControls ? '#f1c40f' : undefined,
+              }}
+            >
+              ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
+            </button>
+          )}
           {onToggleFullscreen && (
             <button
               type="button"
@@ -930,19 +951,32 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             {/* Semantic screen-reader accessibility */}
             <div className={victoryStyles.srOnly}>
               <h3>Combat Controls Reference</h3>
-              <ul>
-                <li>A / D: Move Left / Right</li>
-                <li>W / Space: Jump</li>
-                <li>J: Light Attack (3-Hit Combo)</li>
-                <li>K: Heavy Attack & Execution</li>
-                <li>Shift: Defence / Guard</li>
-                <li>L: Parry & Riposte Counter</li>
-                <li>P: Pause Duel</li>
-                <li>C / E: Tactical Dash</li>
-                <li>S + J: Low Sweep (Trips High Guard)</li>
-                <li>U: Forward Thrust (Reach)</li>
-                <li>Windup + Dash/Guard: Feint Cancel</li>
-              </ul>
+              {isTouchDevice ? (
+                <ul>
+                  <li>Left / Right Buttons: Move Left / Right</li>
+                  <li>Jump Button: Leap into air</li>
+                  <li>Auto-Jump Button: Continuous automatic jumping</li>
+                  <li>Dash Button: Evasive tactical dash</li>
+                  <li>Block Button: Hold to raise guard shield</li>
+                  <li>Parry Button: Timed deflection counter</li>
+                  <li>Light Button: 3-hit combo slash</li>
+                  <li>Heavy Button: Heavy execute strike</li>
+                </ul>
+              ) : (
+                <ul>
+                  <li>A / D: Move Left / Right</li>
+                  <li>W / Space: Jump</li>
+                  <li>J: Light Attack (3-Hit Combo)</li>
+                  <li>K: Heavy Attack & Execution</li>
+                  <li>Shift: Defence / Guard</li>
+                  <li>L: Parry & Riposte Counter</li>
+                  <li>P: Pause Duel</li>
+                  <li>C / E: Tactical Dash</li>
+                  <li>S + J: Low Sweep (Trips High Guard)</li>
+                  <li>U: Forward Thrust (Reach)</li>
+                  <li>Windup + Dash/Guard: Feint Cancel</li>
+                </ul>
+              )}
             </div>
           </div>
         </div>
@@ -1034,7 +1068,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                     transition: 'transform 0.08s ease',
                   }}
                 >
-                  ▶️ Resume Duel (P)
+                  {isTouchDevice ? '▶️ Resume Duel' : '▶️ Resume Duel (P)'}
                 </button>
               )}
               {onRematch && (
@@ -1169,6 +1203,135 @@ export const GameHUD: React.FC<GameHUDProps> = ({
               </button>
             </div>
 
+            {/* Controller Menubar / Move Guide */}
+            {isTouchDevice ? (
+              <div
+                style={{
+                  backgroundColor: 'rgba(12, 16, 26, 0.95)',
+                  border: '2px solid rgba(241, 196, 15, 0.4)',
+                  borderRadius: '4px',
+                  padding: '12px 16px',
+                  boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: '0.68rem',
+                    fontWeight: 900,
+                    color: '#f1c40f',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span>📱</span>
+                  <span>Arcade Touch Controls</span>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '8px 12px',
+                    fontSize: '0.72rem',
+                    color: '#cbd5e1',
+                    lineHeight: '1.4',
+                  }}
+                >
+                  <div>
+                    <strong style={{ color: '#f1c40f' }}>◀ / ▶ :</strong> Move Left / Right
+                  </div>
+                  <div>
+                    <strong style={{ color: '#4ade80' }}>↑ JUMP :</strong> Tap Jump
+                  </div>
+                  <div>
+                    <strong style={{ color: '#facc15' }}>⚡ AUTO :</strong> Toggle Auto Jump
+                  </div>
+                  <div>
+                    <strong style={{ color: '#38bdf8' }}>» DASH :</strong> Evasive Dash
+                  </div>
+                  <div>
+                    <strong style={{ color: '#60a5fa' }}>▣ BLOCK :</strong> Hold to Guard
+                  </div>
+                  <div>
+                    <strong style={{ color: '#c084fc' }}>◈ PARRY :</strong> Counter Parry
+                  </div>
+                  <div>
+                    <strong style={{ color: '#fb7185' }}>† LIGHT :</strong> Light Attack Combo
+                  </div>
+                  <div>
+                    <strong style={{ color: '#fb923c' }}>★ HEAVY :</strong> Heavy Strike / Finish
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div
+                style={{
+                  backgroundColor: 'rgba(12, 16, 26, 0.95)',
+                  border: '2px solid #3d495c',
+                  borderRadius: '4px',
+                  padding: '12px 16px',
+                  boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: "'Press Start 2P', monospace",
+                    fontSize: '0.68rem',
+                    fontWeight: 900,
+                    color: '#f1c40f',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.08em',
+                    marginBottom: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  <span>⌨️</span>
+                  <span>Desktop Controller Keybindings</span>
+                </div>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: '8px 12px',
+                    fontSize: '0.72rem',
+                    color: '#cbd5e1',
+                    lineHeight: '1.4',
+                  }}
+                >
+                  <div>
+                    <strong style={{ color: '#f1c40f' }}>A / D :</strong> Move Left / Right
+                  </div>
+                  <div>
+                    <strong style={{ color: '#4ade80' }}>W / Space :</strong> Jump
+                  </div>
+                  <div>
+                    <strong style={{ color: '#38bdf8' }}>C / E :</strong> Evasive Dash
+                  </div>
+                  <div>
+                    <strong style={{ color: '#60a5fa' }}>Shift :</strong> Hold Defence / Block
+                  </div>
+                  <div>
+                    <strong style={{ color: '#c084fc' }}>L :</strong> Timed Parry Deflection
+                  </div>
+                  <div>
+                    <strong style={{ color: '#fb7185' }}>J :</strong> Light Attack (3-Hit Combo)
+                  </div>
+                  <div>
+                    <strong style={{ color: '#fb923c' }}>K :</strong> Heavy Strike / Execution
+                  </div>
+                  <div>
+                    <strong style={{ color: '#cbd5e1' }}>P / Esc :</strong> Pause Duel
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Tactical Fighting Techniques & Move Reference */}
             <div
               style={{
@@ -1206,45 +1369,84 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                   lineHeight: '1.4',
                 }}
               >
-                <div>
-                  <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly tap{' '}
-                  <strong style={{ color: '#fff' }}>J</strong> for Slash ➔ Rising Slash ➔ Spinning
-                  Finisher.
-                </div>
-                <div>
-                  <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong> Execute
-                  rivals at critical health/broken posture with a{' '}
-                  <strong style={{ color: '#fff' }}>Heavy Strike (K)</strong> or 3-hit combo
-                  finisher!
-                </div>
-                <div>
-                  <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
-                  <strong style={{ color: '#fff' }}>Space / W</strong>, then strike with{' '}
-                  <strong style={{ color: '#fff' }}>J / K</strong> in mid-air to plunge downward
-                  with ground-slam impact.
-                </div>
-                <div>
-                  <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Dash forward with{' '}
-                  <strong style={{ color: '#fff' }}>C / E</strong>, then hit{' '}
-                  <strong style={{ color: '#fff' }}>J</strong> to pierce enemy defenses.
-                </div>
-                <div>
-                  <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes into
-                  arena bounds cause warriors to violently rebound off stone walls.
-                </div>
-                <div>
-                  <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed parry with{' '}
-                  <strong style={{ color: '#fff' }}>L</strong> deflects blows and causes heavy
-                  posture exhaustion.
-                </div>
+                {isTouchDevice ? (
+                  <>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly
+                      tap <strong style={{ color: '#fff' }}>LIGHT</strong> for Slash ➔ Rising Slash
+                      ➔ Spinning Finisher.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong>{' '}
+                      Execute rivals at critical health/broken posture with a{' '}
+                      <strong style={{ color: '#fff' }}>HEAVY</strong> strike or 3-hit combo
+                      finisher!
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
+                      <strong style={{ color: '#fff' }}>JUMP (or Auto-Jump)</strong>, then strike
+                      with <strong style={{ color: '#fff' }}>LIGHT / HEAVY</strong> in mid-air to
+                      plunge downward with ground-slam impact.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Tap{' '}
+                      <strong style={{ color: '#fff' }}>DASH</strong>, then hit{' '}
+                      <strong style={{ color: '#fff' }}>LIGHT</strong> to pierce enemy defenses.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes
+                      into arena bounds cause warriors to violently rebound off stone walls.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed tap on{' '}
+                      <strong style={{ color: '#fff' }}>PARRY</strong> deflects blows and causes
+                      heavy posture exhaustion. Hold{' '}
+                      <strong style={{ color: '#fff' }}>BLOCK</strong> for guard.
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly
+                      tap <strong style={{ color: '#fff' }}>J</strong> for Slash ➔ Rising Slash ➔
+                      Spinning Finisher.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong>{' '}
+                      Execute rivals at critical health/broken posture with a{' '}
+                      <strong style={{ color: '#fff' }}>Heavy Strike (K)</strong> or 3-hit combo
+                      finisher!
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
+                      <strong style={{ color: '#fff' }}>Space / W</strong>, then strike with{' '}
+                      <strong style={{ color: '#fff' }}>J / K</strong> in mid-air to plunge downward
+                      with ground-slam impact.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Dash forward
+                      with <strong style={{ color: '#fff' }}>C / E</strong>, then hit{' '}
+                      <strong style={{ color: '#fff' }}>J</strong> to pierce enemy defenses.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes
+                      into arena bounds cause warriors to violently rebound off stone walls.
+                    </div>
+                    <div>
+                      <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed parry
+                      with <strong style={{ color: '#fff' }}>L</strong> deflects blows and causes
+                      heavy posture exhaustion.
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Realistic Combat Controls Ribbon - Floating cleanly above the bottom utility bar */}
-      {matchState !== 'match_over' && (
+      {/* Realistic Combat Controls Ribbon - Floating cleanly above the bottom utility bar (Desktop Only & Unpaused) */}
+      {!isPaused && !isTouchDevice && matchState !== 'match_over' && (
         <div
           onClick={() => setShowControls(true)}
           title="Click or press H for full Combat Controls Reference"
