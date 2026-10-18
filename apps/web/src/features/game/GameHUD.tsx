@@ -856,69 +856,72 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           );
         })()}
 
-      {/* Bottom Floating Utility Controls */}
-      {/* Bottom Floating Utility Controls */}
-      <div className={hudStyles.bottomUtilityBar}>
-        {/* Bottom Left: Navigation & Voice & Forfeit */}
-        <div className={hudStyles.utilityGroup}>
-          <button
-            type="button"
-            onClick={onExit ? onExit : () => (window.location.href = '/game')}
-            title="Return to Main Hall"
-            className={hudStyles.utilityBtn}
-          >
-            ← {mode === 'multiplayer' ? 'Leave Chamber' : 'Main Hall'}
-          </button>
-          {mode === 'multiplayer' && colyseusRoom && <VoiceControls voice={voice} compact={true} />}
-          {mode === 'multiplayer' && colyseusRoom && matchState === 'in_progress' && (
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Surrender and forfeit this duel?')) {
-                  colyseusRoom.send(ClientMessageType.FORFEIT_MATCH, {});
-                }
-              }}
-              title="Surrender and forfeit this duel"
-              className={hudStyles.utilityBtn}
-              style={{
-                backgroundColor: 'rgba(231, 76, 60, 0.25)',
-                color: '#f87171',
-                border: '1px solid rgba(231, 76, 60, 0.6)',
-              }}
-            >
-              🏳️ Forfeit
-            </button>
-          )}
-        </div>
+      {/* Bottom Floating Utility Controls: hidden during victory card overlay or on touch devices in singleplayer/local */}
+      {matchState !== 'match_over' && (!isTouchDevice || mode === 'multiplayer') && (
+        <div className={hudStyles.bottomUtilityBar}>
+          {/* Bottom Left: Navigation & Voice & Forfeit */}
+          <div className={hudStyles.utilityGroup}>
+            {!isTouchDevice && (
+              <button
+                type="button"
+                onClick={onExit ? onExit : () => (window.location.href = '/game')}
+                title="Return to Main Hall"
+                className={hudStyles.utilityBtn}
+              >
+                ← {mode === 'multiplayer' ? 'Leave Chamber' : 'Main Hall'}
+              </button>
+            )}
+            {mode === 'multiplayer' && colyseusRoom && <VoiceControls voice={voice} compact={true} />}
+            {mode === 'multiplayer' && colyseusRoom && matchState === 'in_progress' && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Surrender and forfeit this duel?')) {
+                    colyseusRoom.send(ClientMessageType.FORFEIT_MATCH, {});
+                  }
+                }}
+                title="Surrender and forfeit this duel"
+                className={hudStyles.utilityBtn}
+                style={{
+                  backgroundColor: 'rgba(231, 76, 60, 0.25)',
+                  color: '#f87171',
+                  border: '1px solid rgba(231, 76, 60, 0.6)',
+                }}
+              >
+                🏳️ Forfeit
+              </button>
+            )}
+          </div>
 
-        {/* Bottom Right: Controls Guide & Fullscreen Toggle */}
-        <div className={hudStyles.utilityGroup}>
-          {!isTouchDevice && (
-            <button
-              type="button"
-              onClick={() => setShowControls(prev => !prev)}
-              title="Toggle Controls Guide (H)"
-              className={`${hudStyles.utilityBtn} ${hudStyles.keyboardOnly}`}
-              style={{
-                color: showControls ? '#f1c40f' : '#cbd5e1',
-                borderColor: showControls ? '#f1c40f' : undefined,
-              }}
-            >
-              ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
-            </button>
-          )}
-          {onToggleFullscreen && (
-            <button
-              type="button"
-              onClick={onToggleFullscreen}
-              title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
-              className={hudStyles.utilityBtn}
-            >
-              {isFullscreen ? '⛶ Windowed' : '⛶ Fullscreen'}
-            </button>
-          )}
+          {/* Bottom Right: Controls Guide & Fullscreen Toggle */}
+          <div className={hudStyles.utilityGroup}>
+            {!isTouchDevice && (
+              <button
+                type="button"
+                onClick={() => setShowControls(prev => !prev)}
+                title="Toggle Controls Guide (H)"
+                className={`${hudStyles.utilityBtn} ${hudStyles.keyboardOnly}`}
+                style={{
+                  color: showControls ? '#f1c40f' : '#cbd5e1',
+                  borderColor: showControls ? '#f1c40f' : undefined,
+                }}
+              >
+                ⌨ Controls <span style={{ opacity: 0.6, fontSize: '0.72rem' }}>[H]</span>
+              </button>
+            )}
+            {!isTouchDevice && onToggleFullscreen && (
+              <button
+                type="button"
+                onClick={onToggleFullscreen}
+                title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+                className={hudStyles.utilityBtn}
+              >
+                {isFullscreen ? '⛶ Windowed' : '⛶ Fullscreen'}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Combat Controls Reference Medieval Stone Modal (Hotkey: H) */}
       {showControls && (

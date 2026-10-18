@@ -186,3 +186,13 @@ body.reduced-motion ::after {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Ensure Phaser WebGL canvas envelops its container edge-to-edge without letterboxing */
+#phaser-game-canvas-root canvas {
+  display: block !important;
+  max-width: none !important;
+  max-height: none !important;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+

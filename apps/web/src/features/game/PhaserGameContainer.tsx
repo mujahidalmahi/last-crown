@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Room } from 'colyseus.js';
 import { BattleRoomState } from '@last-crown/shared';
+import { getArenaConfig } from '@last-crown/game-config';
 import { GameBootstrap } from '../../game/bootstrap/GameBootstrap';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
 import { VoiceChatState } from '../voice/useVoiceChat';
@@ -66,7 +67,9 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       const hasTouch =
         (navigator.maxTouchPoints > 0 && isCoarse) || ('ontouchstart' in window && isCoarse);
       setIsTouchMobile(Boolean(hasTouch));
-      setTimeout(() => bootstrapRef.current?.refreshScale(), 200);
+      bootstrapRef.current?.refreshScale();
+      setTimeout(() => bootstrapRef.current?.refreshScale(), 100);
+      setTimeout(() => bootstrapRef.current?.refreshScale(), 300);
     };
 
     check();
@@ -303,6 +306,9 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     };
   }, [mode, playerPreset, opponentPreset, botDifficulty, botName, arenaId, colyseusRoom]);
 
+  const effectiveArenaId = colyseusRoom?.state?.arenaId || arenaId || 'coloseum';
+  const arenaConfig = getArenaConfig(effectiveArenaId);
+
   return (
     <div
       ref={fullscreenContainerRef}
@@ -313,6 +319,10 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         width: '100%',
         height: '100%',
         backgroundColor: '#050810',
+        backgroundImage: `url(${arenaConfig.backgroundImage || '/assets/backgrounds/playground.jpg'})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'row',
@@ -322,27 +332,32 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         userSelect: 'none',
       }}
     >
-      {/* 16:9 Aspect Ratio Arena Stage: fills 100% of the screen height, centered horizontally */}
+      {/* Edge-to-Edge Arena Stage: fills 100% of viewport width and height with zero black bars */}
       <div
         style={{
           position: 'relative',
-          aspectRatio: '16 / 9',
+          width: '100%',
           height: '100%',
-          width: 'auto',
-          maxWidth: '100%',
-          maxHeight: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           overflow: 'hidden',
-          boxShadow: '0 4px 30px rgba(0, 0, 0, 0.95)',
           flexShrink: 0,
         }}
       >
         <div
           id="phaser-game-canvas-root"
           ref={containerRef}
-          style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}
+          style={{
+            width: '100%',
+            height: '100%',
+            position: 'absolute',
+            inset: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}
         />
         <GameHUD
           snapshot={snapshot}
@@ -418,10 +433,10 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           }}
           aria-hidden="true"
         />
-      </div>
 
-      {/* Touch game controls — pinned to bottom corners of the full device viewport */}
-      {isTouchMobile && <MobileGameControls isPortrait={false} />}
+        {/* Touch game controls — overlaying over the battle arena */}
+        {isTouchMobile && <MobileGameControls isPortrait={false} />}
+      </div>
     </div>
   );
 };

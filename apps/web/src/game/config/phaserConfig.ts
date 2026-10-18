@@ -10,7 +10,7 @@ export function createPhaserConfig(parentElement: HTMLElement): Phaser.Types.Cor
     height: 720,
     backgroundColor: '#0a0c10',
     scale: {
-      mode: Phaser.Scale.FIT,
+      mode: Phaser.Scale.ENVELOP,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
     physics: {
