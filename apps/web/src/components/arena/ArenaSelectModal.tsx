@@ -219,44 +219,56 @@ export const ArenaSelectModal: React.FC<ArenaSelectModalProps> = ({
       }}
     >
       <div className={styles.stageContainer}>
-        {/* Outer Stone Frame */}
-        <div className={styles.stoneFrame} />
+        {/* Outer Heavy Stone Frame */}
+        <div className={styles.stoneFrame} aria-hidden="true" />
 
-        {/* Metallic Corner Rivets */}
-        <div className={styles.cornerRivetTL} />
-        <div className={styles.cornerRivetTR} />
-        <div className={styles.cornerRivetBL} />
-        <div className={styles.cornerRivetBR} />
+        {/* Metallic Corner Plates with Screws */}
+        <div className={styles.cornerRivetTL} aria-hidden="true" />
+        <div className={styles.cornerRivetTR} aria-hidden="true" />
+        <div className={styles.cornerRivetBL} aria-hidden="true" />
+        <div className={styles.cornerRivetBR} aria-hidden="true" />
 
-        {/* Left & Right Wall Torches */}
-        <div className={styles.torchLeft}>
-          <span className={styles.flameGlow}>🔥</span>
-          <div className={styles.torchBracket} />
-        </div>
-        <div className={styles.torchRight}>
-          <span className={styles.flameGlow}>🔥</span>
-          <div className={styles.torchBracket} />
-        </div>
+        {/* Mid-rail Rivets */}
+        <div className={styles.borderRivetTop} aria-hidden="true" />
+        <div className={styles.borderRivetBottom} aria-hidden="true" />
 
-        {/* Parchment Map Background */}
-        <div className={styles.parchmentCanvas}>
-          <div className={styles.mapDecorations} />
+        {/* Dense Pixel-Art Moss & Ivy Accents */}
+        <div className={styles.mossTL} aria-hidden="true" />
+        <div className={styles.mossTR} aria-hidden="true" />
+        <div className={styles.mossBL} aria-hidden="true" />
+        <div className={styles.mossBR} aria-hidden="true" />
+        <div className={styles.mossTopMid} aria-hidden="true" />
 
-          {/* Top Header Stone Plaque */}
-          <div className={styles.headerBanner}>
+        {/* Dark Dungeon Stone Canvas */}
+        <div className={styles.stoneCanvas}>
+          {/* Subtle CRT Scanline Overlay */}
+          <div className={styles.scanlineOverlay} aria-hidden="true" />
+
+          {/* Top Header Section */}
+          <header className={styles.header}>
             <h2 className={styles.headerTitle}>{title}</h2>
-          </div>
+            <p className={styles.headerSubtitle}>
+              Choose your battleground before entering the crucible.
+            </p>
+          </header>
 
-          {/* 2x2 Arena Buttons Grid */}
+          {/* 2x2 Arena Compartment Cards Grid */}
           <div className={styles.arenaGrid}>
             {ARENA_LIST.map(arena => (
               <div key={arena.id} className={styles.arenaSlot}>
-                {/* Header Badge above Button */}
+                {/* Compartment Corner Rivets */}
+                <div className={styles.slotRivetTL} aria-hidden="true" />
+                <div className={styles.slotRivetTR} aria-hidden="true" />
+                <div className={styles.slotRivetBL} aria-hidden="true" />
+                <div className={styles.slotRivetBR} aria-hidden="true" />
+                <div className={styles.slotMossTL} aria-hidden="true" />
+
+                {/* Compartment Header */}
                 <div className={styles.badgeHeader}>
                   {arena.iconPosition === 'left' && (
                     <span className={styles.badgeIcon}>{arena.icon}</span>
                   )}
-                  <span>{arena.displayName}</span>
+                  <span className={styles.badgeName}>{arena.displayName}</span>
                   {arena.iconPosition === 'right' && (
                     <span className={styles.badgeIcon}>{arena.icon}</span>
                   )}
@@ -268,7 +280,7 @@ export const ArenaSelectModal: React.FC<ArenaSelectModalProps> = ({
                   className={styles.stoneButton}
                   onClick={() => onSelect(arena.id)}
                   aria-label={`Select ${arena.displayName} Arena`}
-                  title={`Play in ${arena.displayName} (${arena.bgImage})`}
+                  title={`Play in ${arena.displayName}`}
                 >
                   <div
                     className={styles.buttonBgImage}
@@ -276,17 +288,9 @@ export const ArenaSelectModal: React.FC<ArenaSelectModalProps> = ({
                   />
                   <div className={styles.buttonInnerFrame} />
 
-                  {/* Corner Rivet Plates */}
-                  <div className={styles.btnRivetTL} />
-                  <div className={styles.btnRivetTR} />
-                  <div className={styles.btnRivetBL} />
-                  <div className={styles.btnRivetBR} />
-
-                  {/* Moss/Ivy Details */}
-                  <div className={styles.btnMossTL} />
-                  <div className={styles.btnMossBR} />
-
-                  <span className={styles.buttonLabel}>{arena.displayName}</span>
+                  <span className={styles.buttonActionTag}>
+                    <span className={styles.selectBtnText}>CHOOSE ARENA</span>
+                  </span>
                 </button>
               </div>
             ))}
@@ -300,7 +304,7 @@ export const ArenaSelectModal: React.FC<ArenaSelectModalProps> = ({
               onClick={onClose}
               title="Return without changing arena"
             >
-              ← Back
+              ← RETURN TO DUEL
             </button>
           </div>
         </div>

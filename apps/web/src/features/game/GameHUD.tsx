@@ -982,463 +982,280 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         </div>
       )}
 
-      {/* Gothic Pause Menu Modal Overlay (Singleplayer Only) */}
+      {/* Retro Medieval Stone Pause Menu Modal Overlay (Singleplayer Only) */}
       {mode === 'singleplayer' && isPaused && matchState !== 'match_over' && (
         <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundColor: 'rgba(5, 7, 14, 0.92)',
-            zIndex: 200,
-            pointerEvents: 'auto',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px',
-          }}
+          className={hudStyles.pauseModalOverlay}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Duel Paused Menu"
         >
-          <div className={hudStyles.pauseModalContainer}>
-            {/* Header */}
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '8px' }}>
+          <div className={hudStyles.pauseStageContainer}>
+            {/* Outer Heavy Medieval Stone Frame */}
+            <div className={hudStyles.pauseStoneFrame} aria-hidden="true" />
+
+            {/* Metallic Corner Plates with Screws */}
+            <div className={hudStyles.pauseCornerRivetTL} aria-hidden="true" />
+            <div className={hudStyles.pauseCornerRivetTR} aria-hidden="true" />
+            <div className={hudStyles.pauseCornerRivetBL} aria-hidden="true" />
+            <div className={hudStyles.pauseCornerRivetBR} aria-hidden="true" />
+
+            {/* Mid-rail Rivets */}
+            <div className={hudStyles.pauseBorderRivetTop} aria-hidden="true" />
+            <div className={hudStyles.pauseBorderRivetBottom} aria-hidden="true" />
+
+            {/* Dense Pixel-Art Moss & Ivy Accents */}
+            <div className={hudStyles.pauseMossTL} aria-hidden="true" />
+            <div className={hudStyles.pauseMossTR} aria-hidden="true" />
+            <div className={hudStyles.pauseMossBL} aria-hidden="true" />
+            <div className={hudStyles.pauseMossBR} aria-hidden="true" />
+            <div className={hudStyles.pauseMossTopMid} aria-hidden="true" />
+
+            {/* Dark Dungeon Stone Canvas */}
+            <div className={hudStyles.pauseStoneCanvas}>
+              {/* Subtle CRT Scanline Overlay */}
+              <div className={hudStyles.pauseScanlineOverlay} aria-hidden="true" />
+
+              {/* Header */}
+              <header className={hudStyles.pauseHeader}>
                 <img
                   src="/icon.png"
                   alt="Last-Crown Logo"
                   width={48}
                   height={48}
-                  style={{ imageRendering: 'pixelated', filter: 'drop-shadow(0 0 10px #f1c40f)' }}
+                  className={hudStyles.pauseLogo}
                 />
+                <h2 className={hudStyles.pauseTitle}>DUEL PAUSED</h2>
+                <p className={hudStyles.pauseSubtitle}>Tactical Respite — The Battle Awaits</p>
+              </header>
+
+              {/* Action Buttons */}
+              <div className={hudStyles.pauseActionsRow}>
+                {onTogglePause && (
+                  <button
+                    type="button"
+                    onClick={onTogglePause}
+                    className={hudStyles.pauseResumeBtn}
+                    title={isTouchDevice ? 'Resume duel' : 'Resume duel (P)'}
+                  >
+                    {isTouchDevice ? '▶️ Resume Duel' : '▶️ Resume Duel (P)'}
+                  </button>
+                )}
+                {onRematch && (
+                  <button
+                    type="button"
+                    onClick={onRematch}
+                    className={hudStyles.pauseRestartBtn}
+                    title="Restart match from Round 1"
+                  >
+                    🔄 Restart Match
+                  </button>
+                )}
+                <Link href="/" style={{ textDecoration: 'none' }}>
+                  <button
+                    type="button"
+                    className={hudStyles.pauseExitBtn}
+                    title="Return to Castle Hall"
+                  >
+                    🏰 Castle Hall
+                  </button>
+                </Link>
               </div>
-              <h2
-                style={{
-                  fontFamily: "'Press Start 2P', monospace",
-                  fontSize: 'clamp(1.1rem, 2.4vw, 1.6rem)',
-                  fontWeight: 900,
-                  color: '#f1c40f',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  margin: '8px 0 0 0',
-                  textShadow:
-                    '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000, 0 0 20px rgba(241,196,15,0.4)',
-                }}
-              >
-                DUEL PAUSED
-              </h2>
-              <p
-                style={{
-                  fontFamily: "'Press Start 2P', monospace",
-                  color: '#94a3b8',
-                  fontSize: 'clamp(0.52rem, 1vw, 0.65rem)',
-                  margin: '8px 0 0 0',
-                  letterSpacing: '0.04em',
-                  lineHeight: '1.6',
-                }}
-              >
-                Tactical Respite — The Battle Awaits
-              </p>
-            </div>
 
-            {/* Action Buttons */}
-            <div
-              style={{
-                display: 'flex',
-                gap: '12px',
-                justifyContent: 'center',
-                flexWrap: 'wrap',
-              }}
-            >
-              {onTogglePause && (
-                <button
-                  type="button"
-                  onClick={onTogglePause}
-                  style={{
-                    backgroundColor: '#f1c40f',
-                    color: '#070b12',
-                    border: '2px solid #ffffff',
-                    borderRadius: '4px',
-                    padding: '12px 22px',
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
-                    fontWeight: 900,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    boxShadow:
-                      'inset 0 -3px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 0 #000, 0 0 16px rgba(241, 196, 15, 0.45)',
-                    transition: 'transform 0.08s ease',
-                  }}
-                >
-                  {isTouchDevice ? '▶️ Resume Duel' : '▶️ Resume Duel (P)'}
-                </button>
-              )}
-              {onRematch && (
-                <button
-                  type="button"
-                  onClick={onRematch}
-                  style={{
-                    backgroundColor: '#1a2233',
-                    color: '#f1c40f',
-                    border: '2px solid var(--border-gold)',
-                    borderRadius: '4px',
-                    padding: '12px 20px',
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
-                    fontWeight: 800,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    boxShadow:
-                      'inset 0 -3px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 4px 0 #000',
-                    transition: 'transform 0.08s ease',
-                  }}
-                >
-                  🔄 Restart Match
-                </button>
-              )}
-              <Link href="/" style={{ textDecoration: 'none' }}>
-                <button
-                  type="button"
-                  style={{
-                    backgroundColor: '#121722',
-                    color: '#cbd5e1',
-                    border: '2px solid #4a5568',
-                    borderRadius: '4px',
-                    padding: '12px 20px',
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: 'clamp(0.65rem, 1.1vw, 0.78rem)',
-                    fontWeight: 700,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    boxShadow:
-                      'inset 0 -3px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 0 #000',
-                  }}
-                >
-                  🏰 Castle Hall
-                </button>
-              </Link>
-            </div>
+              {/* Audio Settings Compartment */}
+              <div className={hudStyles.pauseCompartment}>
+                <div className={hudStyles.compartmentRivetTL} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetTR} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetBL} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetBR} aria-hidden="true" />
+                <div className={hudStyles.compartmentMossTL} aria-hidden="true" />
 
-            {/* Audio Settings Bar */}
-            <div
-              style={{
-                backgroundColor: 'rgba(15, 20, 32, 0.95)',
-                border: '2px solid rgba(212, 175, 55, 0.4)',
-                borderRadius: '4px',
-                padding: '12px 18px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '14px',
-                boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  flex: 1,
-                  minWidth: '220px',
-                }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: '0.65rem',
-                    fontWeight: 800,
-                    color: '#f1c40f',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  🔊 Volume
-                </span>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={volume}
-                  onChange={e => handleVolumeChange(Number(e.target.value))}
-                  style={{
-                    flex: 1,
-                    accentColor: '#f1c40f',
-                    cursor: 'pointer',
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: '0.65rem',
-                    fontWeight: 800,
-                    color: '#cbd5e1',
-                    width: '46px',
-                    textAlign: 'right',
-                  }}
-                >
-                  {volume}%
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={handleMuteToggle}
-                style={{
-                  backgroundColor: sfxMuted ? '#7f1d1d' : '#1e293b',
-                  color: sfxMuted ? '#fca5a5' : '#f1c40f',
-                  border: `2px solid ${sfxMuted ? '#ef4444' : 'rgba(212, 175, 55, 0.4)'}`,
-                  borderRadius: '4px',
-                  padding: '8px 14px',
-                  fontFamily: "'Press Start 2P', monospace",
-                  fontSize: '0.62rem',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.06em',
-                  cursor: 'pointer',
-                  boxShadow: 'inset 0 -2px 0 rgba(0, 0, 0, 0.7), 0 2px 0 #000',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {sfxMuted ? '🔇 Muted' : '🔊 SFX On'}
-              </button>
-            </div>
-
-            {/* Controller Menubar / Move Guide */}
-            {isTouchDevice ? (
-              <div
-                style={{
-                  backgroundColor: 'rgba(12, 16, 26, 0.95)',
-                  border: '2px solid rgba(241, 196, 15, 0.4)',
-                  borderRadius: '4px',
-                  padding: '12px 16px',
-                  boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: '0.68rem',
-                    fontWeight: 900,
-                    color: '#f1c40f',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    marginBottom: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  <span>📱</span>
-                  <span>Arcade Touch Controls</span>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '8px 12px',
-                    fontSize: '0.72rem',
-                    color: '#cbd5e1',
-                    lineHeight: '1.4',
-                  }}
-                >
-                  <div>
-                    <strong style={{ color: '#f1c40f' }}>◀ / ▶ :</strong> Move Left / Right
+                <div className={hudStyles.pauseAudioRow}>
+                  <div className={hudStyles.pauseVolumeGroup}>
+                    <span className={hudStyles.pauseVolumeLabel}>🔊 Volume</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={volume}
+                      onChange={e => handleVolumeChange(Number(e.target.value))}
+                      className={hudStyles.pauseVolumeSlider}
+                      aria-label="Game Volume"
+                    />
+                    <span className={hudStyles.pauseVolumeVal}>{volume}%</span>
                   </div>
-                  <div>
-                    <strong style={{ color: '#4ade80' }}>↑ JUMP :</strong> Tap Jump
-                  </div>
-                  <div>
-                    <strong style={{ color: '#facc15' }}>⚡ AUTO :</strong> Toggle Auto Jump
-                  </div>
-                  <div>
-                    <strong style={{ color: '#38bdf8' }}>» DASH :</strong> Evasive Dash
-                  </div>
-                  <div>
-                    <strong style={{ color: '#60a5fa' }}>▣ BLOCK :</strong> Hold to Guard
-                  </div>
-                  <div>
-                    <strong style={{ color: '#c084fc' }}>◈ PARRY :</strong> Counter Parry
-                  </div>
-                  <div>
-                    <strong style={{ color: '#fb7185' }}>† LIGHT :</strong> Light Attack Combo
-                  </div>
-                  <div>
-                    <strong style={{ color: '#fb923c' }}>★ HEAVY :</strong> Heavy Strike / Finish
-                  </div>
+                  <button
+                    type="button"
+                    onClick={handleMuteToggle}
+                    className={`${hudStyles.pauseMuteBtn} ${sfxMuted ? hudStyles.pauseMuteBtnActive : hudStyles.pauseMuteBtnInactive}`}
+                  >
+                    {sfxMuted ? '🔇 Muted' : '🔊 SFX On'}
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div
-                style={{
-                  backgroundColor: 'rgba(12, 16, 26, 0.95)',
-                  border: '2px solid #3d495c',
-                  borderRadius: '4px',
-                  padding: '12px 16px',
-                  boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
-                }}
-              >
-                <div
-                  style={{
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: '0.68rem',
-                    fontWeight: 900,
-                    color: '#f1c40f',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.08em',
-                    marginBottom: '10px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                  }}
-                >
-                  <span>⌨️</span>
-                  <span>Desktop Controller Keybindings</span>
-                </div>
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-                    gap: '8px 12px',
-                    fontSize: '0.72rem',
-                    color: '#cbd5e1',
-                    lineHeight: '1.4',
-                  }}
-                >
-                  <div>
-                    <strong style={{ color: '#f1c40f' }}>A / D :</strong> Move Left / Right
-                  </div>
-                  <div>
-                    <strong style={{ color: '#4ade80' }}>W / Space :</strong> Jump
-                  </div>
-                  <div>
-                    <strong style={{ color: '#38bdf8' }}>C / E :</strong> Evasive Dash
-                  </div>
-                  <div>
-                    <strong style={{ color: '#60a5fa' }}>Shift :</strong> Hold Defence / Block
-                  </div>
-                  <div>
-                    <strong style={{ color: '#c084fc' }}>L :</strong> Timed Parry Deflection
-                  </div>
-                  <div>
-                    <strong style={{ color: '#fb7185' }}>J :</strong> Light Attack (3-Hit Combo)
-                  </div>
-                  <div>
-                    <strong style={{ color: '#fb923c' }}>K :</strong> Heavy Strike / Execution
-                  </div>
-                  <div>
-                    <strong style={{ color: '#cbd5e1' }}>P / Esc :</strong> Pause Duel
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Tactical Fighting Techniques & Move Reference */}
-            <div
-              style={{
-                backgroundColor: 'rgba(12, 16, 26, 0.95)',
-                border: '2px solid #3d495c',
-                borderRadius: '4px',
-                padding: '14px 18px',
-                boxShadow: 'inset 0 0 12px rgba(0, 0, 0, 0.8)',
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'Press Start 2P', monospace",
-                  fontSize: '0.68rem',
-                  fontWeight: 900,
-                  color: '#f1c40f',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.08em',
-                  marginBottom: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                }}
-              >
-                <span>📜</span>
-                <span>Tactical Fighting Arts</span>
-              </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(270px, 1fr))',
-                  gap: '8px 16px',
-                  fontSize: '0.78rem',
-                  color: '#cbd5e1',
-                  lineHeight: '1.4',
-                }}
-              >
+              {/* Controller Menubar / Move Guide Compartment */}
+              <div className={hudStyles.pauseCompartment}>
+                <div className={hudStyles.compartmentRivetTL} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetTR} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetBL} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetBR} aria-hidden="true" />
+                <div className={hudStyles.compartmentMossTL} aria-hidden="true" />
+
                 {isTouchDevice ? (
                   <>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly
-                      tap <strong style={{ color: '#fff' }}>LIGHT</strong> for Slash ➔ Rising Slash
-                      ➔ Spinning Finisher.
+                    <div className={hudStyles.compartmentHeader}>
+                      <span>📱</span>
+                      <span>Arcade Touch Controls</span>
                     </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong>{' '}
-                      Execute rivals at critical health/broken posture with a{' '}
-                      <strong style={{ color: '#fff' }}>HEAVY</strong> strike or 3-hit combo
-                      finisher!
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
-                      <strong style={{ color: '#fff' }}>JUMP (or Auto-Jump)</strong>, then strike
-                      with <strong style={{ color: '#fff' }}>LIGHT / HEAVY</strong> in mid-air to
-                      plunge downward with ground-slam impact.
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Tap{' '}
-                      <strong style={{ color: '#fff' }}>DASH</strong>, then hit{' '}
-                      <strong style={{ color: '#fff' }}>LIGHT</strong> to pierce enemy defenses.
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes
-                      into arena bounds cause warriors to violently rebound off stone walls.
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed tap on{' '}
-                      <strong style={{ color: '#fff' }}>PARRY</strong> deflects blows and causes
-                      heavy posture exhaustion. Hold{' '}
-                      <strong style={{ color: '#fff' }}>BLOCK</strong> for guard.
+                    <div className={hudStyles.pauseControlsGrid}>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>◀ / ▶ :</strong> Move Left / Right
+                      </div>
+                      <div>
+                        <strong style={{ color: '#4ade80' }}>↑ JUMP :</strong> Tap Jump
+                      </div>
+                      <div>
+                        <strong style={{ color: '#facc15' }}>⚡ AUTO :</strong> Toggle Auto Jump
+                      </div>
+                      <div>
+                        <strong style={{ color: '#38bdf8' }}>» DASH :</strong> Evasive Dash
+                      </div>
+                      <div>
+                        <strong style={{ color: '#60a5fa' }}>▣ BLOCK :</strong> Hold to Guard
+                      </div>
+                      <div>
+                        <strong style={{ color: '#c084fc' }}>◈ PARRY :</strong> Counter Parry
+                      </div>
+                      <div>
+                        <strong style={{ color: '#fb7185' }}>† LIGHT :</strong> Light Attack Combo
+                      </div>
+                      <div>
+                        <strong style={{ color: '#fb923c' }}>★ HEAVY :</strong> Heavy Strike /
+                        Finish
+                      </div>
                     </div>
                   </>
                 ) : (
                   <>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly
-                      tap <strong style={{ color: '#fff' }}>J</strong> for Slash ➔ Rising Slash ➔
-                      Spinning Finisher.
+                    <div className={hudStyles.compartmentHeader}>
+                      <span>⌨️</span>
+                      <span>Desktop Controller Keybindings</span>
                     </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong>{' '}
-                      Execute rivals at critical health/broken posture with a{' '}
-                      <strong style={{ color: '#fff' }}>Heavy Strike (K)</strong> or 3-hit combo
-                      finisher!
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
-                      <strong style={{ color: '#fff' }}>Space / W</strong>, then strike with{' '}
-                      <strong style={{ color: '#fff' }}>J / K</strong> in mid-air to plunge downward
-                      with ground-slam impact.
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Dash forward
-                      with <strong style={{ color: '#fff' }}>C / E</strong>, then hit{' '}
-                      <strong style={{ color: '#fff' }}>J</strong> to pierce enemy defenses.
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes
-                      into arena bounds cause warriors to violently rebound off stone walls.
-                    </div>
-                    <div>
-                      <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed parry
-                      with <strong style={{ color: '#fff' }}>L</strong> deflects blows and causes
-                      heavy posture exhaustion.
+                    <div className={hudStyles.pauseControlsGrid}>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>A / D :</strong> Move Left / Right
+                      </div>
+                      <div>
+                        <strong style={{ color: '#4ade80' }}>W / Space :</strong> Jump
+                      </div>
+                      <div>
+                        <strong style={{ color: '#38bdf8' }}>C / E :</strong> Evasive Dash
+                      </div>
+                      <div>
+                        <strong style={{ color: '#60a5fa' }}>Shift :</strong> Hold Defence / Block
+                      </div>
+                      <div>
+                        <strong style={{ color: '#c084fc' }}>L :</strong> Timed Parry Deflection
+                      </div>
+                      <div>
+                        <strong style={{ color: '#fb7185' }}>J :</strong> Light Attack (3-Hit Combo)
+                      </div>
+                      <div>
+                        <strong style={{ color: '#fb923c' }}>K :</strong> Heavy Strike / Execution
+                      </div>
+                      <div>
+                        <strong style={{ color: '#cbd5e1' }}>P / Esc :</strong> Pause Duel
+                      </div>
                     </div>
                   </>
                 )}
+              </div>
+
+              {/* Tactical Fighting Arts Compartment */}
+              <div className={hudStyles.pauseCompartment}>
+                <div className={hudStyles.compartmentRivetTL} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetTR} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetBL} aria-hidden="true" />
+                <div className={hudStyles.compartmentRivetBR} aria-hidden="true" />
+                <div className={hudStyles.compartmentMossTL} aria-hidden="true" />
+
+                <div className={hudStyles.compartmentHeader}>
+                  <span>📜</span>
+                  <span>Tactical Fighting Arts</span>
+                </div>
+                <div className={hudStyles.pauseTacticsGrid}>
+                  {isTouchDevice ? (
+                    <>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly
+                        tap <strong style={{ color: '#fff' }}>LIGHT</strong> for Slash ➔ Rising
+                        Slash ➔ Spinning Finisher.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong>{' '}
+                        Execute rivals at critical health/broken posture with a{' '}
+                        <strong style={{ color: '#fff' }}>HEAVY</strong> strike or 3-hit combo
+                        finisher!
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
+                        <strong style={{ color: '#fff' }}>JUMP (or Auto-Jump)</strong>, then strike
+                        with <strong style={{ color: '#fff' }}>LIGHT / HEAVY</strong> in mid-air to
+                        plunge downward with ground-slam impact.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Tap{' '}
+                        <strong style={{ color: '#fff' }}>DASH</strong>, then hit{' '}
+                        <strong style={{ color: '#fff' }}>LIGHT</strong> to pierce enemy defenses.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes
+                        into arena bounds cause warriors to violently rebound off stone walls.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed tap
+                        on <strong style={{ color: '#fff' }}>PARRY</strong> deflects blows and
+                        causes heavy posture exhaustion. Hold{' '}
+                        <strong style={{ color: '#fff' }}>BLOCK</strong> for guard.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🗡️ 3-Hit Combo Chain:</strong> Rapidly
+                        tap <strong style={{ color: '#fff' }}>J</strong> for Slash ➔ Rising Slash ➔
+                        Spinning Finisher.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>💥 Decapitating Execution:</strong>{' '}
+                        Execute rivals at critical health/broken posture with a{' '}
+                        <strong style={{ color: '#fff' }}>Heavy Strike (K)</strong> or 3-hit combo
+                        finisher!
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🦅 Helm Splitter:</strong> Jump with{' '}
+                        <strong style={{ color: '#fff' }}>Space / W</strong>, then strike with{' '}
+                        <strong style={{ color: '#fff' }}>J / K</strong> in mid-air to plunge
+                        downward with ground-slam impact.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>⚡ Evasive Lunge:</strong> Dash forward
+                        with <strong style={{ color: '#fff' }}>C / E</strong>, then hit{' '}
+                        <strong style={{ color: '#fff' }}>J</strong> to pierce enemy defenses.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🧱 Wall Bounce:</strong> Heavy strikes
+                        into arena bounds cause warriors to violently rebound off stone walls.
+                      </div>
+                      <div>
+                        <strong style={{ color: '#f1c40f' }}>🛡️ Parry & Stagger:</strong> Timed
+                        parry with <strong style={{ color: '#fff' }}>L</strong> deflects blows and
+                        causes heavy posture exhaustion.
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>

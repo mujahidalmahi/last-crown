@@ -344,24 +344,584 @@
   transition: all 0.15s ease;
 }
 
-.pauseModalContainer {
-  background-color: #0b0f19;
-  border: 4px solid var(--border-gold);
+/* ==============================================================================
+   Retro Medieval Stone Pause Modal (Singleplayer)
+   ============================================================================== */
+.pauseModalOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(3, 6, 12, 0.94);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 200;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(8px, 2vw, 24px);
+  box-sizing: border-box;
+  animation: pauseModalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pauseModalFadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Master Frame Stage Container matching the online duel & local arena */
+.pauseStageContainer {
+  position: relative;
+  width: min(96vw, 720px);
+  max-height: 92vh;
+  background-color: #0c1017;
   border-radius: 4px;
-  padding: clamp(16px, 3vh, 28px) clamp(16px, 4vw, 36px);
-  max-width: 680px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.98),
-    inset 0 0 30px rgba(0, 0, 0, 0.9),
-    0 0 30px rgba(212, 175, 55, 0.25);
+    0 0 0 4px #0c1017,
+    0 0 0 8px #3e4c62,
+    0 24px 60px rgba(0, 0, 0, 0.98),
+    0 0 32px rgba(212, 175, 55, 0.2);
   display: flex;
   flex-direction: column;
-  gap: clamp(10px, 2vh, 18px);
-  color: #e2e8f0;
+  overflow: hidden;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+/* Outer Heavy Medieval Stone Frame */
+.pauseStoneFrame {
+  position: absolute;
+  inset: 0;
+  border: clamp(12px, 1.8vw, 18px) solid #283342;
+  box-shadow:
+    inset 0 0 20px rgba(0, 0, 0, 0.95),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.15),
+    inset -2px -2px 0 rgba(0, 0, 0, 0.85);
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* Metallic Corner Plates with Screws */
+.pauseCornerRivetTL,
+.pauseCornerRivetTR,
+.pauseCornerRivetBL,
+.pauseCornerRivetBR {
+  position: absolute;
+  width: clamp(16px, 2vw, 22px);
+  height: clamp(16px, 2vw, 22px);
+  background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
+  border: 2px solid #0f172a;
+  border-radius: 2px;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.9);
+  z-index: 25;
+  pointer-events: none;
+}
+
+.pauseCornerRivetTL {
+  top: 3px;
+  left: 3px;
+}
+.pauseCornerRivetTR {
+  top: 3px;
+  right: 3px;
+}
+.pauseCornerRivetBL {
+  bottom: 3px;
+  left: 3px;
+}
+.pauseCornerRivetBR {
+  bottom: 3px;
+  right: 3px;
+}
+
+/* Mid-rail Screws along Top and Bottom Frame Rails */
+.pauseBorderRivetTop,
+.pauseBorderRivetBottom {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: radial-gradient(circle at 35% 35%, #cbd5e1 0%, #475569 65%, #0f172a 100%);
+  border-radius: 50%;
+  border: 1.5px solid #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  z-index: 25;
+  pointer-events: none;
+}
+
+.pauseBorderRivetTop {
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.pauseBorderRivetBottom {
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Dense Pixel-Art Moss & Ivy Accents */
+.pauseMossTL {
+  position: absolute;
+  top: -2px;
+  left: 16px;
+  width: 48px;
+  height: 20px;
+  background:
+    radial-gradient(circle at 20% 30%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
+    radial-gradient(circle at 70% 60%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  border-radius: 2px 8px 4px 6px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.92;
+}
+
+.pauseMossTR {
+  position: absolute;
+  top: -2px;
+  right: 16px;
+  width: 44px;
+  height: 22px;
+  background:
+    radial-gradient(circle at 60% 30%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
+    radial-gradient(circle at 20% 70%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+  border-radius: 6px 2px 6px 8px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.92;
+}
+
+.pauseMossBL {
+  position: absolute;
+  bottom: -2px;
+  left: 16px;
+  width: 42px;
+  height: 18px;
+  background:
+    radial-gradient(circle at 30% 70%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
+    radial-gradient(circle at 70% 30%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 -1px 3px rgba(0, 0, 0, 0.8));
+  border-radius: 4px 6px 2px 6px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.pauseMossBR {
+  position: absolute;
+  bottom: -2px;
+  right: 16px;
+  width: 46px;
+  height: 20px;
+  background:
+    radial-gradient(circle at 70% 70%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
+    radial-gradient(circle at 30% 20%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
+  filter: drop-shadow(0 -1px 3px rgba(0, 0, 0, 0.8));
+  border-radius: 6px 4px 6px 2px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.pauseMossTopMid {
+  position: absolute;
+  top: -2px;
+  left: 46%;
+  width: 32px;
+  height: 14px;
+  background: radial-gradient(
+    circle at 50% 30%,
+    #4ade80 0%,
+    #16a34a 55%,
+    #14532d 85%,
+    transparent 100%
+  );
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.8));
+  border-radius: 4px 6px 8px 3px;
+  z-index: 26;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* Dark Dungeon Stone Canvas with Inset Shadows and Scroll */
+.pauseStoneCanvas {
+  position: relative;
+  inset: 0;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  background:
+    radial-gradient(ellipse at top center, rgba(30, 41, 59, 0.5) 0%, transparent 70%),
+    linear-gradient(180deg, #171f2c 0%, #0f1521 50%, #090c13 100%);
+  border: 1.5px solid #1a2230;
+  padding: clamp(18px, 2.8vh, 26px) clamp(16px, 2.6vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(12px, 1.8vh, 18px);
+  box-sizing: border-box;
+  z-index: 10;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.96);
+}
+
+/* Subtle CRT Scanline Filter */
+.pauseScanlineOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%);
+  background-size: 100% 4px;
+  pointer-events: none;
+  z-index: 12;
+  opacity: 0.75;
+}
+
+/* Header Section */
+.pauseHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  z-index: 15;
+}
+
+.pauseLogo {
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 12px rgba(241, 196, 15, 0.7));
+}
+
+.pauseTitle {
   font-family: 'Press Start 2P', monospace;
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 900;
+  color: #f1c40f;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 4px 0 0 0;
+  text-shadow:
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    2px 2px 0 #000,
+    0 4px 0 #000,
+    0 0 20px rgba(241, 196, 15, 0.5);
+}
+
+.pauseSubtitle {
+  font-family: 'Press Start 2P', monospace;
+  color: #94a3b8;
+  font-size: clamp(0.52rem, 1vw, 0.65rem);
+  margin: 0;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+/* Action Buttons Row */
+.pauseActionsRow {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  z-index: 15;
+}
+
+/* Gold 3D Resume Button */
+.pauseResumeBtn {
+  background: linear-gradient(180deg, #fef08a 0%, #facc15 35%, #eab308 70%, #a16207 100%);
+  color: #0f172a;
+  border: 2px solid #ffffff;
+  outline: 2px solid #713f12;
+  border-radius: 3px;
+  padding: 10px 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.65rem, 1.1vw, 0.78rem);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.75),
+    0 3px 0 #000,
+    0 0 16px rgba(241, 196, 15, 0.5);
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.pauseResumeBtn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.75),
+    0 5px 0 #000,
+    0 0 24px rgba(241, 196, 15, 0.75);
+}
+
+.pauseResumeBtn:active {
+  transform: translateY(1px);
+}
+
+/* Steel/Amber 3D Restart Button */
+.pauseRestartBtn {
+  background: linear-gradient(180deg, #242d3d 0%, #141a24 100%);
+  color: #f1c40f;
+  border: 2px solid var(--border-gold);
+  outline: 1.5px solid #0c1017;
+  border-radius: 3px;
+  padding: 10px 18px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.65rem, 1.1vw, 0.78rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.8),
+    0 3px 0 #000;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.pauseRestartBtn:hover {
+  background: linear-gradient(180deg, #333f54 0%, #1c2433 100%);
+  color: #ffffff;
+  border-color: #facc15;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 5px 0 #000,
+    0 0 14px rgba(241, 196, 15, 0.4);
+}
+
+.pauseRestartBtn:active {
+  transform: translateY(1px);
+}
+
+/* Steel 3D Castle Hall Button */
+.pauseExitBtn {
+  background: linear-gradient(180deg, #242d3d 0%, #141a24 100%);
+  color: #cbd5e1;
+  border: 2px solid #4a5568;
+  outline: 1.5px solid #0c1017;
+  border-radius: 3px;
+  padding: 10px 18px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.65rem, 1.1vw, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.8),
+    0 3px 0 #000;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.pauseExitBtn:hover {
+  background: linear-gradient(180deg, #333f54 0%, #1c2433 100%);
+  color: #ffffff;
+  border-color: #94a3b8;
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 5px 0 #000,
+    0 0 12px rgba(148, 163, 184, 0.35);
+}
+
+.pauseExitBtn:active {
+  transform: translateY(1px);
+}
+
+/* ==============================================================================
+   Engraved Dark Stone Compartment Box Panels
+   ============================================================================== */
+.pauseCompartment {
+  position: relative;
+  background: linear-gradient(180deg, #1d2534 0%, #121824 100%);
+  border: 2.5px solid #2d3848;
+  outline: 1.5px solid #0c1017;
+  border-radius: 3px;
+  padding: 12px 16px;
+  box-shadow:
+    inset 0 0 16px rgba(0, 0, 0, 0.92),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.1),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.7),
+    0 4px 10px rgba(0, 0, 0, 0.6);
+  z-index: 15;
+}
+
+/* Compartment Corner Screws */
+.compartmentRivetTL,
+.compartmentRivetTR,
+.compartmentRivetBL,
+.compartmentRivetBR {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
+  border-radius: 1px;
+  border: 1px solid #090e17;
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.4),
+    0 1px 2px rgba(0, 0, 0, 0.9);
+  z-index: 17;
+  pointer-events: none;
+}
+
+.compartmentRivetTL {
+  top: 4px;
+  left: 4px;
+}
+.compartmentRivetTR {
+  top: 4px;
+  right: 4px;
+}
+.compartmentRivetBL {
+  bottom: 4px;
+  left: 4px;
+}
+.compartmentRivetBR {
+  bottom: 4px;
+  right: 4px;
+}
+
+/* Tiny Moss Sprouts on Top-Left Corner of Compartment */
+.compartmentMossTL {
+  position: absolute;
+  top: -6px;
+  left: -4px;
+  width: 22px;
+  height: 14px;
+  background:
+    radial-gradient(circle at 30% 30%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
+    radial-gradient(circle at 75% 70%, #86efac 0%, #16a34a 45%, #14532d 85%, transparent 100%);
+  border-radius: 2px 6px 3px 5px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  z-index: 18;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+/* Compartment Header */
+.compartmentHeader {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #f1c40f;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 1px 2px #000;
+}
+
+/* Audio Content Row */
+.pauseAudioRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.pauseVolumeGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.pauseVolumeLabel {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #f1c40f;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.pauseVolumeSlider {
+  flex: 1;
+  accent-color: #f1c40f;
+  cursor: pointer;
+}
+
+.pauseVolumeVal {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #cbd5e1;
+  width: 46px;
+  text-align: right;
+}
+
+.pauseMuteBtn {
+  border-radius: 3px;
+  padding: 8px 14px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.7),
+    0 2px 0 #000;
+  transition: all 0.15s ease;
+}
+
+.pauseMuteBtnActive {
+  background-color: #7f1d1d;
+  color: #fca5a5;
+  border: 2px solid #ef4444;
+}
+
+.pauseMuteBtnInactive {
+  background-color: #1e293b;
+  color: #f1c40f;
+  border: 2px solid rgba(212, 175, 55, 0.5);
+}
+
+/* Controls Grid */
+.pauseControlsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px 12px;
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+/* Tactics Grid */
+.pauseTacticsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px 16px;
+  font-size: 0.76rem;
+  color: #cbd5e1;
+  line-height: 1.4;
 }
 
 /* Hide the keyboard controls ribbon on mobile touch screens */
