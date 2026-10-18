@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const [highContrast, setHighContrast] = useState<boolean>(false);
   const [reducedMotion, setReducedMotion] = useState<boolean>(false);
   const [controlPreset, setControlPreset] = useState<'modern' | 'classic'>('modern');
+  const [controlView, setControlView] = useState<'touch' | 'desktop'>('desktop');
 
   const [stats, setStats] = useState<PlayerStatistics>(DEFAULT_PLAYER_STATISTICS);
   const [confirmReset, setConfirmReset] = useState<boolean>(false);
@@ -31,6 +32,22 @@ export default function SettingsPage() {
     try {
       if (!isBrowserFullscreen()) {
         requestBrowserFullscreen();
+      }
+    } catch {
+      // Handled gracefully
+    }
+
+    try {
+      const hasTouch =
+        (navigator.maxTouchPoints > 0 &&
+          window.matchMedia &&
+          window.matchMedia('(pointer: coarse)').matches) ||
+        ('ontouchstart' in window &&
+          window.matchMedia &&
+          window.matchMedia('(hover: none)').matches) ||
+        (window.innerWidth <= 1024 && 'ontouchstart' in window);
+      if (hasTouch) {
+        setControlView('touch');
       }
     } catch {
       // Handled gracefully
@@ -330,55 +347,123 @@ export default function SettingsPage() {
             </div>
           </section>
 
-          {/* COMPARTMENT 5: Combat Keybindings */}
-          <section className={styles.boxKeybindings} aria-label="Combat Keybindings list">
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Move</span>
-              <div>
-                <span className={`${styles.keyTag} ${styles.tagOrange}`}>A</span>
-                <span className={`${styles.keyTag} ${styles.tagOrange}`}>D</span>
-              </div>
+          {/* COMPARTMENT 5: Combat Controls & Keybindings */}
+          <section
+            className={styles.boxKeybindings}
+            aria-label="Combat Controls and Keybindings list"
+          >
+            <div className={styles.controlSwitcherRow}>
+              <button
+                type="button"
+                onClick={() => setControlView('touch')}
+                className={`${styles.switcherBtn} ${controlView === 'touch' ? styles.switcherBtnActive : ''}`}
+                title="View mobile touch controls"
+              >
+                📱 TOUCH
+              </button>
+              <button
+                type="button"
+                onClick={() => setControlView('desktop')}
+                className={`${styles.switcherBtn} ${controlView === 'desktop' ? styles.switcherBtnActive : ''}`}
+                title="View desktop keyboard keybindings"
+              >
+                ⌨️ KEYS
+              </button>
             </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Jump</span>
-              <span className={`${styles.keyTag} ${styles.tagYellow}`}>SPACE / W</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Dash</span>
-              <span className={`${styles.keyTag} ${styles.tagOrange}`}>C / E</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Slash</span>
-              <span className={`${styles.keyTag} ${styles.tagOrange}`}>J</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Low Sweep</span>
-              <span className={`${styles.keyTag} ${styles.tagOrange}`}>S + J</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Heavy</span>
-              <span className={`${styles.keyTag} ${styles.tagRed}`}>K</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Thrust</span>
-              <span className={`${styles.keyTag} ${styles.tagPurple}`}>U</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Feint</span>
-              <span className={`${styles.keyTag} ${styles.tagBlue}`}>WINDUP+DASH</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Defence</span>
-              <span className={`${styles.keyTag} ${styles.tagBlue}`}>SHIFT</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Parry</span>
-              <span className={`${styles.keyTag} ${styles.tagYellow}`}>L</span>
-            </div>
-            <div className={styles.keyRow}>
-              <span className={styles.keyAction}>Pause</span>
-              <span className={`${styles.keyTag} ${styles.tagYellow}`}>P</span>
-            </div>
+
+            {controlView === 'touch' ? (
+              <>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Move</span>
+                  <div>
+                    <span className={`${styles.keyTag} ${styles.tagOrange}`}>◀</span>
+                    <span className={`${styles.keyTag} ${styles.tagOrange}`}>▶</span>
+                  </div>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Jump</span>
+                  <span className={`${styles.keyTag} ${styles.tagGreen}`}>↑ JUMP</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Auto Jump</span>
+                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>⚡ AUTO</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Dash</span>
+                  <span className={`${styles.keyTag} ${styles.tagBlue}`}>» DASH</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Slash</span>
+                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>† LIGHT</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Heavy</span>
+                  <span className={`${styles.keyTag} ${styles.tagRed}`}>★ HEAVY</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Defence</span>
+                  <span className={`${styles.keyTag} ${styles.tagBlue}`}>▣ BLOCK</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Parry</span>
+                  <span className={`${styles.keyTag} ${styles.tagPurple}`}>◈ PARRY</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Pause</span>
+                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>⏸ PAUSE</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Move</span>
+                  <div>
+                    <span className={`${styles.keyTag} ${styles.tagOrange}`}>A</span>
+                    <span className={`${styles.keyTag} ${styles.tagOrange}`}>D</span>
+                  </div>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Jump</span>
+                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>SPACE / W</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Dash</span>
+                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>C / E</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Slash</span>
+                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>J</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Low Sweep</span>
+                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>S + J</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Heavy</span>
+                  <span className={`${styles.keyTag} ${styles.tagRed}`}>K</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Thrust</span>
+                  <span className={`${styles.keyTag} ${styles.tagPurple}`}>U</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Feint</span>
+                  <span className={`${styles.keyTag} ${styles.tagBlue}`}>WINDUP+DASH</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Defence</span>
+                  <span className={`${styles.keyTag} ${styles.tagBlue}`}>SHIFT</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Parry</span>
+                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>L</span>
+                </div>
+                <div className={styles.keyRow}>
+                  <span className={styles.keyAction}>Pause</span>
+                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>P</span>
+                </div>
+              </>
+            )}
           </section>
         </div>
       </main>

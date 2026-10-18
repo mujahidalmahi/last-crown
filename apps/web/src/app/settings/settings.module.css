@@ -417,6 +417,50 @@
   border: 1px solid #0369a1;
 }
 
+.tagGreen {
+  color: #4ade80;
+  background-color: #062814;
+  border: 1px solid #166534;
+}
+
+.controlSwitcherRow {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
+.switcherBtn {
+  flex: 1;
+  background-color: #151821;
+  color: #8892b0;
+  border: 1px solid #2d3748;
+  padding: 3px 2px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.32rem, 0.55vw, 0.42rem);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.switcherBtn:hover {
+  color: #ffffff;
+  background-color: #242938;
+}
+
+.switcherBtnActive {
+  background-color: #f1c40f !important;
+  color: #080a10 !important;
+  border-color: #ffffff !important;
+  font-weight: 900;
+  box-shadow: 0 0 6px rgba(241, 196, 15, 0.6);
+}
+
 /* Tiny Dark Gray Footer */
 .footerText {
   font-size: clamp(0.42rem, 0.65vw, 0.52rem);
