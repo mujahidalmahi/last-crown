@@ -100,31 +100,27 @@ const StormIcon = () => (
 const SeaWaveIcon = () => (
   <svg
     width="28"
-    height="20"
-    viewBox="0 0 28 20"
+    height="19"
+    viewBox="0 0 28 19"
     fill="none"
     style={{ imageRendering: 'pixelated', verticalAlign: 'middle', flexShrink: 0 }}
     aria-hidden="true"
   >
-    {/* Ocean Wave Body */}
+    {/* Base Ocean Wave */}
     <path
-      d="M2 17 C6 17 8 15 11 12 C14 9 17 6 23 7 C21 9 19 10 17 11 C20 11 23 13 25 16 L2 16 Z"
+      d="M2 17 C6 17, 7 13, 11 13 C15 13, 16 17, 20 17 C23 17, 24 14, 26 14 L26 18 L2 18 Z"
       fill="#0284c7"
-      stroke="#0369a1"
-      strokeWidth="1.5"
     />
-    {/* White Froth & Spray */}
+    {/* Curling Crest Wave */}
     <path
-      d="M17 7 C19 5 24 6 24 8 C22 8 20 9 18 9 Z"
-      fill="#f0f9ff"
-      stroke="#bae6fd"
-      strokeWidth="1"
+      d="M3 13 C7 13, 8 7, 13 7 C17 7, 18 12, 22 12 C24.5 12, 25 10, 26 10 C25 15, 20 16, 17 15 C13 14, 11 10, 8 10 C5 10, 4 13, 3 13 Z"
+      fill="#38bdf8"
     />
-    <circle cx="22" cy="5" r="1.5" fill="#f0f9ff" />
-    <circle cx="16" cy="6" r="1.5" fill="#f0f9ff" />
-    <circle cx="25" cy="9" r="1.5" fill="#f0f9ff" />
-    {/* Wave Crest Shading */}
-    <path d="M6 17 C9 15 12 13 15 11 C13 13 10 15 6 17 Z" fill="#38bdf8" />
+    {/* Foam Spray */}
+    <circle cx="13" cy="6" r="1.5" fill="#f8fafc" />
+    <circle cx="15.5" cy="7" r="1.2" fill="#f8fafc" />
+    <circle cx="11" cy="7.5" r="1" fill="#f8fafc" />
+    <circle cx="23" cy="9.5" r="1.2" fill="#f8fafc" />
   </svg>
 );
 
@@ -218,94 +214,95 @@ export const ArenaSelectModal: React.FC<ArenaSelectModalProps> = ({
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={styles.stageContainer}>
-        {/* Outer Heavy Stone Frame */}
-        <div className={styles.stoneFrame} aria-hidden="true" />
+      <div className={styles.modalContainer}>
+        {/* Top Navigation Bar: Matching Settings & Room */}
+        <nav className={styles.topNav} aria-label="Arena selection navigation">
+          <button
+            type="button"
+            className={styles.mainHallBtn}
+            onClick={onClose}
+            title="Return to Menu"
+          >
+            <span>←</span> BACK
+          </button>
+          <div className={styles.navBadge}>ARENA SELECTION (STEP 1/2)</div>
+        </nav>
 
-        {/* Metallic Corner Plates with Screws */}
-        <div className={styles.cornerRivetTL} aria-hidden="true" />
-        <div className={styles.cornerRivetTR} aria-hidden="true" />
-        <div className={styles.cornerRivetBL} aria-hidden="true" />
-        <div className={styles.cornerRivetBR} aria-hidden="true" />
+        {/* Central Pixel-Art Stone Card Frame */}
+        <div className={styles.stageContainer}>
+          {/* Metallic Corner Plates with Screws */}
+          <div className={styles.cornerRivetTL} aria-hidden="true" />
+          <div className={styles.cornerRivetTR} aria-hidden="true" />
+          <div className={styles.cornerRivetBL} aria-hidden="true" />
+          <div className={styles.cornerRivetBR} aria-hidden="true" />
 
-        {/* Mid-rail Rivets */}
-        <div className={styles.borderRivetTop} aria-hidden="true" />
-        <div className={styles.borderRivetBottom} aria-hidden="true" />
+          {/* Dark Dungeon Stone Canvas */}
+          <div className={styles.stoneCanvas}>
+            {/* Subtle CRT Scanline Overlay */}
+            <div className={styles.scanlineOverlay} aria-hidden="true" />
 
-        {/* Dense Pixel-Art Moss & Ivy Accents */}
-        <div className={styles.mossTL} aria-hidden="true" />
-        <div className={styles.mossTR} aria-hidden="true" />
-        <div className={styles.mossBL} aria-hidden="true" />
-        <div className={styles.mossBR} aria-hidden="true" />
-        <div className={styles.mossTopMid} aria-hidden="true" />
+            {/* Top Header Section */}
+            <header className={styles.header}>
+              <h2 className={styles.headerTitle}>{title}</h2>
+              <p className={styles.headerSubtitle}>
+                Choose your battleground before entering the crucible.
+              </p>
+            </header>
 
-        {/* Dark Dungeon Stone Canvas */}
-        <div className={styles.stoneCanvas}>
-          {/* Subtle CRT Scanline Overlay */}
-          <div className={styles.scanlineOverlay} aria-hidden="true" />
+            {/* 2x2 Arena Compartment Cards Grid */}
+            <div className={styles.arenaGrid}>
+              {ARENA_LIST.map(arena => (
+                <div key={arena.id} className={styles.arenaSlot}>
+                  {/* Compartment Corner Rivets */}
+                  <div className={styles.slotRivetTL} aria-hidden="true" />
+                  <div className={styles.slotRivetTR} aria-hidden="true" />
+                  <div className={styles.slotRivetBL} aria-hidden="true" />
+                  <div className={styles.slotRivetBR} aria-hidden="true" />
 
-          {/* Top Header Section */}
-          <header className={styles.header}>
-            <h2 className={styles.headerTitle}>{title}</h2>
-            <p className={styles.headerSubtitle}>
-              Choose your battleground before entering the crucible.
-            </p>
-          </header>
+                  {/* Compartment Header */}
+                  <div className={styles.badgeHeader}>
+                    {arena.iconPosition === 'left' && (
+                      <span className={styles.badgeIcon}>{arena.icon}</span>
+                    )}
+                    <span className={styles.badgeName}>{arena.displayName}</span>
+                    {arena.iconPosition === 'right' && (
+                      <span className={styles.badgeIcon}>{arena.icon}</span>
+                    )}
+                  </div>
 
-          {/* 2x2 Arena Compartment Cards Grid */}
-          <div className={styles.arenaGrid}>
-            {ARENA_LIST.map(arena => (
-              <div key={arena.id} className={styles.arenaSlot}>
-                {/* Compartment Corner Rivets */}
-                <div className={styles.slotRivetTL} aria-hidden="true" />
-                <div className={styles.slotRivetTR} aria-hidden="true" />
-                <div className={styles.slotRivetBL} aria-hidden="true" />
-                <div className={styles.slotRivetBR} aria-hidden="true" />
-                <div className={styles.slotMossTL} aria-hidden="true" />
+                  {/* Stone Frame Button with Live Playground Preview */}
+                  <button
+                    type="button"
+                    className={styles.stoneButton}
+                    onClick={() => onSelect(arena.id)}
+                    aria-label={`Select ${arena.displayName} Arena`}
+                    title={`Play in ${arena.displayName}`}
+                  >
+                    <div
+                      className={styles.buttonBgImage}
+                      style={{ backgroundImage: `url('${arena.bgImage}')` }}
+                    />
+                    <div className={styles.buttonInnerFrame} />
 
-                {/* Compartment Header */}
-                <div className={styles.badgeHeader}>
-                  {arena.iconPosition === 'left' && (
-                    <span className={styles.badgeIcon}>{arena.icon}</span>
-                  )}
-                  <span className={styles.badgeName}>{arena.displayName}</span>
-                  {arena.iconPosition === 'right' && (
-                    <span className={styles.badgeIcon}>{arena.icon}</span>
-                  )}
+                    <span className={styles.buttonActionTag}>
+                      <span className={styles.selectBtnText}>CHOOSE ARENA</span>
+                    </span>
+                  </button>
                 </div>
+              ))}
+            </div>
 
-                {/* Stone Frame Button with Live Playground Preview */}
-                <button
-                  type="button"
-                  className={styles.stoneButton}
-                  onClick={() => onSelect(arena.id)}
-                  aria-label={`Select ${arena.displayName} Arena`}
-                  title={`Play in ${arena.displayName}`}
-                >
-                  <div
-                    className={styles.buttonBgImage}
-                    style={{ backgroundImage: `url('${arena.bgImage}')` }}
-                  />
-                  <div className={styles.buttonInnerFrame} />
-
-                  <span className={styles.buttonActionTag}>
-                    <span className={styles.selectBtnText}>CHOOSE ARENA</span>
-                  </span>
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom Bar: Back Button */}
-          <div className={styles.bottomNav}>
-            <button
-              type="button"
-              className={styles.backBtn}
-              onClick={onClose}
-              title="Return to menu"
-            >
-              ← BACK TO MENU
-            </button>
+            {/* Bottom Bar: Back Button */}
+            <div className={styles.bottomNav}>
+              <button
+                type="button"
+                className={styles.backBtn}
+                onClick={onClose}
+                title="Return to menu"
+              >
+                ← BACK TO MENU
+              </button>
+            </div>
           </div>
         </div>
       </div>

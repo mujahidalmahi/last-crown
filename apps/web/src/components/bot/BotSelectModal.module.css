@@ -14,9 +14,10 @@
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: clamp(4px, 1.2vw, 16px);
+  padding: clamp(6px, 1.2vh, 14px) clamp(8px, 1.5vw, 16px);
   box-sizing: border-box;
   animation: modalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  overflow: hidden;
 }
 
 @keyframes modalFadeIn {
@@ -30,38 +31,104 @@
   }
 }
 
-/* Master 16:9 Frame Stage Container - Guaranteed Non-Zero Dimensions on All Devices */
+/* Modal Wrapper holding TopNav and Central Stage */
+.modalContainer {
+  width: 100%;
+  max-width: 920px;
+  height: 100%;
+  max-height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(4px, 0.8vh, 8px);
+  box-sizing: border-box;
+}
+
+/* Top Navigation Bar: Matching Settings, Room & Arena Menubars */
+.topNav {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 20;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.mainHallBtn {
+  background-color: rgba(20, 16, 26, 0.92);
+  color: #f1c40f;
+  border: 2px solid #3e3348;
+  outline: 1px solid #d4af37;
+  padding: clamp(4px, 0.8vh, 6px) clamp(8px, 1.2vw, 12px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.52rem, 0.8vw, 0.65rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow:
+    inset -2px -2px 0px 0px rgba(0, 0, 0, 0.8),
+    inset 2px 2px 0px 0px rgba(255, 255, 255, 0.15),
+    0 4px 14px rgba(0, 0, 0, 0.8);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  transition:
+    transform 0.14s ease,
+    background-color 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.mainHallBtn:hover {
+  background-color: #2e2638;
+  color: #ffffff;
+  outline-color: #ffffff;
+  box-shadow: 0 0 12px rgba(241, 196, 15, 0.6);
+  transform: translateY(-1px);
+}
+
+.navBadge {
+  background-color: rgba(16, 20, 28, 0.9);
+  color: #94a3b8;
+  border: 2px solid #2d3748;
+  outline: 1px solid #4a5568;
+  padding: clamp(4px, 0.8vh, 6px) clamp(8px, 1.2vw, 12px);
+  font-family: 'Press Start 2P', monospace;
+  font-size: clamp(0.5rem, 0.75vw, 0.6rem);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 1px 1px 0px 0px rgba(255, 255, 255, 0.08),
+    0 4px 14px rgba(0, 0, 0, 0.8);
+}
+
+/* Central Pixel-Art Stone Card Frame */
 .stageContainer {
   position: relative;
-  width: min(96%, calc(94% * (16 / 9)), 940px);
-  max-width: 940px;
-  max-height: 94%;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  max-height: calc(100% - 38px);
   aspect-ratio: 16 / 9;
   background-color: #0c1017;
+  border: clamp(6px, 1.1vw, 10px) solid #283342;
   border-radius: 4px;
   box-shadow:
     0 0 0 3px #0c1017,
     0 0 0 6px #3e4c62,
     0 20px 50px rgba(0, 0, 0, 0.98),
-    0 0 28px rgba(212, 175, 55, 0.2);
+    0 0 24px rgba(212, 175, 55, 0.15),
+    inset 0 0 30px rgba(0, 0, 0, 0.95),
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.12),
+    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.85);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
   user-select: none;
-}
-
-/* Outer Heavy Medieval Stone Frame */
-.stoneFrame {
-  position: absolute;
-  inset: 0;
-  border: clamp(8px, 1.4vw, 16px) solid #283342;
-  box-shadow:
-    inset 0 0 16px rgba(0, 0, 0, 0.95),
-    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.15),
-    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.85);
-  pointer-events: none;
-  z-index: 20;
 }
 
 /* Metallic Corner Plates with Screws */
@@ -70,8 +137,8 @@
 .cornerRivetBL,
 .cornerRivetBR {
   position: absolute;
-  width: clamp(12px, 1.6vw, 18px);
-  height: clamp(12px, 1.6vw, 18px);
+  width: clamp(12px, 1.5vw, 16px);
+  height: clamp(12px, 1.5vw, 16px);
   background: radial-gradient(circle at 35% 35%, #94a3b8 0%, #334155 70%, #0f172a 100%);
   border: 1.5px solid #0f172a;
   border-radius: 2px;
@@ -99,135 +166,18 @@
   right: 2px;
 }
 
-/* Mid-rail Screws along Top and Bottom Frame Rails */
-.borderRivetTop,
-.borderRivetBottom {
-  position: absolute;
-  width: 8px;
-  height: 8px;
-  background: radial-gradient(circle at 35% 35%, #cbd5e1 0%, #475569 65%, #0f172a 100%);
-  border-radius: 50%;
-  border: 1px solid #0f172a;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
-  z-index: 25;
-  pointer-events: none;
-}
-
-.borderRivetTop {
-  top: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.borderRivetBottom {
-  bottom: 4px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Dense Pixel-Art Moss & Ivy Crawling Over the Stone Frame */
-.mossTL {
-  position: absolute;
-  top: -2px;
-  left: 14px;
-  width: 38px;
-  height: 16px;
-  background:
-    radial-gradient(circle at 20% 30%, #4ade80 0%, #22c55e 40%, #15803d 75%, transparent 100%),
-    radial-gradient(circle at 70% 60%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
-  border-radius: 2px 8px 4px 6px;
-  z-index: 26;
-  pointer-events: none;
-  opacity: 0.92;
-}
-
-.mossTR {
-  position: absolute;
-  top: -2px;
-  right: 14px;
-  width: 36px;
-  height: 18px;
-  background:
-    radial-gradient(circle at 60% 30%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
-    radial-gradient(circle at 20% 70%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
-  border-radius: 6px 2px 6px 8px;
-  z-index: 26;
-  pointer-events: none;
-  opacity: 0.92;
-}
-
-.mossBL {
-  position: absolute;
-  bottom: -2px;
-  left: 14px;
-  width: 36px;
-  height: 16px;
-  background:
-    radial-gradient(circle at 30% 70%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
-    radial-gradient(circle at 80% 30%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
-  border-radius: 4px 6px 2px 8px;
-  z-index: 26;
-  pointer-events: none;
-  opacity: 0.92;
-}
-
-.mossBR {
-  position: absolute;
-  bottom: -2px;
-  right: 14px;
-  width: 40px;
-  height: 16px;
-  background:
-    radial-gradient(circle at 70% 70%, #4ade80 0%, #22c55e 45%, #15803d 80%, transparent 100%),
-    radial-gradient(circle at 20% 30%, #86efac 0%, #16a34a 50%, #14532d 85%, transparent 100%);
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
-  border-radius: 8px 4px 8px 2px;
-  z-index: 26;
-  pointer-events: none;
-  opacity: 0.92;
-}
-
-.mossTopMid {
-  position: absolute;
-  top: -2px;
-  left: 45%;
-  width: 32px;
-  height: 14px;
-  background: radial-gradient(
-    circle at 40% 40%,
-    #4ade80 0%,
-    #16a34a 50%,
-    #14532d 85%,
-    transparent 100%
-  );
-  border-radius: 4px;
-  z-index: 26;
-  pointer-events: none;
-  opacity: 0.85;
-}
-
-/* Dark Dungeon Stone Canvas */
+/* Dark Dungeon Stone Canvas with Internal Scroll */
 .stoneCanvas {
-  position: absolute;
-  inset: clamp(8px, 1.4vw, 16px);
+  position: relative;
+  width: 100%;
+  height: 100%;
   background:
-    radial-gradient(ellipse at top left, rgba(34, 197, 94, 0.08) 0%, transparent 45%),
-    linear-gradient(180deg, #18202d 0%, #0f1520 60%, #090c13 100%),
-    repeating-linear-gradient(
-      45deg,
-      rgba(255, 255, 255, 0.012) 0px,
-      rgba(255, 255, 255, 0.012) 2px,
-      transparent 2px,
-      transparent 6px
-    );
-  box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.95);
+    radial-gradient(ellipse at 50% 0%, rgba(30, 42, 60, 0.45) 0%, transparent 70%),
+    linear-gradient(180deg, #151d28 0%, #0d131c 55%, #080c12 100%);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: clamp(6px, 1vh, 12px) clamp(8px, 1.5vw, 18px);
+  padding: clamp(6px, 1.2vh, 12px) clamp(8px, 1.5vw, 16px);
   box-sizing: border-box;
   z-index: 10;
   overflow-y: auto;
@@ -273,7 +223,7 @@
 
 .headerTitle {
   font-family: 'Press Start 2P', monospace;
-  font-size: clamp(10px, 1.5vw, 16px);
+  font-size: clamp(9px, 1.4vw, 15px);
   font-weight: 900;
   letter-spacing: 0.1em;
   color: #f1c40f;
@@ -308,31 +258,29 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  gap: clamp(5px, 0.9vw, 8px);
+  gap: clamp(6px, 1vw, 10px);
   width: 100%;
   flex: 1;
   min-height: 0;
   z-index: 15;
   box-sizing: border-box;
-  margin: clamp(3px, 0.5vh, 6px) 0;
+  margin: clamp(3px, 0.6vh, 6px) 0;
 }
 
-/* Individual Bot Compartment Card (Engraved Inset Stone Panel) */
+/* Individual Bot Compartment Card (Clean Inset Dark Stone Panel) */
 .botSlot {
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   padding: clamp(5px, 0.8vh, 8px) clamp(8px, 1vw, 10px);
-  background:
-    radial-gradient(ellipse at top right, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
-    linear-gradient(180deg, #1d2534 0%, #121824 100%);
-  border: 2px solid #2d3848;
-  outline: 1px solid #0c1017;
+  background: rgba(10, 15, 24, 0.85);
+  border: 1.5px solid #2d3848;
+  outline: 1px solid #090e17;
   border-radius: 3px;
   box-shadow:
     inset 0 0 12px rgba(0, 0, 0, 0.92),
-    inset 1px 1px 0 rgba(255, 255, 255, 0.1),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.08),
     0 3px 8px rgba(0, 0, 0, 0.8);
   box-sizing: border-box;
   overflow: hidden;
@@ -347,8 +295,9 @@
 .botSlot:hover {
   transform: translateY(-2px);
   border-color: #f1c40f;
+  outline-color: #d97706;
   box-shadow:
-    0 0 12px rgba(241, 196, 15, 0.35),
+    0 0 14px rgba(241, 196, 15, 0.45),
     0 4px 10px rgba(0, 0, 0, 0.9),
     inset 0 0 12px rgba(0, 0, 0, 0.9);
 }
@@ -383,19 +332,6 @@
 .slotRivetBR {
   bottom: 3px;
   right: 3px;
-}
-
-.slotMossTL {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 12px;
-  height: 8px;
-  background: radial-gradient(circle at 20% 20%, #4ade80 0%, #15803d 70%, transparent 100%);
-  border-radius: 2px;
-  opacity: 0.85;
-  pointer-events: none;
-  z-index: 9;
 }
 
 /* Compartment Header: Icon + Name + Difficulty Badge */
@@ -542,6 +478,7 @@
   width: 100%;
   border-top: 1.5px solid #283342;
   padding-top: clamp(4px, 0.6vh, 6px);
+  margin-top: 2px;
   z-index: 15;
   gap: 8px;
   flex-shrink: 0;
@@ -552,7 +489,7 @@
   background: linear-gradient(180deg, #242d3d 0%, #141a24 100%);
   color: #cbd5e1;
   border: 1.5px solid #4a5568;
-  outline: 1px solid #0c1017;
+  outline: 1px solid #0f141e;
   border-radius: 2px;
   padding: clamp(5px, 0.8vh, 7px) clamp(10px, 1.4vw, 16px);
   font-family: 'Press Start 2P', monospace;
@@ -562,7 +499,7 @@
   text-transform: uppercase;
   cursor: pointer;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
     inset 0 -1.5px 0 rgba(0, 0, 0, 0.8),
     0 2px 0 #000;
   transition:
@@ -589,9 +526,8 @@
    ============================================================================== */
 @media (max-width: 580px) and (orientation: portrait) {
   .stageContainer {
-    width: min(96%, 480px);
-    height: min(94%, 600px);
     aspect-ratio: auto;
+    height: min(84vh, 580px);
   }
 
   .botGrid {
