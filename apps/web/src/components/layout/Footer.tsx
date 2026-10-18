@@ -162,32 +162,12 @@ export const Footer: React.FC = () => {
             <ul className={styles.columnList}>
               <li>
                 <a
-                  href="https://github.com/mujahidalmahi"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.footerLink}
-                >
-                  Mujahid Al Mahi (GitHub)
-                </a>
-              </li>
-              <li>
-                <a
                   href="https://mujahidmahi.me"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={styles.footerLink}
                 >
-                  Mujahid's Portfolio ↗
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://github.com/ShahariarJibon"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={styles.footerLink}
-                >
-                  Shahariar H. Jibon (GitHub)
+                  Mujahid Al Mahi
                 </a>
               </li>
               <li>
@@ -197,7 +177,7 @@ export const Footer: React.FC = () => {
                   rel="noopener noreferrer"
                   className={styles.footerLink}
                 >
-                  Shahariar's Portfolio ↗
+                  Shahariar Hossain Jibon
                 </a>
               </li>
               <li>
@@ -245,7 +225,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* --------------------------------------------------------------------
-            Quick Action Bar: Direct Play, Controller & Back to Top
+            Quick Action Bar: Direct Play & Back to Top
             -------------------------------------------------------------------- */}
         <div className={styles.quickActionBar}>
           <div className={styles.quickActionText}>
@@ -256,11 +236,6 @@ export const Footer: React.FC = () => {
           <div className={styles.quickActionButtons}>
             <Link href="/game" className={styles.playActionBtn}>
               <span>PLAY THE GAME</span>
-            </Link>
-
-            <Link href="/controller" className={styles.controllerActionBtn}>
-              <span aria-hidden="true">📱</span>
-              <span>PAIR PHONE</span>
             </Link>
 
             <button
