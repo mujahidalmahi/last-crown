@@ -149,7 +149,7 @@ export default function GamePage() {
           onClick={() => handleModeClick('/local')}
           className={styles.modeButton}
         >
-          LOCAL 2-PLAYER (CONTROLLERS &amp; QR)
+          LOCAL 2-PLAYER
         </PixelButton>
         <PixelButton
           size="lg"
