@@ -96,6 +96,8 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: 'cover',
   themeColor: '#000000',
+  // Prevents address-bar collapse from resizing the game canvas mid-match
+  interactiveWidget: 'resizes-content',
 };
 
 const jsonLd = {

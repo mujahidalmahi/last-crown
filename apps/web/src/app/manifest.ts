@@ -8,7 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
       'Fast-paced retro pixel-art browser fighting game featuring 1v1 online multiplayer, smart AI duels, and local 2-player with smartphone QR controllers.',
     start_url: '/',
     display: 'standalone',
-    orientation: 'any',
+    orientation: 'landscape',
     background_color: '#050810',
     theme_color: '#07090e',
     categories: ['games', 'entertainment', 'action'],

@@ -52,6 +52,15 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    const tryLockLandscape = () => {
+      if (typeof screen !== 'undefined' && screen.orientation && 'lock' in screen.orientation) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (screen.orientation as any).lock('landscape').catch(() => {
+          /* Silently ignore — iOS Safari does not support lock outside fullscreen */
+        });
+      }
+    };
+
     const check = () => {
       const isCoarse =
         window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
@@ -59,24 +68,27 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
         (navigator.maxTouchPoints > 0 && isCoarse) || ('ontouchstart' in window && isCoarse);
       setIsTouchMobile(Boolean(hasTouch));
       setIsPortrait(Boolean(hasTouch && window.innerHeight > window.innerWidth));
-      setTimeout(() => bootstrapRef.current?.refreshScale(), 120);
+      // 300ms lets CSS rotation transition settle before Phaser re-reads canvas size
+      setTimeout(() => bootstrapRef.current?.refreshScale(), 300);
     };
 
     check();
-
-    // Try to lock to landscape on mobile — ignore if not supported
-    if (typeof screen !== 'undefined' && screen.orientation && 'lock' in screen.orientation) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (screen.orientation as any).lock('landscape').catch(() => {
-        /* Silently ignore — not all browsers allow this */
-      });
-    }
+    // Attempt immediately (works in Chrome Android even before fullscreen)
+    tryLockLandscape();
 
     window.addEventListener('resize', check);
     window.addEventListener('orientationchange', check);
+
+    // On first user gesture also re-attempt the lock (required for fullscreen contexts)
+    const onFirstGesture = () => {
+      tryLockLandscape();
+    };
+    window.addEventListener('pointerdown', onFirstGesture, { once: true });
+
     return () => {
       window.removeEventListener('resize', check);
       window.removeEventListener('orientationchange', check);
+      window.removeEventListener('pointerdown', onFirstGesture);
       // Release orientation lock on unmount
       if (typeof screen !== 'undefined' && screen.orientation && 'unlock' in screen.orientation) {
         try {
@@ -288,6 +300,10 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
     };
   }, [mode, playerPreset, opponentPreset, arenaId, colyseusRoom]);
 
+  // When screen.orientation.lock fails (iOS Safari, etc.) we rotate the whole
+  // game container 90° with CSS so the battle is always displayed landscape.
+  const needsCssRotate = isTouchMobile && isPortrait;
+
   return (
     <div
       ref={fullscreenContainerRef}
@@ -295,8 +311,13 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       style={{
         position: 'fixed',
         inset: 0,
-        width: '100dvw',
-        height: '100dvh',
+        // When rotating we swap width↔height so the rotated content fills the screen
+        width: needsCssRotate ? '100dvh' : '100dvw',
+        height: needsCssRotate ? '100dvw' : '100dvh',
+        top: needsCssRotate ? '50%' : 0,
+        left: needsCssRotate ? '50%' : 0,
+        transform: needsCssRotate ? 'translate(-50%, -50%) rotate(90deg)' : 'none',
+        transformOrigin: 'center center',
         backgroundColor: '#050810',
         zIndex: 9999,
         display: 'flex',
@@ -403,40 +424,6 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           }}
           aria-hidden="true"
         />
-
-        {/* Portrait warning overlay — shown only when orientation lock failed */}
-        {isTouchMobile && isPortrait && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              backgroundColor: 'rgba(5, 8, 16, 0.93)',
-              zIndex: 500,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '16px',
-              pointerEvents: 'auto',
-            }}
-          >
-            <span style={{ fontSize: '3rem' }}>📱</span>
-            <p
-              style={{
-                color: '#f1c40f',
-                fontFamily: "'Press Start 2P', monospace",
-                fontSize: 'clamp(0.65rem, 3vw, 0.9rem)',
-                textAlign: 'center',
-                padding: '0 24px',
-                lineHeight: 1.8,
-              }}
-            >
-              ROTATE PHONE
-              <br />
-              SIDEWAYS TO PLAY
-            </p>
-          </div>
-        )}
 
         {/* Touch game controls — overlaid directly on the arena canvas */}
         {isTouchMobile && <MobileGameControls isPortrait={false} />}
