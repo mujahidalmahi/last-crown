@@ -14,7 +14,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 48,
     hitboxOffsetX: 38,
     hitboxOffsetY: -24,
-    knockback: { x: 180, y: -80 },
+    knockback: { x: 35, y: 0 },
     hitstunMs: 320,
   },
   heavy_strike: {
@@ -30,7 +30,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 64,
     hitboxOffsetX: 42,
     hitboxOffsetY: -20,
-    knockback: { x: 340, y: -160 },
+    knockback: { x: 65, y: 0 },
     hitstunMs: 520,
   },
   thrust: {
@@ -46,7 +46,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 28,
     hitboxOffsetX: 52,
     hitboxOffsetY: -12,
-    knockback: { x: 260, y: -40 },
+    knockback: { x: 50, y: 0 },
     hitstunMs: 400,
   },
   slash_combo_2: {
@@ -62,7 +62,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 56,
     hitboxOffsetX: 40,
     hitboxOffsetY: -28,
-    knockback: { x: 210, y: -100 },
+    knockback: { x: 40, y: 0 },
     hitstunMs: 340,
   },
   spinning_finisher: {
@@ -78,7 +78,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 60,
     hitboxOffsetX: 36,
     hitboxOffsetY: -22,
-    knockback: { x: 360, y: -130 },
+    knockback: { x: 75, y: 0 },
     hitstunMs: 480,
   },
   aerial_strike: {
@@ -94,7 +94,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 70,
     hitboxOffsetX: 32,
     hitboxOffsetY: -10,
-    knockback: { x: 240, y: 150 },
+    knockback: { x: 50, y: 0 },
     hitstunMs: 460,
   },
   dash_lunge: {
@@ -110,7 +110,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 36,
     hitboxOffsetX: 48,
     hitboxOffsetY: -14,
-    knockback: { x: 300, y: -60 },
+    knockback: { x: 55, y: 0 },
     hitstunMs: 380,
   },
   low_sweep: {
@@ -126,7 +126,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 28,
     hitboxOffsetX: 44,
     hitboxOffsetY: 24, // low near the feet
-    knockback: { x: 230, y: -80 },
+    knockback: { x: 45, y: 0 },
     hitstunMs: 460,
   },
   command_throw: {
@@ -142,7 +142,7 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     hitboxHeight: 64,
     hitboxOffsetX: 30,
     hitboxOffsetY: -20,
-    knockback: { x: -260, y: -120 },
+    knockback: { x: -65, y: 0 },
     hitstunMs: 480,
   },
 };

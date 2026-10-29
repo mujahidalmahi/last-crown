@@ -160,7 +160,7 @@ export class GameSimulation {
     if (dist <= BALANCE_CONFIG.combat.burstShockwaveRadius) {
       const pushSign = dx >= 0 ? 1 : -1;
       const impulse = BALANCE_CONFIG.combat.burstShockwaveImpulse;
-      target.movement.applyImpulse({ x: pushSign * impulse, y: -120 }, this._physics);
+      target.movement.applyImpulse({ x: pushSign * impulse, y: 0 }, this._physics);
       target.combat.applyCounterStun(350, target.stateMachine);
       target.combat.resetCombo();
     }
@@ -199,8 +199,8 @@ export class GameSimulation {
     // Mutual shove back
     const dx = defender.movement.position.x - attacker.movement.position.x;
     const pushSign = dx >= 0 ? 1 : -1;
-    attacker.movement.applyImpulse({ x: -pushSign * 240, y: -40 }, this._physics);
-    defender.movement.applyImpulse({ x: pushSign * 240, y: -40 }, this._physics);
+    attacker.movement.applyImpulse({ x: -pushSign * 100, y: 0 }, this._physics);
+    defender.movement.applyImpulse({ x: pushSign * 100, y: 0 }, this._physics);
 
     const techResult: HitResult = {
       resolution: 'tech_break',
@@ -346,8 +346,8 @@ export class GameSimulation {
     const p2FacingSign = this.p2.movement.facing === 'right' ? 1 : -1;
     const recoil = BALANCE_CONFIG.combat.clashRecoilImpulse;
 
-    this.p1.movement.applyImpulse({ x: -p1FacingSign * recoil, y: -40 }, this._physics);
-    this.p2.movement.applyImpulse({ x: -p2FacingSign * recoil, y: -40 }, this._physics);
+    this.p1.movement.applyImpulse({ x: -p1FacingSign * recoil, y: 0 }, this._physics);
+    this.p2.movement.applyImpulse({ x: -p2FacingSign * recoil, y: 0 }, this._physics);
 
     const clashResult: HitResult = {
       resolution: 'clash',
@@ -398,7 +398,7 @@ export class GameSimulation {
       );
       // Slight pushback on attacker
       const counterSign = defender.movement.facing === 'right' ? 1 : -1;
-      attacker.movement.applyImpulse({ x: -counterSign * 180, y: -60 }, this._physics);
+      attacker.movement.applyImpulse({ x: -counterSign * 50, y: 0 }, this._physics);
       attacker.combat.resetCombo();
 
       // Parry builds burst meter
@@ -430,7 +430,7 @@ export class GameSimulation {
         // Recoil pushback on attacker when striking a blocking defender
         const attackerFacingSign = attacker.movement.facing === 'right' ? 1 : -1;
         attacker.movement.applyImpulse(
-          { x: -attackerFacingSign * BALANCE_CONFIG.combat.blockAttackerPushbackImpulse, y: -20 },
+          { x: -attackerFacingSign * BALANCE_CONFIG.combat.blockAttackerPushbackImpulse, y: 0 },
           this._physics
         );
       }
@@ -466,8 +466,11 @@ export class GameSimulation {
         );
       }
 
+      // Reset defender velocity on hit so old dash/walk velocity does not stack with knockback
+      defender.movement.setVelocity({ x: 0, y: 0 });
+
       // Apply Directional Influence (DI) to knockback
-      let finalKnockback = result.knockback;
+      let finalKnockback = { ...result.knockback };
       if (
         defender.lastInput &&
         (defender.lastInput.moveX !== 0 || (defender.lastInput.moveY ?? 0) !== 0)
@@ -475,7 +478,11 @@ export class GameSimulation {
         const diX =
           defender.lastInput.moveX * 100 * BALANCE_CONFIG.combat.directionalInfluenceFactor;
         const diY =
-          (defender.lastInput.moveY ?? 0) * 80 * BALANCE_CONFIG.combat.directionalInfluenceFactor;
+          result.knockback.y !== 0
+            ? (defender.lastInput.moveY ?? 0) *
+              80 *
+              BALANCE_CONFIG.combat.directionalInfluenceFactor
+            : 0;
         finalKnockback = {
           x: result.knockback.x + diX,
           y: result.knockback.y + diY,

@@ -9,20 +9,20 @@ export const BALANCE_CONFIG = {
     staminaRegenDelayMs: 600, // Delay after action before stamina starts recovering
     dashSpeed: 420, // Tactical dodge slide impulse (px / sec)
     dashStaminaCost: 18, // Stamina consumed on combat dash
-    clashRecoilImpulse: 240, // Horizontal pushback impulse on weapon clash (px / sec)
+    clashRecoilImpulse: 60, // Horizontal pushback impulse on weapon clash (px / sec)
     clashRecoilStunMs: 220, // Brief recoil stagger on weapon clash
     comboChainWindowMs: 140, // Buffer window to chain into next combo attack
     counterHitDamageMultiplier: 1.25, // 25% damage bonus on Counter-Hit
     counterHitStunBonusMs: 100, // Extra frame advantage on Counter-Hit
     whiffRecoveryPenaltyMs: 70, // Extra recovery on missed attack (footsies / whiff punish)
-    blockAttackerPushbackImpulse: 130, // Recoil pushback on attacker when attacking a blocking defender
+    blockAttackerPushbackImpulse: 40, // Recoil pushback on attacker when attacking a blocking defender
     // Command Throw & Tech Break
     throwRange: 50, // Point-blank throw range in px
     throwDamage: 22, // Throw damage
     throwTechWindowMs: 140, // Window for defender to tech-break a grab
     throwStaminaCost: 20, // Stamina cost to initiate throw
     // Directional Influence (DI) & Tech Rolls
-    directionalInfluenceFactor: 90, // Velocity shift applied per axis by DI input
+    directionalInfluenceFactor: 0.1, // Velocity shift applied per axis by DI input
     techRollInvulnerabilityMs: 250, // Invulnerability frames on recovery tech roll
     techRollSpeed: 380, // Roll velocity (px / sec)
     // Crown Burst
@@ -30,7 +30,7 @@ export const BALANCE_CONFIG = {
     burstMeterPerDamageTaken: 0.5, // 1 point per 2 HP lost
     burstMeterOnParry: 15, // Bonus points awarded on successful parry
     burstShockwaveRadius: 180, // Golden burst combo-breaker pushback radius
-    burstShockwaveImpulse: 460, // Pushback velocity applied to opponent on burst
+    burstShockwaveImpulse: 200, // Pushback velocity applied to opponent on burst
     burstStateDurationMs: 6000, // 6s Golden Burst duration
     burstSpeedMultiplier: 1.18, // 18% speed boost in Golden Burst
   },
