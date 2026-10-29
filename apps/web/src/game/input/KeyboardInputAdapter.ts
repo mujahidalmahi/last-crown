@@ -11,6 +11,8 @@ export class KeyboardInputAdapter {
   private thrustBuffer: boolean = false;
   private parryBuffer: boolean = false;
   private dashBuffer: boolean = false;
+  private throwBuffer: boolean = false;
+  private burstBuffer: boolean = false;
   private lastTapKey: string = '';
   private lastTapTime: number = 0;
   private controlPreset: 'modern' | 'classic' = 'modern';
@@ -65,15 +67,24 @@ export class KeyboardInputAdapter {
         this.heavyAttackBuffer = true;
       }
 
-      // L = Parry (also AltLeft/AltRight, KeyO, KeyF for accessibility)
+      // L = Parry (also AltLeft/AltRight, KeyO for accessibility)
       if (
         e.code === 'KeyL' ||
         e.code === 'KeyO' ||
-        e.code === 'KeyF' ||
         e.code === 'AltLeft' ||
         e.code === 'AltRight'
       ) {
         this.parryBuffer = true;
+      }
+
+      // G / F / T = Breakable Command Grab & Throw
+      if (e.code === 'KeyG' || e.code === 'KeyF' || e.code === 'KeyT') {
+        this.throwBuffer = true;
+      }
+
+      // B / V / R = Crown Burst / Roman Cancel
+      if (e.code === 'KeyB' || e.code === 'KeyV' || e.code === 'KeyR') {
+        this.burstBuffer = true;
       }
 
       // U / I = Forward Thrust
@@ -100,6 +111,8 @@ export class KeyboardInputAdapter {
       this.thrustBuffer = false;
       this.parryBuffer = false;
       this.dashBuffer = false;
+      this.throwBuffer = false;
+      this.burstBuffer = false;
     };
 
     this.onSettingsChangedHandler = () => {
@@ -208,6 +221,12 @@ export class KeyboardInputAdapter {
     const parry = Boolean(this.parryBuffer || touch.parryTrigger || gp?.parry);
     this.parryBuffer = false;
 
+    const isThrow = Boolean(this.throwBuffer || touch.throwTrigger);
+    this.throwBuffer = false;
+
+    const isBurst = Boolean(this.burstBuffer || touch.burstTrigger);
+    this.burstBuffer = false;
+
     return {
       sequence: this.sequence,
       timestamp: Date.now(),
@@ -219,6 +238,8 @@ export class KeyboardInputAdapter {
       block,
       parry,
       dash,
+      throw: isThrow,
+      burst: isBurst,
     };
   }
 

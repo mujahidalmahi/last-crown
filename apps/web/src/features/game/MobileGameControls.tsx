@@ -31,6 +31,8 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
     dash: boolean;
     block: boolean;
     parry: boolean;
+    throw: boolean;
+    burst: boolean;
     heavy: boolean;
     light: boolean;
   }>({
@@ -40,6 +42,8 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
     dash: false,
     block: false,
     parry: false,
+    throw: false,
+    burst: false,
     heavy: false,
     light: false,
   });
@@ -197,6 +201,35 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
     setActiveVisuals(prev => ({ ...prev, parry: false }));
   }, []);
 
+  // ── THROW & BURST ──
+  const handleThrowDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      setActiveVisuals(prev => ({ ...prev, throw: true }));
+      TouchInputBridge.triggerThrow();
+      triggerHaptic(12);
+    },
+    [triggerHaptic]
+  );
+  const handleThrowUp = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    setActiveVisuals(prev => ({ ...prev, throw: false }));
+  }, []);
+
+  const handleBurstDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault();
+      setActiveVisuals(prev => ({ ...prev, burst: true }));
+      TouchInputBridge.triggerBurst();
+      triggerHaptic(20);
+    },
+    [triggerHaptic]
+  );
+  const handleBurstUp = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
+    setActiveVisuals(prev => ({ ...prev, burst: false }));
+  }, []);
+
   // ── ATTACK ──
   const handleLightDown = useCallback(
     (e: React.PointerEvent) => {
@@ -343,6 +376,32 @@ export const MobileGameControls: React.FC<MobileGameControlsProps> = () => {
           >
             <span className={styles.btnIcon}>◈</span>
             <span className={styles.btnLabel}>PARRY</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.throwBtn} ${activeVisuals.throw ? styles.active : ''}`}
+            onPointerDown={handleThrowDown}
+            onPointerUp={handleThrowUp}
+            onPointerCancel={handleThrowUp}
+            onPointerLeave={handleThrowUp}
+            aria-label="Command Throw"
+          >
+            <span className={styles.btnIcon}>🤼</span>
+            <span className={styles.btnLabel}>GRAB</span>
+          </button>
+
+          <button
+            type="button"
+            className={`${styles.burstBtn} ${activeVisuals.burst ? styles.active : ''}`}
+            onPointerDown={handleBurstDown}
+            onPointerUp={handleBurstUp}
+            onPointerCancel={handleBurstUp}
+            onPointerLeave={handleBurstUp}
+            aria-label="Crown Burst"
+          >
+            <span className={styles.btnIcon}>💥</span>
+            <span className={styles.btnLabel}>BURST</span>
           </button>
         </div>
 

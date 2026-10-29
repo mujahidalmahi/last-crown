@@ -2,7 +2,7 @@ import { AABB, Vector2 } from './types.js';
 
 export type AttackPhase = 'none' | 'windup' | 'active' | 'recovery';
 
-export type AttackType = 'light' | 'heavy' | 'thrust' | 'aerial' | 'dash' | 'combo' | 'sweep';
+export type AttackType = 'light' | 'heavy' | 'thrust' | 'aerial' | 'dash' | 'combo' | 'sweep' | 'throw';
 
 export interface AttackDefinition {
   id: string;
@@ -21,7 +21,7 @@ export interface AttackDefinition {
   hitstunMs: number;
 }
 
-export type HitResolutionType = 'hit' | 'blocked' | 'parried' | 'clash' | 'miss';
+export type HitResolutionType = 'hit' | 'blocked' | 'parried' | 'clash' | 'miss' | 'thrown' | 'tech_break';
 
 export interface HitResult {
   resolution: HitResolutionType;
@@ -40,6 +40,10 @@ export interface HitResult {
   isRiposte?: boolean;
   isGuardCrush?: boolean;
   isCounterHit?: boolean;
+  isThrow?: boolean;
+  isThrowTech?: boolean;
+  isBurstBreaker?: boolean;
+  hasSuperArmor?: boolean;
   attackId?: string;
   attackType?: AttackType;
 }

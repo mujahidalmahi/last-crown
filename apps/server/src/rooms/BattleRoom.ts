@@ -918,6 +918,8 @@ export class BattleRoom extends Room<BattleRoomState> {
     warrior.isExhausted = snap.isExhausted;
     warrior.isDecapitated = snap.isDecapitated || false;
     warrior.comboCount = snap.comboCount || 0;
+    warrior.burstMeter = snap.burstMeter;
+    warrior.isBurstActive = snap.isBurstActive || false;
   }
 
   public onUncaughtException(err: Error, methodName: string): void {

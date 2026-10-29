@@ -16,6 +16,23 @@ export const BALANCE_CONFIG = {
     counterHitStunBonusMs: 100, // Extra frame advantage on Counter-Hit
     whiffRecoveryPenaltyMs: 70, // Extra recovery on missed attack (footsies / whiff punish)
     blockAttackerPushbackImpulse: 130, // Recoil pushback on attacker when attacking a blocking defender
+    // Command Throw & Tech Break
+    throwRange: 50, // Point-blank throw range in px
+    throwDamage: 22, // Throw damage
+    throwTechWindowMs: 140, // Window for defender to tech-break a grab
+    throwStaminaCost: 20, // Stamina cost to initiate throw
+    // Directional Influence (DI) & Tech Rolls
+    directionalInfluenceFactor: 90, // Velocity shift applied per axis by DI input
+    techRollInvulnerabilityMs: 250, // Invulnerability frames on recovery tech roll
+    techRollSpeed: 380, // Roll velocity (px / sec)
+    // Crown Burst
+    burstMaxMeter: 100, // Maximum burst meter points
+    burstMeterPerDamageTaken: 0.5, // 1 point per 2 HP lost
+    burstMeterOnParry: 15, // Bonus points awarded on successful parry
+    burstShockwaveRadius: 180, // Golden burst combo-breaker pushback radius
+    burstShockwaveImpulse: 460, // Pushback velocity applied to opponent on burst
+    burstStateDurationMs: 6000, // 6s Golden Burst duration
+    burstSpeedMultiplier: 1.18, // 18% speed boost in Golden Burst
   },
   movement: {
     groundAcceleration: 1800, // Horizontal acceleration on ground (px / sec^2)

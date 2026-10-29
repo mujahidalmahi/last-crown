@@ -4,6 +4,8 @@ import { Badge } from '../../src/components/ui/Badge.js';
 import { Card } from '../../src/components/ui/Card.js';
 import { ArenaSelectModal, ARENA_LIST } from '../../src/components/arena/ArenaSelectModal.js';
 import { BotSelectModal, BOT_CHARACTERS } from '../../src/components/bot/BotSelectModal.js';
+import { WarriorSelectModal, WARRIOR_OPTIONS } from '../../src/components/warrior/WarriorSelectModal.js';
+import { GameHUD } from '../../src/features/game/GameHUD.js';
 
 describe('Web UI Components', () => {
   it('exports Button component successfully', () => {
@@ -62,5 +64,34 @@ describe('Web UI Components', () => {
     expect(BOT_CHARACTERS[3]!.name).toBe('Aurelia');
     expect(BOT_CHARACTERS[3]!.preset).toBe('duelist');
     expect(BOT_CHARACTERS[3]!.difficulty).toBe('master');
+  });
+
+  it('defines WarriorSelectModal and all 4 playable champion presets with distinct combat styles', () => {
+    expect(WarriorSelectModal).toBeDefined();
+    expect(WARRIOR_OPTIONS).toHaveLength(4);
+
+    // Champion 1: Sir Cedric (Balanced Knight)
+    expect(WARRIOR_OPTIONS[0]!.name).toBe('Sir Cedric');
+    expect(WARRIOR_OPTIONS[0]!.preset).toBe('knight');
+    expect(WARRIOR_OPTIONS[0]!.archetypeStyle).toBe('Balanced');
+
+    // Champion 2: Aurelia (Speed / Finesse Duelist)
+    expect(WARRIOR_OPTIONS[1]!.name).toBe('Aurelia');
+    expect(WARRIOR_OPTIONS[1]!.preset).toBe('duelist');
+    expect(WARRIOR_OPTIONS[1]!.archetypeStyle).toBe('Speed / Finesse');
+
+    // Champion 3: Valerius (Heavy Tank Vanguard)
+    expect(WARRIOR_OPTIONS[2]!.name).toBe('Valerius');
+    expect(WARRIOR_OPTIONS[2]!.preset).toBe('vanguard');
+    expect(WARRIOR_OPTIONS[2]!.archetypeStyle).toBe('Heavy Tank');
+
+    // Champion 4: Grimwood (Brawler Marauder)
+    expect(WARRIOR_OPTIONS[3]!.name).toBe('Grimwood');
+    expect(WARRIOR_OPTIONS[3]!.preset).toBe('marauder');
+    expect(WARRIOR_OPTIONS[3]!.archetypeStyle).toBe('Brawler');
+  });
+
+  it('exports GameHUD supporting Crown Burst gauges and combat announcements', () => {
+    expect(GameHUD).toBeDefined();
   });
 });

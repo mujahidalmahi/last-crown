@@ -838,4 +838,324 @@ describe('Combat Simulation', () => {
     expect(sim.isSuddenDeath).toBe(true);
     expect(sim.getSnapshot().isSuddenDeath).toBe(true);
   });
+
+  describe('World-Class Combat Engine Enhancements', () => {
+    it('executes command grab bypassing block and setting isThrow', () => {
+      sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+      sim.p1.movement.setFacing('right');
+      sim.p2.movement.setPosition({ x: 535, y: sim.arena.floorY });
+      sim.p2.movement.setFacing('left');
+
+      // P2 holds shield block
+      sim.p2.processInput({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: true,
+        parry: false,
+      });
+      sim.p2.stateMachine.forceState('blocking');
+
+      let hitEvent: HitResult | null = null;
+      sim.onCombatEvent(result => {
+        hitEvent = result;
+      });
+
+      // P1 initiates command throw
+      sim.p1.processInput({
+        sequence: 2,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+        throw: true,
+      });
+
+      expect(sim.p1.combat.currentAttack?.id).toBe('command_throw');
+
+      // Step forward to active phase (windup is 120ms)
+      for (let i = 0; i < 10; i++) {
+        sim.step(null, { sequence: 3, timestamp: Date.now(), moveX: 0, jump: false, attack: false, block: true, parry: false }, 0.016);
+      }
+
+      expect(hitEvent).not.toBeNull();
+      expect((hitEvent as HitResult).isThrow).toBe(true);
+      expect((hitEvent as HitResult).resolution).toBe('thrown');
+      expect((hitEvent as HitResult).damage).toBe(22);
+      expect(sim.p2.combat.isGrabbed).toBe(true);
+    });
+
+    it('successfully tech-breaks a grab when defender presses throw in tech window', () => {
+      sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+      sim.p2.movement.setPosition({ x: 535, y: sim.arena.floorY });
+
+      let techEvent: HitResult | null = null;
+      sim.onCombatEvent(result => {
+        if (result.isThrowTech) techEvent = result;
+      });
+
+      // P1 throws P2
+      sim.p1.processInput({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+        throw: true,
+      });
+
+      // Advance to hit
+      for (let i = 0; i < 10; i++) {
+        sim.step(null, null, 0.016);
+      }
+      expect(sim.p2.combat.isGrabbed).toBe(true);
+
+      // P2 inputs throw to tech break!
+      sim.step(null, {
+        sequence: 2,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+        throw: true,
+      }, 0.016);
+
+      expect(techEvent).not.toBeNull();
+      expect((techEvent as HitResult).resolution).toBe('tech_break');
+      expect(sim.p2.combat.isGrabbed).toBe(false);
+      expect(sim.p1.combat.attackPhase).toBe('none');
+    });
+
+    it('triggers defensive Burst Breaker in hitstun to repel opponent with shockwave', () => {
+      sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+      sim.p2.movement.setPosition({ x: 550, y: sim.arena.floorY });
+
+      // Put P1 into hitstun and give full burst meter
+      sim.p1.stateMachine.forceState('hitstun');
+      sim.p1.combat.applyCounterStun(400, sim.p1.stateMachine);
+      sim.p1.burstMeter = 100;
+
+      let burstEvent: HitResult | null = null;
+      sim.onCombatEvent(result => {
+        if (result.isBurstBreaker) burstEvent = result;
+      });
+
+      // P1 activates Crown Burst
+      sim.step({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+        burst: true,
+      }, null, 0.016);
+
+      expect(burstEvent).not.toBeNull();
+      expect((burstEvent as HitResult).isBurstBreaker).toBe(true);
+      // P1 hitstun cleared
+      expect(sim.p1.combat.hitstunRemainingMs).toBe(0);
+      expect(sim.p1.stateMachine.state).toBe('idle');
+      // P2 repelled and counter stunned
+      expect(sim.p2.combat.hitstunRemainingMs).toBeGreaterThan(0);
+      expect(sim.p2.movement.velocity.x).toBeGreaterThan(0);
+    });
+
+    it('applies Directional Influence (DI) to knockback velocity', () => {
+      sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+      sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
+
+      // P2 holds Left (-1) during strike to DI away
+      sim.p2.processInput({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: -1,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+      });
+
+      // P1 strikes with heavy attack
+      sim.p1.processInput({
+        sequence: 2,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'heavy',
+        block: false,
+        parry: false,
+      });
+
+      for (let i = 0; i < 20; i++) {
+        sim.step(null, { sequence: 3, timestamp: Date.now(), moveX: -1, jump: false, attack: false, block: false, parry: false }, 0.016);
+      }
+
+      // Heavy attack knockback is 240. Holding -1 (moveX = -1) with DI factor 0.35 reduces x knockback
+      // Without DI, knockback.x is 240. With DI (-1 * 100 * 0.35 = -35), knockback.x is ~205
+      expect(sim.p2.movement.velocity.x).toBeLessThan(240);
+    });
+
+    it('executes Knockdown Tech Roll granting invulnerability', () => {
+      sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+      sim.p1.stateMachine.forceState('hitstun');
+      sim.p1.combat.applyCounterStun(400, sim.p1.stateMachine);
+
+      // Tap dash + moveX while grounded in hitstun
+      sim.p1.processInput({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 1,
+        dash: true,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: false,
+      });
+
+      expect(sim.p1.isInvulnerable).toBe(true);
+      expect(sim.p1.combat.hitstunRemainingMs).toBe(0);
+      expect(sim.p1.movement.velocity.x).toBe(380);
+    });
+
+    it('activates Vanguard Super Armor during heavy strike windup against light attack', () => {
+      const vSim = new GameSimulation('p1', 'P1', 'knight', 'p2', 'P2', 'vanguard');
+      vSim.p1.movement.setPosition({ x: 500, y: vSim.arena.floorY });
+      vSim.p2.movement.setPosition({ x: 540, y: vSim.arena.floorY });
+
+      // P2 (Vanguard) starts heavy strike
+      vSim.p2.processInput({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'heavy',
+        block: false,
+        parry: false,
+      });
+      expect(vSim.p2.combat.attackPhase).toBe('windup');
+      expect(vSim.p2.combat.currentAttack?.id).toBe('heavy_strike');
+
+      let hitResult: HitResult | null = null;
+      vSim.onCombatEvent(r => { hitResult = r; });
+
+      // P1 strikes with light slash
+      vSim.p1.processInput({
+        sequence: 2,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'light',
+        block: false,
+        parry: false,
+      });
+
+      // Step until P1 light connects
+      for (let i = 0; i < 11; i++) {
+        vSim.step(null, null, 0.016);
+      }
+
+      expect(hitResult).not.toBeNull();
+      expect((hitResult as HitResult).hasSuperArmor).toBe(true);
+      // Vanguard heavy windup was NOT interrupted!
+      expect(vSim.p2.combat.attackPhase).toBe('windup');
+      expect(vSim.p2.stateMachine.state).toBe('attacking');
+    });
+
+    it('activates Marauder Blood Siphon restoring 6 HP on clean counter-hit', () => {
+      const mSim = new GameSimulation('p1', 'Marauder P1', 'marauder', 'p2', 'P2', 'knight');
+      mSim.p1.movement.setPosition({ x: 500, y: mSim.arena.floorY });
+      mSim.p2.movement.setPosition({ x: 540, y: mSim.arena.floorY });
+
+      // Damage Marauder slightly so healing is observable
+      mSim.p1.health = 80;
+
+      // P2 starts attack (entering windup)
+      mSim.p2.processInput({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'heavy',
+        block: false,
+        parry: false,
+      });
+
+      // Marauder strikes P2 during windup (counter hit!)
+      mSim.p1.processInput({
+        sequence: 2,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'light',
+        block: false,
+        parry: false,
+      });
+
+      for (let i = 0; i < 11; i++) {
+        mSim.step(null, null, 0.016);
+      }
+
+      // Marauder healed +6 HP
+      expect(mSim.p1.health).toBe(86);
+    });
+
+    it('Knight Bastion Riposte restores 20 SP on clean parry', () => {
+      sim.p1.movement.setPosition({ x: 500, y: sim.arena.floorY });
+      sim.p2.movement.setPosition({ x: 540, y: sim.arena.floorY });
+
+      // P2 stamina reduced
+      sim.p2.stamina = 50;
+
+      // P1 attacks with light slash (160ms windup)
+      sim.p1.processInput({
+        sequence: 1,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: true,
+        attackType: 'light',
+        block: false,
+        parry: false,
+      });
+
+      // Advance 80ms into P1 windup
+      for (let i = 0; i < 5; i++) {
+        sim.step(null, null, 0.016);
+      }
+
+      // P2 activates parry in reaction (parry window is 150ms, active from 80ms to 230ms)
+      sim.p2.processInput({
+        sequence: 2,
+        timestamp: Date.now(),
+        moveX: 0,
+        jump: false,
+        attack: false,
+        block: false,
+        parry: true,
+      });
+
+      // Advance through remainder of windup into active strike (which connects at ~160ms)
+      for (let i = 0; i < 6; i++) {
+        sim.step(null, null, 0.016);
+      }
+
+      // P2 successfully parried and regained +20 SP (50 - 15 parry cost + 20 = 55 + passive regen)
+      expect(sim.p2.stamina).toBeGreaterThanOrEqual(55);
+    });
+  });
 });

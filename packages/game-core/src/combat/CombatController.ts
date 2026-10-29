@@ -20,6 +20,9 @@ export class CombatController {
   private _hasHitInCurrentAttack: boolean = false;
   private _comboHits: number = 0;
   private _comboResetTimerMs: number = 0;
+  private _isGrabbed: boolean = false;
+  private _grabBreakWindowMs: number = 0;
+  private _grabAttackerId: string | null = null;
 
   get attackPhase(): AttackPhase {
     return this._attackPhase;
@@ -51,6 +54,18 @@ export class CombatController {
 
   get comboHits(): number {
     return this._comboHits;
+  }
+
+  get isGrabbed(): boolean {
+    return this._isGrabbed;
+  }
+
+  get grabBreakWindowMs(): number {
+    return this._grabBreakWindowMs;
+  }
+
+  get grabAttackerId(): string | null {
+    return this._grabAttackerId;
   }
 
   public registerHitLanded(): number {
@@ -161,9 +176,21 @@ export class CombatController {
       this._hitstunTimerMs -= deltaMs;
       if (this._hitstunTimerMs <= 0) {
         this._hitstunTimerMs = 0;
+        this._isGrabbed = false;
+        this._grabBreakWindowMs = 0;
+        this._grabAttackerId = null;
         if (stateMachine.state === 'hitstun') {
           stateMachine.transitionTo('idle');
         }
+      }
+    }
+
+    // Grab break window decay
+    if (this._grabBreakWindowMs > 0) {
+      this._grabBreakWindowMs -= deltaMs;
+      if (this._grabBreakWindowMs <= 0) {
+        this._grabBreakWindowMs = 0;
+        this._isGrabbed = false;
       }
     }
 
@@ -243,13 +270,36 @@ export class CombatController {
     return this._hasHitInCurrentAttack;
   }
 
+  public startGrab(attackerId: string): void {
+    this._isGrabbed = true;
+    this._grabBreakWindowMs = BALANCE_CONFIG.combat.throwTechWindowMs;
+    this._grabAttackerId = attackerId;
+  }
+
+  public techBreak(stateMachine: WarriorStateMachine): void {
+    this._isGrabbed = false;
+    this._grabBreakWindowMs = 0;
+    this._grabAttackerId = null;
+    this._hitstunTimerMs = 0;
+    stateMachine.forceState('idle');
+  }
+
+  public clearHitstun(stateMachine: WarriorStateMachine): void {
+    this._hitstunTimerMs = 0;
+    this._isGrabbed = false;
+    this._grabBreakWindowMs = 0;
+    this._grabAttackerId = null;
+    stateMachine.forceState('idle');
+  }
+
   public resolveIncomingHit(
     attackerId: string,
     defenderId: string,
     attack: AttackDefinition,
     attackerFacing: Direction,
     isDefenderFacingAttacker: boolean,
-    stateMachine: WarriorStateMachine
+    stateMachine: WarriorStateMachine,
+    defenderPresetId?: string
   ): HitResult {
     let resolution: HitResolutionType = 'hit';
     let finalDamage = attack.damage;
@@ -258,6 +308,61 @@ export class CombatController {
     let stunMs = attack.hitstunMs;
     let isCritical = false;
     let isCounterHit = false;
+
+    // 1. Check Throw / Command Grab (bypasses parry and block)
+    if (attack.type === 'throw') {
+      this.resetCombo();
+      this.interruptAttack();
+      stateMachine.forceState('hitstun');
+      this._hitstunTimerMs = attack.hitstunMs;
+      this._isGrabbed = true;
+      this._grabBreakWindowMs = BALANCE_CONFIG.combat.throwTechWindowMs;
+      this._grabAttackerId = attackerId;
+
+      const knockbackSign = attackerFacing === 'right' ? 1 : -1;
+      return {
+        resolution: 'thrown',
+        attackerId,
+        defenderId,
+        damage: Math.round(attack.damage),
+        blockedDamage: 0,
+        staminaDamage: 0,
+        knockback: {
+          x: attack.knockback.x * knockbackSign,
+          y: attack.knockback.y,
+        },
+        hitstunMs: attack.hitstunMs,
+        isCritical: false,
+        isThrow: true,
+        attackId: attack.id,
+        attackType: attack.type,
+      };
+    }
+
+    // 2. Check Vanguard Super Armor during heavy strike windup
+    const hasSuperArmor =
+      defenderPresetId === 'vanguard' &&
+      this._attackPhase === 'windup' &&
+      this._currentAttack?.id === 'heavy_strike' &&
+      (attack.type === 'light' || attack.damage <= 18);
+
+    if (hasSuperArmor) {
+      finalDamage = Math.round(attack.damage * 0.5);
+      return {
+        resolution: 'hit',
+        attackerId,
+        defenderId,
+        damage: finalDamage,
+        blockedDamage: 0,
+        staminaDamage: 0,
+        knockback: { x: 0, y: 0 },
+        hitstunMs: 0,
+        isCritical: false,
+        hasSuperArmor: true,
+        attackId: attack.id,
+        attackType: attack.type,
+      };
+    }
 
     // Check Parry First
     if (this.isParryingActive && isDefenderFacingAttacker) {

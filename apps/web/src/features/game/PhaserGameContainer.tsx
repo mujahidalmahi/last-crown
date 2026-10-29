@@ -28,6 +28,7 @@ export interface PhaserGameContainerProps {
   voiceState?: VoiceChatState;
   onRematch?: () => void;
   onExit?: () => void;
+  onSnapshot?: (snapshot: GameSimulationSnapshot) => void;
 }
 
 export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
@@ -41,6 +42,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
   voiceState,
   onRematch,
   onExit,
+  onSnapshot,
 }) => {
   const router = useRouter();
   const fullscreenContainerRef = useRef<HTMLDivElement>(null);
@@ -296,6 +298,7 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
           lastP1Exhausted = snap.p1.isExhausted;
           lastP2Exhausted = snap.p2.isExhausted;
           setSnapshot(snap);
+          onSnapshot?.(snap);
         }
       },
     });

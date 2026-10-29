@@ -66,6 +66,29 @@ describe('WarriorBotAI', () => {
     vi.restoreAllMocks();
   });
 
+  it('delays parry trigger against slow heavy strikes rather than parrying prematurely', () => {
+    ai.setDifficulty('master');
+    vi.spyOn(Math, 'random').mockReturnValue(0.1);
+
+    const bot = createDummySnapshot(500);
+    const player = createDummySnapshot(560, {
+      attackPhase: 'windup',
+      currentAttackId: 'heavy_strike', // 340ms windup
+      facing: 'left',
+    });
+
+    // At 100ms, against a heavy strike (340ms windup), bot should NOT parry early!
+    ai.update(bot, player, 100);
+    const midInput = ai.update(bot, player, 16);
+    expect(midInput.parry).toBe(false);
+
+    // Advance to 280ms (optimal parry window lead before active frame at 340ms)
+    const parryInput = ai.update(bot, player, 170); // Total 286ms
+    expect(parryInput.parry).toBe(true);
+
+    vi.restoreAllMocks();
+  });
+
   it('advances toward opponent when distance is far', () => {
     const bot = createDummySnapshot(300);
     const player = createDummySnapshot(800); // 500px away
@@ -85,6 +108,67 @@ describe('WarriorBotAI', () => {
     expect(input.moveX).toBe(-1);
   });
 
+  it('does not commit to an attack if it would exhaust stamina to zero', () => {
+    ai.setDifficulty('adept');
+    // Bot has only 15 stamina, player has 100 HP (not lethal blow)
+    const bot = createDummySnapshot(500, { stamina: 15 });
+    const player = createDummySnapshot(550, { health: 100 });
+
+    ai.update(bot, player, 500);
+    const input = ai.update(bot, player, 16);
+    // Should abort attack and retreat
+    expect(input.attack).toBe(false);
+    expect(input.moveX).toBe(-1);
+  });
+
+  it('feints active attack with evasive dash when player attempts parry during bot windup', () => {
+    ai.setDifficulty('master');
+    vi.spyOn(Math, 'random').mockReturnValue(0.1);
+
+    const bot = createDummySnapshot(500, {
+      attackPhase: 'windup',
+      stamina: 50,
+    });
+    // Player panicked and triggered parry!
+    const player = createDummySnapshot(560, {
+      state: 'parrying',
+      parryWindowRemainingMs: 140,
+    });
+
+    const input = ai.update(bot, player, 16);
+    expect(input.dash).toBe(true);
+    expect(input.attack).toBe(false);
+
+    vi.restoreAllMocks();
+  });
+
+  it('anti-airs jumping opponents with overhead swat or defensive reaction', () => {
+    ai.setDifficulty('master');
+    const bot = createDummySnapshot(500, { stamina: 80, isGrounded: true });
+    const player = createDummySnapshot(560, { isGrounded: false, health: 100 });
+
+    const input = ai.update(bot, player, 16);
+    // Either overhead swat (attack: true), backdash (dash: true), or high block (block: true)
+    const isAntiAirAction = input.attack || input.dash || input.block;
+    expect(isAntiAirAction).toBe(true);
+  });
+
+  it('escapes corner when pinned against arena boundary', () => {
+    ai.setDifficulty('master');
+    vi.spyOn(Math, 'random').mockReturnValue(0.1);
+
+    // Bot is trapped against left wall (x = 120), player is pressing in from right (x = 200)
+    const bot = createDummySnapshot(120, { stamina: 60, isGrounded: true });
+    const player = createDummySnapshot(200);
+
+    const input = ai.update(bot, player, 16);
+    // Escapes forward into arena (moveX: 1) with dash or jump
+    expect(input.moveX).toBe(1);
+    expect(input.dash || input.jump).toBe(true);
+
+    vi.restoreAllMocks();
+  });
+
   it('master difficulty punishes exhausted player with heavy attack in close range', () => {
     ai.setDifficulty('master');
     const bot = createDummySnapshot(500, { stamina: 100 });
@@ -97,12 +181,15 @@ describe('WarriorBotAI', () => {
     expect(input.attackType).toBe('heavy');
   });
 
-  it('configures novice, adept, and master difficulty settings properly', () => {
+  it('configures novice, adept, expert, and master difficulty settings properly', () => {
     ai.setDifficulty('novice');
     expect(ai.difficulty).toBe('novice');
 
     ai.setDifficulty('adept');
     expect(ai.difficulty).toBe('adept');
+
+    ai.setDifficulty('expert');
+    expect(ai.difficulty).toBe('expert');
 
     ai.setDifficulty('master');
     expect(ai.difficulty).toBe('master');

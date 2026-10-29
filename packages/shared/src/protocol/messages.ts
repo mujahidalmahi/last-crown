@@ -23,6 +23,8 @@ export interface PlayerInputMessage {
   block: boolean;
   parry: boolean;
   dash?: boolean;
+  throw?: boolean;
+  burst?: boolean;
   facing?: Direction;
 }
 

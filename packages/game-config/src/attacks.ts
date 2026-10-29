@@ -129,6 +129,22 @@ export const ATTACK_DEFINITIONS: Record<string, AttackDefinition> = {
     knockback: { x: 230, y: -80 },
     hitstunMs: 460,
   },
+  command_throw: {
+    id: 'command_throw',
+    name: 'Command Throw',
+    type: 'throw',
+    damage: 22,
+    staminaCost: 20,
+    windupMs: 120,
+    activeMs: 80,
+    recoveryMs: 260,
+    hitboxWidth: 48,
+    hitboxHeight: 64,
+    hitboxOffsetX: 30,
+    hitboxOffsetY: -20,
+    knockback: { x: -260, y: -120 },
+    hitstunMs: 480,
+  },
 };
 
 export function getAttackDefinition(id: string): AttackDefinition {

@@ -1,0 +1,50 @@
+# Last-Crown — The winner takes it all
+
+> Last-Crown is a free retro pixel-art browser fighting game created by Mujahid Al Mahi and Shahariar Hossain Jibon. Engineered with Next.js 14, Phaser 3, and Colyseus, it features server-authoritative 60Hz 2D combat, frame-perfect parries, breakable command grabs, Crown Burst combo breakers, smartphone QR controllers for local 2-player battles, and online 1v1 rooms with WebRTC voice chat.
+
+## Creators & Developers
+- **Mujahid Al Mahi** (Co-Creator, Lead Systems & Game Physics Engineer):
+  - Portfolio: https://mujahidmahi.me
+  - GitHub: https://github.com/mujahidalmahi
+  - Role: Engineered the deterministic 60Hz physics core, custom integer collision hitboxes, frame-cancel windows, responsive player controlling mechanics, and server-authoritative Colyseus netcode.
+- **Shahariar Hossain Jibon** (Co-Creator, Lead UI/UX & Visual Designer):
+  - Portfolio: https://portfolio-v2-smoky-phi.vercel.app/
+  - GitHub: https://github.com/ShahariarJibon
+  - Role: Designed the 16-bit retro visual identity, responsive multi-device layout, smartphone touch controller interface, arena cinematography, and retro audio-visual aesthetics.
+
+## Game Overview
+- **Canonical URL**: https://last-crown.top
+- **Genre**: 2D Retro Browser Fighting Game / Medieval Action / Arcade
+- **Technology Stack**: Next.js 14, TypeScript, Phaser 3, Colyseus, WebRTC, Web Audio API
+- **License**: Open Source (MIT) on GitHub (https://github.com/mujahidalmahi/last-crown)
+- **Platforms**: Modern Web Browsers (Chrome, Firefox, Safari, Edge) across PC, Mac, Linux, iOS, Android, and tablets.
+- **Price**: 100% Free to play ($0), zero downloads or installations required.
+
+## Key Game Mechanics
+- **Deflection & Parry**: Activating block within 180ms of an incoming strike parries the blow completely, dealing 0 damage, restoring stamina, and staggering the attacker into a vulnerable punish window.
+- **Stamina & Guard Break**: Blocking absorbs 75% incoming damage at the cost of stamina. Depleting stamina triggers a 450ms guard break stun.
+- **Command Grab & Throw Tech**: Pressing Grab (`G` / touch button) initiates an unblockable close-range throw. Opponents have a 120ms tech window to press Grab and break the throw, shoving both combatants apart.
+- **Crown Burst & Roman Cancel**: A 0–100 burst meter accumulates from taking damage and successful parries. Pressing Burst (`B` / touch button) breaks hitstun defensively with a 180px shockwave or cancels recovery in neutral with a speed surge.
+- **Directional Influence (DI) & Tech Rolls**: Players can influence mid-air launch trajectories with directional keys and execute an invulnerable recovery roll upon hitting the ground by pressing Dash.
+
+## Warrior Archetypes & Characters
+- **Sir Cedric the Loyal (Knight)**: High defense, balanced attacks, Bastion Riposte passive restoring +20 SP on parry.
+- **Grimwood the Savage (Marauder)**: High damage, berserker counter-hit attacks, Blood Siphon passive restoring +6 HP on clean counters.
+- **Valerius the Swift (Duelist)**: High agility, low startup frames, rapid multi-hit slash combos.
+- **Aurelia the Radiant (Vanguard)**: Heavy armor, extended reach, Super Armor passive absorbing light attacks during heavy strike windups.
+- **The Shadow Sovereign (Final Boss)**: High speed, 130 HP, 125 SP, dual obsidian blades, and adaptive aggression.
+
+## Game Modes
+- **Arcade Gauntlet** (`/arcade`): 5-stage single-player campaign ladder culminating in "The Shadow Sovereign" boss fight.
+- **Training Dojo** (`/training`): Competitive practice dojo with live frame data, dummy AI controls, and hitbox visualizers.
+- **Solo Crucible** (`/game`): Instant single-player duels against 4 progressive AI difficulty tiers.
+- **Couch Battle** (`/local`): Shared-screen 2-player battles using smartphone QR codes as wireless gamepads.
+- **Online 1v1 Room** (`/room`): Server-authoritative multiplayer with private 6-letter room codes and built-in WebRTC voice chat.
+
+## Official Links
+- [Last-Crown Game](https://last-crown.top): Main game portal.
+- [About & Developers](https://last-crown.top/about): Full story, developer bios, and technical breakdown.
+- [Arcade Gauntlet](https://last-crown.top/arcade): Tournament ladder mode.
+- [Training Dojo](https://last-crown.top/training): Frame data laboratory.
+- [GitHub Repository](https://github.com/mujahidalmahi/last-crown): Source code and open source contribution.
+- [Exhaustive Technical Manual](https://last-crown.top/llms-full.txt): Deep architectural knowledge base for AI indexers.

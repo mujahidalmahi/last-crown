@@ -11,6 +11,8 @@ export interface TouchInputState {
   thrustTrigger: boolean;
   sweepTrigger: boolean;
   parryTrigger: boolean;
+  throwTrigger: boolean;
+  burstTrigger: boolean;
 }
 
 class TouchInputBridgeClass {
@@ -28,6 +30,8 @@ class TouchInputBridgeClass {
     thrustTrigger: false,
     sweepTrigger: false,
     parryTrigger: false,
+    throwTrigger: false,
+    burstTrigger: false,
   };
 
   public setDirection(direction: {
@@ -86,6 +90,14 @@ class TouchInputBridgeClass {
     this.state.parryTrigger = true;
   }
 
+  public triggerThrow(): void {
+    this.state.throwTrigger = true;
+  }
+
+  public triggerBurst(): void {
+    this.state.burstTrigger = true;
+  }
+
   /**
    * Polls current touch input state and resets single-frame triggers.
    */
@@ -106,6 +118,8 @@ class TouchInputBridgeClass {
     this.state.thrustTrigger = false;
     this.state.sweepTrigger = false;
     this.state.parryTrigger = false;
+    this.state.throwTrigger = false;
+    this.state.burstTrigger = false;
 
     return snapshot;
   }
@@ -125,6 +139,8 @@ class TouchInputBridgeClass {
       thrustTrigger: false,
       sweepTrigger: false,
       parryTrigger: false,
+      throwTrigger: false,
+      burstTrigger: false,
     };
   }
 }

@@ -67,6 +67,14 @@ describe('Mobile Touch Controls and Input Bridge', () => {
     TouchInputBridge.triggerDash();
     expect(TouchInputBridge.poll().dashTrigger).toBe(true);
     expect(TouchInputBridge.poll().dashTrigger).toBe(false);
+
+    TouchInputBridge.triggerThrow();
+    expect(TouchInputBridge.poll().throwTrigger).toBe(true);
+    expect(TouchInputBridge.poll().throwTrigger).toBe(false);
+
+    TouchInputBridge.triggerBurst();
+    expect(TouchInputBridge.poll().burstTrigger).toBe(true);
+    expect(TouchInputBridge.poll().burstTrigger).toBe(false);
   });
 
   it('integrates touch inputs into KeyboardInputAdapter pollInput seamlessly', () => {
@@ -126,6 +134,17 @@ describe('Mobile Touch Controls and Input Bridge', () => {
     TouchInputBridge.setBlock(true);
     input = adapter.pollInput();
     expect(input.block).toBe(true);
+
+    // 10. Test touch throw
+    TouchInputBridge.setBlock(false);
+    TouchInputBridge.triggerThrow();
+    input = adapter.pollInput();
+    expect(input.throw).toBe(true);
+
+    // 11. Test touch burst
+    TouchInputBridge.triggerBurst();
+    input = adapter.pollInput();
+    expect(input.burst).toBe(true);
 
     adapter.destroy();
   });

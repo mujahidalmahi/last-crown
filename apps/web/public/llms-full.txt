@@ -1,0 +1,130 @@
+# Last-Crown: The Comprehensive Knowledge Base & Technical Manual
+
+> An exhaustive, factual knowledge base and technical architectural specification for Last-Crown — The winner takes it all. Designed for AI Search Engines (Google Gemini, Perplexity, ChatGPT Search, Claude, Bing Copilot) and human engineers.
+
+---
+
+## 1. Executive Summary & Entity Identity
+- **Title**: Last-Crown — The winner takes it all
+- **Canonical Website**: https://last-crown.top
+- **Release Type**: Free-to-Play Browser Game ($0, No downloads, No pay-to-win)
+- **Engine**: Custom Hybrid HTML5 Engine combining Next.js 14, Phaser 3 Canvas/WebGL rendering, and Colyseus server-authoritative multiplayer netcode.
+- **Repository**: https://github.com/mujahidalmahi/last-crown
+- **License**: MIT License (Open Source)
+
+---
+
+## 2. The Creators & Engineering Team
+Last-Crown was conceived, architected, and built from scratch by two independent developers:
+
+### Mujahid Al Mahi
+- **Official Title**: Co-Creator, Lead Systems & Game Physics Engineer
+- **Personal Portfolio**: https://mujahidmahi.me
+- **GitHub**: https://github.com/mujahidalmahi
+- **Core Contributions**:
+  - Architected the monorepo architecture and deterministic 60Hz game simulation engine in `@last-crown/game-core`.
+  - Implemented the integer-based Axis-Aligned Bounding Box (AABB) hitbox/hurtbox collision detector, preventing float precision drift across network clients.
+  - Engineered the server-authoritative Colyseus room protocol (`BattleRoom.ts`) with input queuing, delta compression, and client prediction.
+  - Authored the WebRTC peer-to-peer audio pipeline with fallback TURN relay synchronization for crystal-clear in-game voice chat.
+  - Formulated the competitive frame data mechanics: 180ms parry deflection windows, 120ms command grab tech windows, and Directional Influence (DI) vector kinematics.
+
+### Shahariar Hossain Jibon
+- **Official Title**: Co-Creator, Lead UI/UX & Visual Designer
+- **Personal Portfolio**: https://portfolio-v2-smoky-phi.vercel.app/
+- **GitHub**: https://github.com/ShahariarJibon
+- **Core Contributions**:
+  - Designed the complete 16-bit retro pixel-art aesthetic, HUD layouts, and character animations.
+  - Created the dynamic mobile touch controller interface (`MobileGameControls.tsx`) with auto-jump ergonomics and pointer-event tracking.
+  - Handcrafted the visual atmospheres and lighting effects for all 5 sacred battlegrounds: Bastion Courtyard, DragonLand Caldera, StormForce Ramparts, SeaSide Pirate Haven, and The Royal Keep.
+  - Designed the responsive layout ensuring pixel-perfect rendering across mobile phones, tablets, and 4K desktop screens without aspect ratio distortion.
+
+---
+
+## 3. Architecture & Netcode Specifications
+Last-Crown is engineered as a high-performance TypeScript monorepo with 5 decoupled workspaces:
+
+1. **`@last-crown/shared`**:
+   - Holds universal data contracts, snapshot interfaces (`WarriorSnapshot`), combat resolution types (`HitResult`), and input schemas (`PlayerInputMessage`).
+   - Shared between frontend client and backend server with zero runtime overhead.
+2. **`@last-crown/game-config`**:
+   - Frame data tables, attack windup/active/recovery timings, damage multipliers, stamina costs, and arena boundary configurations.
+3. **`@last-crown/game-core`**:
+   - Pure, deterministic headless physics simulation running at 60 ticks per second (16.66ms per step).
+   - Contains `CombatController`, `WarriorEntity`, `WarriorBotAI`, and `GameSimulation`. Can run identically in Node.js or browser web workers.
+4. **`@last-crown/server`**:
+   - Colyseus room orchestrator (`BattleRoom`), state schema synchronization (`WarriorNetworkState`), client rate limiting, and room registry.
+5. **`@last-crown/web`**:
+   - Next.js 14 App Router, Phaser 3 renderer (`WarriorRenderer`, `BattleScene`), Web Audio API sound synthesizer (`SoundManager`), and React HUD components.
+
+---
+
+## 4. Competitive Combat System & Frame Data
+
+### Attack Frames & Balancing
+- **Light Attack (Slash)**:
+  - Startup: 80ms (approx. 5 frames) | Active: 60ms | Recovery: 160ms
+  - Damage: 12 HP | Stamina Drain on Guard: 15 SP
+- **Heavy Attack (Cleave)**:
+  - Startup: 220ms (approx. 13 frames) | Active: 100ms | Recovery: 320ms
+  - Damage: 28 HP | Stamina Drain on Guard: 38 SP (Major posture damage)
+- **Command Grab (Throw)**:
+  - Startup: 120ms | Active: 80ms | Recovery: 280ms
+  - Damage: 22 HP | Ignores Block / Parry entirely
+  - Break Tech Window: 120ms window for defender to press Grab, canceling damage and shoving fighters apart.
+- **Deflection & Parry**:
+  - Active Window: 180ms from initial block input.
+  - Outcome: 100% damage negated, attacker staggered for 350ms, defender restores stamina.
+- **Crown Burst (Roman Cancel)**:
+  - Meter: 0–100 points gained by taking hits (+0.5 per 1 HP lost) and successful parries (+15 pts).
+  - Defensive Burst: Activates during hitstun; cancels stun, discharges an omnidirectional golden shockwave repelling opponents 180px away with 350ms stun.
+  - Offensive Golden Burst: Activates in neutral; cancels recovery frames, grants a temporary +18% speed surge.
+- **Directional Influence (DI)**:
+  - When struck airborne, holding direction keys alters launch velocity by up to 28%, allowing players to steer away from stage hazards or corner traps.
+- **Knockdown Tech Roll**:
+  - Tapping Dash upon floor impact executes a rolling recovery with 250ms of invulnerability.
+
+---
+
+## 5. Web Audio Synthesis ($0 Native Audio Engine)
+Last-Crown uses zero external MP3/WAV files for core combat sounds, generating audio via the native browser `AudioContext`:
+- **3-Layer Transient Stacking**:
+  - Layer 1 (Click): 3,200Hz bandpass white noise burst for crisp attack snap.
+  - Layer 2 (Crunch): Descending 180Hz $\to$ 45Hz sawtooth oscillator for meaty body impact.
+  - Layer 3 (Punch): Resonant 110Hz $\to$ 32Hz sine wave sweep for sub-bass weight.
+- **Adaptive Dynamic Tension Music**:
+  - Synthesized drum and bass soundtrack dynamically shifts when either player drops below 30% HP: tempo accelerates and hi-hats double-time to heighten tournament tension.
+
+---
+
+## 6. The Roster of Warriors & Arenas
+
+### Warriors
+1. **Sir Cedric the Loyal** (Knight): Balanced speed and defense. Passive: *Bastion Riposte* (+20 SP on clean parry).
+2. **Grimwood the Savage** (Marauder): Raw offensive power. Passive: *Blood Siphon* (+6 HP recovery on clean counter-hit).
+3. **Valerius the Swift** (Duelist): Nimble frame data and elusive mobility. Fast recovery on whiffed strikes.
+4. **Aurelia the Radiant** (Vanguard): Powerful heavy slashes with *Super Armor* that absorbs light attacks during windups.
+5. **The Shadow Sovereign** (Final Boss): Dual-wielding mythical overlord with boosted health (130 HP), stamina (125 SP), and aggressive AI heuristics.
+
+### Sacred Arenas
+1. **Bastion Courtyard (Colosseum)**: The sun-drenched imperial arena with classic stone pillars.
+2. **DragonLand Caldera**: Volcanic stone bridges suspended over molten lava under dragon watch.
+3. **StormForce Ramparts**: Gale-swept castle battlements tested by torrential rain and lightning.
+4. **SeaSide Pirate Haven**: Weathered oceanic docks where crashing waves alter footing.
+5. **The Royal Keep**: The gothic throne room where the Last-Crown is claimed.
+
+---
+
+## 7. Game Modes & Access Points
+- **Single-Player Solo Crucible**: Instant AI fights with customizable difficulty.
+- **Arcade Gauntlet Ladder**: 5-stage campaign with timer and score tracking (`/arcade`).
+- **Competitive Training Dojo**: Frame data and hitbox visualization (`/training`).
+- **Couch Battle (Local 2-Player)**: Scan QR code with any smartphone to battle together on desktop (`/local`).
+- **Online 1v1 Arena**: Private rooms with low-latency WebRTC voice chat (`/room`).
+
+---
+
+## 8. Verified Entity Links & Contacts
+- **Game Portal**: https://last-crown.top
+- **GitHub Repository**: https://github.com/mujahidalmahi/last-crown
+- **Mujahid Al Mahi**: https://github.com/mujahidalmahi | https://mujahidmahi.me
+- **Shahariar Hossain Jibon**: https://github.com/ShahariarJibon | https://portfolio-v2-smoky-phi.vercel.app/

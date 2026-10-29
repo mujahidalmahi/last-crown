@@ -119,6 +119,10 @@ export class GameSimulation {
     if (p1Input) this.p1.processInput(p1Input);
     if (p2Input) this.p2.processInput(p2Input);
 
+    // Check Crown Burst Shockwaves & Throw Tech Breaks
+    this.checkBurstShockwaves();
+    this.checkTechBreaks();
+
     // Update warrior physics and states
     this.p1.update(p1Input, clampedDeltaSec, this.arena, this._physics);
     this.p2.update(p2Input, clampedDeltaSec, this.arena, this._physics);
@@ -137,6 +141,83 @@ export class GameSimulation {
 
     // Check round win conditions
     this.checkRoundConditions();
+  }
+
+  private checkBurstShockwaves(): void {
+    if (this.p1.consumeBurstBreaker()) {
+      this.triggerBurstShockwave(this.p1, this.p2);
+    }
+    if (this.p2.consumeBurstBreaker()) {
+      this.triggerBurstShockwave(this.p2, this.p1);
+    }
+  }
+
+  private triggerBurstShockwave(user: WarriorEntity, target: WarriorEntity): void {
+    const dx = target.movement.position.x - user.movement.position.x;
+    const dy = target.movement.position.y - user.movement.position.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+
+    if (dist <= BALANCE_CONFIG.combat.burstShockwaveRadius) {
+      const pushSign = dx >= 0 ? 1 : -1;
+      const impulse = BALANCE_CONFIG.combat.burstShockwaveImpulse;
+      target.movement.applyImpulse({ x: pushSign * impulse, y: -120 }, this._physics);
+      target.combat.applyCounterStun(350, target.stateMachine);
+      target.combat.resetCombo();
+    }
+
+    const burstResult: HitResult = {
+      resolution: 'hit',
+      attackerId: user.id,
+      defenderId: target.id,
+      damage: 0,
+      blockedDamage: 0,
+      staminaDamage: 0,
+      knockback: { x: 0, y: 0 },
+      hitstunMs: 350,
+      isCritical: false,
+      isBurstBreaker: true,
+    };
+
+    for (const listener of this._combatEventListeners) {
+      listener(burstResult);
+    }
+  }
+
+  private checkTechBreaks(): void {
+    if (this.p1.consumeTechBreak()) {
+      this.executeTechBreak(this.p1, this.p2);
+    }
+    if (this.p2.consumeTechBreak()) {
+      this.executeTechBreak(this.p2, this.p1);
+    }
+  }
+
+  private executeTechBreak(defender: WarriorEntity, attacker: WarriorEntity): void {
+    attacker.combat.interruptAttack();
+    attacker.stateMachine.forceState('idle');
+
+    // Mutual shove back
+    const dx = defender.movement.position.x - attacker.movement.position.x;
+    const pushSign = dx >= 0 ? 1 : -1;
+    attacker.movement.applyImpulse({ x: -pushSign * 240, y: -40 }, this._physics);
+    defender.movement.applyImpulse({ x: pushSign * 240, y: -40 }, this._physics);
+
+    const techResult: HitResult = {
+      resolution: 'tech_break',
+      attackerId: attacker.id,
+      defenderId: defender.id,
+      damage: 0,
+      blockedDamage: 0,
+      staminaDamage: 0,
+      knockback: { x: 0, y: 0 },
+      hitstunMs: 140,
+      isCritical: false,
+      isThrowTech: true,
+    };
+
+    for (const listener of this._combatEventListeners) {
+      listener(techResult);
+    }
   }
 
   private resolveFighterSeparation(): void {
@@ -238,7 +319,7 @@ export class GameSimulation {
     // 2. Check P1 attacking P2
     if (p1Hitbox && !this.p1.combat.hasAlreadyHit()) {
       const p2Hurtbox = this.p2.getHurtbox();
-      if (checkAABBOverlap(p1Hitbox.bounds, p2Hurtbox)) {
+      if (!this.p2.isInvulnerable && checkAABBOverlap(p1Hitbox.bounds, p2Hurtbox)) {
         this.executeHit(this.p1, this.p2);
       }
     }
@@ -246,7 +327,7 @@ export class GameSimulation {
     // 3. Check P2 attacking P1
     if (p2Hitbox && !this.p2.combat.hasAlreadyHit()) {
       const p1Hurtbox = this.p1.getHurtbox();
-      if (checkAABBOverlap(p2Hitbox.bounds, p1Hurtbox)) {
+      if (!this.p1.isInvulnerable && checkAABBOverlap(p2Hitbox.bounds, p1Hurtbox)) {
         this.executeHit(this.p2, this.p1);
       }
     }
@@ -288,6 +369,7 @@ export class GameSimulation {
 
   private executeHit(attacker: WarriorEntity, defender: WarriorEntity): void {
     if (!attacker.combat.currentAttack) return;
+    if (defender.isInvulnerable) return;
 
     attacker.combat.markHitConfirmed();
 
@@ -303,7 +385,8 @@ export class GameSimulation {
       attacker.combat.currentAttack,
       attacker.movement.facing,
       isDefenderFacingAttacker,
-      defender.stateMachine
+      defender.stateMachine,
+      defender.preset.id
     );
 
     if (result.resolution === 'parried') {
@@ -317,11 +400,31 @@ export class GameSimulation {
       const counterSign = defender.movement.facing === 'right' ? 1 : -1;
       attacker.movement.applyImpulse({ x: -counterSign * 180, y: -60 }, this._physics);
       attacker.combat.resetCombo();
+
+      // Parry builds burst meter
+      defender.burstMeter = Math.min(
+        BALANCE_CONFIG.combat.burstMaxMeter,
+        defender.burstMeter + BALANCE_CONFIG.combat.burstMeterOnParry
+      );
+
+      // Knight Bastion Riposte: restores 20 SP and bonus burst
+      if (defender.preset.id === 'knight') {
+        defender.stamina = Math.min(defender.maxStamina, defender.stamina + 20);
+        defender.burstMeter = Math.min(
+          BALANCE_CONFIG.combat.burstMaxMeter,
+          defender.burstMeter + 10
+        );
+      }
     } else {
-      if (result.resolution === 'hit') {
+      if (result.resolution === 'hit' || result.resolution === 'thrown') {
         const combo = attacker.combat.registerHitLanded();
         result.comboCount = combo;
         defender.combat.resetCombo();
+
+        // Marauder Blood Siphon: recovers 6 HP on clean counter-hit
+        if (attacker.preset.id === 'marauder' && result.isCounterHit) {
+          attacker.health = Math.min(attacker.maxHealth, attacker.health + 6);
+        }
       } else {
         attacker.combat.resetCombo();
         // Recoil pushback on attacker when striking a blocking defender
@@ -362,7 +465,23 @@ export class GameSimulation {
           defender.stateMachine
         );
       }
-      defender.movement.applyImpulse(result.knockback, this._physics);
+
+      // Apply Directional Influence (DI) to knockback
+      let finalKnockback = result.knockback;
+      if (
+        defender.lastInput &&
+        (defender.lastInput.moveX !== 0 || (defender.lastInput.moveY ?? 0) !== 0)
+      ) {
+        const diX =
+          defender.lastInput.moveX * 100 * BALANCE_CONFIG.combat.directionalInfluenceFactor;
+        const diY =
+          (defender.lastInput.moveY ?? 0) * 80 * BALANCE_CONFIG.combat.directionalInfluenceFactor;
+        finalKnockback = {
+          x: result.knockback.x + diX,
+          y: result.knockback.y + diY,
+        };
+      }
+      defender.movement.applyImpulse(finalKnockback, this._physics);
     }
 
     // Notify listeners

@@ -52,6 +52,7 @@ function PlayContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const arena = searchParams.get('arena') || 'coloseum';
+  const player = searchParams.get('player') || 'knight';
   const bot = searchParams.get('bot') || 'knight';
   const difficulty =
     (searchParams.get('difficulty') as 'novice' | 'adept' | 'expert' | 'master' | null) ||
@@ -62,6 +63,7 @@ function PlayContent() {
     <PhaserGameContainer
       mode="singleplayer"
       arenaId={arena}
+      playerPreset={player}
       opponentPreset={bot}
       botDifficulty={difficulty}
       botName={botName}

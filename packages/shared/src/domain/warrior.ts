@@ -43,4 +43,8 @@ export interface WarriorSnapshot {
   isExhausted: boolean;
   isDecapitated?: boolean;
   comboCount?: number;
+  burstMeter: number;
+  isBurstActive?: boolean;
+  isGrabbed?: boolean;
+  grabBreakWindowMs?: number;
 }

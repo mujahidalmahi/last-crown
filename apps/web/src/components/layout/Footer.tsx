@@ -83,6 +83,16 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className={styles.columnList}>
               <li>
+                <Link href="/arcade" className={styles.footerLink}>
+                  Arcade Gauntlet (5 Stages)
+                </Link>
+              </li>
+              <li>
+                <Link href="/training" className={styles.footerLink}>
+                  Training Dojo (Frame Data)
+                </Link>
+              </li>
+              <li>
                 <Link href="/game" className={styles.footerLink}>
                   The Game Hub
                 </Link>
@@ -160,6 +170,11 @@ export const Footer: React.FC = () => {
               <span aria-hidden="true">📜</span> Creators &amp; Code
             </h4>
             <ul className={styles.columnList}>
+              <li>
+                <Link href="/about" className={styles.footerLink}>
+                  About the Creators &amp; Lore
+                </Link>
+              </li>
               <li>
                 <a
                   href="https://mujahidmahi.me"
