@@ -4,7 +4,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { PixelButton } from '../../components/ui/PixelButton';
 import { ArenaSelectModal } from '../../components/arena/ArenaSelectModal';
-import { WarriorSelectModal } from '../../components/warrior/WarriorSelectModal';
 import { BotSelectModal, BotCharacter } from '../../components/bot/BotSelectModal';
 import {
   requestBrowserFullscreen,
@@ -20,10 +19,8 @@ export default function GamePage() {
   const [screen, setScreen] = useState<Screen>('cover1');
   const [isFadingToGame, setIsFadingToGame] = useState(false);
   const [isArenaModalOpen, setIsArenaModalOpen] = useState(false);
-  const [isWarriorModalOpen, setIsWarriorModalOpen] = useState(false);
   const [isBotModalOpen, setIsBotModalOpen] = useState(false);
   const [selectedArena, setSelectedArena] = useState<string>('coloseum');
-  const [selectedPlayerPreset, setSelectedPlayerPreset] = useState<string>('knight');
   const [transitionDirection, setTransitionDirection] = useState<'forward' | 'reverse'>('forward');
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -119,58 +116,33 @@ export default function GamePage() {
   const handleSelectArena = useCallback((arenaId: string) => {
     setSelectedArena(arenaId);
     setIsArenaModalOpen(false);
-    setIsWarriorModalOpen(true);
-  }, []);
-
-  const handleSelectWarrior = useCallback((preset: string) => {
-    setSelectedPlayerPreset(preset);
-    setIsWarriorModalOpen(false);
     setIsBotModalOpen(true);
-  }, []);
-
-  const handleBackToArena = useCallback(() => {
-    setIsWarriorModalOpen(false);
-    setIsArenaModalOpen(true);
-  }, []);
-
-  const handleBackToWarrior = useCallback(() => {
-    setIsBotModalOpen(false);
-    setIsWarriorModalOpen(true);
   }, []);
 
   const handleSelectBot = useCallback(
     (bot: BotCharacter) => {
       setIsBotModalOpen(false);
       handleModeClick(
-        `/play?arena=${selectedArena}&player=${selectedPlayerPreset}&bot=${bot.preset}&difficulty=${bot.difficulty}&botName=${encodeURIComponent(bot.name)}`
+        `/play?arena=${selectedArena}&bot=${bot.preset}&difficulty=${bot.difficulty}&botName=${encodeURIComponent(bot.name)}`
       );
     },
-    [handleModeClick, selectedArena, selectedPlayerPreset]
+    [handleModeClick, selectedArena]
   );
+
+  const handleBackToArena = useCallback(() => {
+    setIsBotModalOpen(false);
+    setIsArenaModalOpen(true);
+  }, []);
 
   const renderCover2 = () => (
     <div className={styles.coverContainer} role="region" aria-label="Game modes">
       <div className={styles.buttonGroup}>
         <PixelButton
           size="lg"
-          onClick={() => handleModeClick('/arcade')}
-          className={styles.modeButton}
-        >
-          ARCADE GAUNTLET
-        </PixelButton>
-        <PixelButton
-          size="lg"
-          onClick={() => handleModeClick('/training')}
-          className={styles.modeButton}
-        >
-          TRAINING DOJO
-        </PixelButton>
-        <PixelButton
-          size="lg"
           onClick={() => setIsArenaModalOpen(true)}
           className={styles.modeButton}
         >
-          CUSTOM VS AI
+          BATTLE AI WARRIOR
         </PixelButton>
         <PixelButton
           size="lg"
@@ -293,22 +265,12 @@ export default function GamePage() {
         title="SELECT ARENA"
       />
 
-      {/* Warrior / Champion Selection Modal (Step 2) */}
-      <WarriorSelectModal
-        isOpen={isWarriorModalOpen}
-        selectedPreset={selectedPlayerPreset}
-        selectedArenaName={selectedArena}
-        onSelectWarrior={handleSelectWarrior}
-        onBackToArena={handleBackToArena}
-        onClose={() => setIsWarriorModalOpen(false)}
-      />
-
-      {/* Bot / AI Rival Selection Modal (Step 3) */}
+      {/* Bot / AI Rival Selection Modal (Step 2) */}
       <BotSelectModal
         isOpen={isBotModalOpen}
         selectedArenaId={selectedArena}
         onSelect={handleSelectBot}
-        onBackToArena={handleBackToWarrior}
+        onBackToArena={handleBackToArena}
         onClose={() => setIsBotModalOpen(false)}
       />
 
@@ -317,6 +279,10 @@ export default function GamePage() {
         className={`${styles.fadeOverlay} ${isFadingToGame ? styles.fadeOverlayActive : ''}`}
         aria-hidden="true"
       />
+
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+      `}</style>
     </div>
   );
 }

@@ -1,11 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
-
-vi.mock('next/font/google', () => ({
-  Press_Start_2P: () => ({ variable: 'font-press' }),
-  VT323: () => ({ variable: 'font-vt' }),
-}));
 
 describe('SEO Metadata & Knowledge Graph JSON-LD', () => {
   it('exports comprehensive metadata with both developers and high-intent keywords', async () => {

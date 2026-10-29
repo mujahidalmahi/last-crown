@@ -1,22 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import React from 'react';
-import { Press_Start_2P, VT323 } from 'next/font/google';
 import '../styles/globals.css';
 import { SkipLink } from '../components/accessibility/SkipLink';
-
-const pressStart2P = Press_Start_2P({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-press-start-2p',
-  display: 'swap',
-});
-
-const vt323 = VT323({
-  weight: '400',
-  subsets: ['latin'],
-  variable: '--font-vt323',
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://last-crown.top'),
@@ -138,10 +123,7 @@ const jsonLd = {
       description:
         'Creator and core systems engineer of Last-Crown. Engineered the deterministic 60Hz physics core, custom integer collision hitboxes, frame-cancel windows, and server-authoritative Colyseus netcode.',
       url: 'https://mujahidmahi.me',
-      sameAs: [
-        'https://github.com/mujahidalmahi',
-        'https://mujahidmahi.me',
-      ],
+      sameAs: ['https://github.com/mujahidalmahi', 'https://mujahidmahi.me'],
       image: 'https://last-crown.top/assets/developers/mujahid-al-mahi.jpg',
       knowsAbout: [
         'Game Development',
@@ -161,10 +143,7 @@ const jsonLd = {
       description:
         'Co-creator of Last-Crown. Crafted the 16-bit retro visual identity, responsive multi-device layout, smartphone touch controller interface, and arena cinematography.',
       url: 'https://portfolio-v2-smoky-phi.vercel.app/',
-      sameAs: [
-        'https://github.com/ShahariarJibon',
-        'https://portfolio-v2-smoky-phi.vercel.app/',
-      ],
+      sameAs: ['https://github.com/ShahariarJibon', 'https://portfolio-v2-smoky-phi.vercel.app/'],
       image: 'https://last-crown.top/assets/developers/shahariar-hossain-jibon.jpg',
       knowsAbout: [
         'UI/UX Design',
@@ -262,7 +241,8 @@ const jsonLd = {
       '@id': 'https://last-crown.top/#website',
       url: 'https://last-crown.top',
       name: 'Last-Crown',
-      description: 'Play Last-Crown — The winner takes it all, created by Mujahid Al Mahi & Shahariar Hossain Jibon.',
+      description:
+        'Play Last-Crown — The winner takes it all, created by Mujahid Al Mahi & Shahariar Hossain Jibon.',
       publisher: {
         '@id': 'https://last-crown.top/#organization',
       },
@@ -271,7 +251,8 @@ const jsonLd = {
       '@type': 'HowTo',
       '@id': 'https://last-crown.top/#howto-play',
       name: 'How to Play Last-Crown Browser Fighting Game',
-      description: 'Master sword combat, frame-perfect parries, command grabs, and Crown Burst in Last-Crown.',
+      description:
+        'Master sword combat, frame-perfect parries, command grabs, and Crown Burst in Last-Crown.',
       step: [
         {
           '@type': 'HowToStep',
@@ -299,7 +280,8 @@ const jsonLd = {
       '@type': 'HowTo',
       '@id': 'https://last-crown.top/#howto-gamepad',
       name: 'How to Use Your Smartphone as a Wireless Gamepad in Last-Crown',
-      description: 'Turn your iOS or Android phone into a responsive wireless gamepad controller for local 2-player battles on any shared screen.',
+      description:
+        'Turn your iOS or Android phone into a responsive wireless gamepad controller for local 2-player battles on any shared screen.',
       step: [
         {
           '@type': 'HowToStep',
@@ -407,8 +389,14 @@ const jsonLd = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${pressStart2P.variable} ${vt323.variable}`}>
+    <html lang="en">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap"
+          rel="stylesheet"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

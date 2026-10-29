@@ -6,8 +6,7 @@ import dynamic from 'next/dynamic';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
 
 const PhaserGameContainer = dynamic(
-  () =>
-    import('../../features/game/PhaserGameContainer').then(mod => mod.PhaserGameContainer),
+  () => import('../../features/game/PhaserGameContainer').then(mod => mod.PhaserGameContainer),
   {
     ssr: false,
     loading: () => (
@@ -206,12 +205,8 @@ export default function ArcadePage() {
             {stage.opponentName.toUpperCase()}
           </span>
         </div>
-        <div style={{ color: '#2ed573' }}>
-          SCORE: {score.toLocaleString()}
-        </div>
-        <div style={{ color: '#00cec9' }}>
-          TIME: {formatTime(elapsedTimeSec)}
-        </div>
+        <div style={{ color: '#2ed573' }}>SCORE: {score.toLocaleString()}</div>
+        <div style={{ color: '#00cec9' }}>TIME: {formatTime(elapsedTimeSec)}</div>
       </div>
 
       {/* Phaser Canvas */}
@@ -247,15 +242,14 @@ export default function ArcadePage() {
             style={{
               fontSize: 'clamp(1.5rem, 3.5vw, 2.4rem)',
               color: '#ffd700',
-              textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000, 0 0 25px rgba(255, 215, 0, 0.9)',
+              textShadow:
+                '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000, 0 0 25px rgba(255, 215, 0, 0.9)',
               textAlign: 'center',
             }}
           >
             STAGE {stage.stage} CLEARED!
           </div>
-          <div style={{ color: '#2ed573', fontSize: '0.9rem' }}>
-            +5,000 VICTORY POINTS EARNED
-          </div>
+          <div style={{ color: '#2ed573', fontSize: '0.9rem' }}>+5,000 VICTORY POINTS EARNED</div>
           <div style={{ color: '#e0e0e0', fontSize: '0.75rem', marginTop: '8px' }}>
             NEXT OPPONENT: {ARCADE_STAGES[currentStageIdx + 1]?.opponentName.toUpperCase()} (
             {ARCADE_STAGES[currentStageIdx + 1]?.arenaName})
@@ -301,13 +295,22 @@ export default function ArcadePage() {
             style={{
               fontSize: 'clamp(1.8rem, 4.2vw, 3rem)',
               color: '#ffd700',
-              textShadow: '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 6px 0 #000, 0 0 35px rgba(255, 215, 0, 1)',
+              textShadow:
+                '-3px -3px 0 #000, 3px -3px 0 #000, -3px 3px 0 #000, 3px 3px 0 #000, 0 6px 0 #000, 0 0 35px rgba(255, 215, 0, 1)',
               textAlign: 'center',
             }}
           >
             👑 ARCADE CHAMPION! 👑
           </div>
-          <div style={{ color: '#fff', fontSize: '0.9rem', maxWidth: '600px', textAlign: 'center', lineHeight: '1.6' }}>
+          <div
+            style={{
+              color: '#fff',
+              fontSize: '0.9rem',
+              maxWidth: '600px',
+              textAlign: 'center',
+              lineHeight: '1.6',
+            }}
+          >
             You defeated the Shadow Sovereign and conquered all 5 stages of the Royal Ladder!
           </div>
           <div
@@ -323,8 +326,12 @@ export default function ArcadePage() {
               marginTop: '10px',
             }}
           >
-            <div style={{ color: '#2ed573', fontSize: '1rem' }}>FINAL SCORE: {score.toLocaleString()} PTS</div>
-            <div style={{ color: '#00cec9', fontSize: '0.9rem' }}>TOTAL TIME: {formatTime(elapsedTimeSec)}</div>
+            <div style={{ color: '#2ed573', fontSize: '1rem' }}>
+              FINAL SCORE: {score.toLocaleString()} PTS
+            </div>
+            <div style={{ color: '#00cec9', fontSize: '0.9rem' }}>
+              TOTAL TIME: {formatTime(elapsedTimeSec)}
+            </div>
           </div>
           <button
             type="button"
@@ -367,7 +374,8 @@ export default function ArcadePage() {
             style={{
               fontSize: 'clamp(1.8rem, 4vw, 2.8rem)',
               color: '#ff4757',
-              textShadow: '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000, 0 0 25px rgba(255, 71, 87, 0.9)',
+              textShadow:
+                '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000, 0 0 25px rgba(255, 71, 87, 0.9)',
             }}
           >
             DEFEATED AT STAGE {stage.stage}

@@ -9,7 +9,9 @@ describe('Robots Directives & Sitemap Route Indexing', () => {
     expect(robotsConfig.host).toBe('https://last-crown.top');
 
     const rules = Array.isArray(robotsConfig.rules) ? robotsConfig.rules : [robotsConfig.rules];
-    const userAgents = rules.flatMap(r => (Array.isArray(r.userAgent) ? r.userAgent : [r.userAgent]));
+    const userAgents = rules.flatMap(r =>
+      Array.isArray(r.userAgent) ? r.userAgent : [r.userAgent]
+    );
 
     // Verify search engines and AI crawlers
     expect(userAgents).toContain('*');

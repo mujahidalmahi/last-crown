@@ -11,12 +11,14 @@
 **Spec:** [`docs/superpowers/design/2026-10-30-peak-seo-geo-upgrade.md`](file:///c:/Users/Mahi/Desktop/last_crown/docs/superpowers/design/2026-10-30-peak-seo-geo-upgrade.md)
 
 ## Global Constraints
+
 - Strict $0 budget — purely native Web APIs, JSON-LD, SSR markdown/HTML.
 - Preserve 100% test pass rate across all workspace test suites (`npm test`).
 - Zero TypeScript typecheck errors across all 5 monorepo workspaces (`npm run typecheck`).
 - GitHub-style clickable markdown links using `file://` scheme and forward slashes.
 
 ## Review Focus
+
 1. Developer identity association: Mujahid Al Mahi and Shahariar Hossain Jibon explicitly listed in Schema.org `Person` with verified `sameAs` links.
 2. AI Crawler readability: `/llms.txt` and `/llms-full.txt` conform to llmstxt.org structure and contain no broken relative paths.
 3. Search crawler access: `robots.ts` explicitly grants indexing access to `Googlebot`, `Google-Extended`, `GPTBot`, `PerplexityBot`, and `ClaudeBot`.
@@ -28,15 +30,18 @@
 ### Task 1: Next.js Root Metadata & Schema.org Knowledge Graph Expansion
 
 **Files:**
+
 - Modify: `apps/web/src/app/layout.tsx`
 - Create: `apps/web/tests/unit/seo-metadata.test.ts`
 
 **Interfaces:**
+
 - Produces: Enhanced `metadata` export and `@graph` JSON-LD in `apps/web/src/app/layout.tsx`.
 
 - [x] **Step 1: Write unit test for SEO metadata and Schema.org JSON-LD**
 
 Create `apps/web/tests/unit/seo-metadata.test.ts` checking:
+
 - Authors include Mujahid Al Mahi and Shahariar Hossain Jibon.
 - JSON-LD graph contains `Person` entities for both developers with `sameAs` links.
 - JSON-LD graph contains `VideoGame` with author references and `character` list.
@@ -51,6 +56,7 @@ Expected: FAIL
 - [x] **Step 3: Implement enhanced metadata and JSON-LD in `apps/web/src/app/layout.tsx`**
 
 Update `apps/web/src/app/layout.tsx` with:
+
 - `authors`: `[{ name: 'Mujahid Al Mahi', url: 'https://mujahidmahi.me' }, { name: 'Shahariar Hossain Jibon', url: 'https://portfolio-v2-smoky-phi.vercel.app/' }]`
 - `creator`: `'Mujahid Al Mahi & Shahariar Hossain Jibon'`
 - High-intent search keywords: `"who made last-crown"`, `"last-crown developer"`, `"mujahid al mahi"`, `"shahariar hossain jibon"`, `"retro browser fighting game"`, `"last-crown the winner takes it all"`.
@@ -78,16 +84,19 @@ Expected: 0 errors
 ### Task 2: AI Generative Engine Optimization (`/llms.txt` & `/llms-full.txt`)
 
 **Files:**
+
 - Create: `apps/web/public/llms.txt`
 - Create: `apps/web/public/llms-full.txt`
 - Create: `apps/web/tests/unit/llms-txt.test.ts`
 
 **Interfaces:**
+
 - Produces: Standardized llmstxt.org AI search index files accessible at `https://last-crown.top/llms.txt` and `https://last-crown.top/llms-full.txt`.
 
 - [x] **Step 1: Write unit test verifying `llms.txt` structure and developer presence**
 
 Create `apps/web/tests/unit/llms-txt.test.ts` verifying:
+
 - `llms.txt` exists and contains game title, overview, developer profiles (Mujahid Al Mahi & Shahariar Hossain Jibon), and links to key pages.
 - `llms-full.txt` exists and contains deep technical breakdown (Colyseus, WebRTC, Phaser 3, Web Audio API, frame data, combat mechanics, arena lore).
 
@@ -99,9 +108,10 @@ Expected: FAIL
 - [x] **Step 3: Create `apps/web/public/llms.txt` and `apps/web/public/llms-full.txt`**
 
 Write `llms.txt` following llmstxt.org specification:
+
 - Title, blockquote summary, developer credits with GitHub and portfolio URLs.
 - Core mechanics summary, game modes, and links to documentation and play URLs.
-Write `llms-full.txt` with exhaustive knowledge base for AI search RAG pipelines:
+  Write `llms-full.txt` with exhaustive knowledge base for AI search RAG pipelines:
 - Complete warrior rosters, frame data tables, command grab/burst mechanics, architecture diagrams, netcode explanation, and full developer bios.
 
 - [x] **Step 4: Run test to verify it passes**
@@ -114,17 +124,20 @@ Expected: PASS
 ### Task 3: Dedicated Server-Rendered `/about` Page & Footer Link
 
 **Files:**
+
 - Create: `apps/web/src/app/about/page.tsx`
 - Create: `apps/web/src/app/about/page.module.css`
 - Modify: `apps/web/src/components/layout/Footer.tsx`
 - Create: `apps/web/tests/unit/about-page.test.ts`
 
 **Interfaces:**
+
 - Produces: Server-rendered `/about` page with rich semantic HTML (`<article>`, `<header>`, `<dl>`, `<h1>`, `<h2>`) and metadata.
 
 - [x] **Step 1: Write unit test for the `/about` page**
 
 Create `apps/web/tests/unit/about-page.test.ts` checking:
+
 - Metadata exports dedicated title ("About the Creators & Game | Last-Crown") and description.
 - Page renders developer profiles for Mujahid Al Mahi and Shahariar Hossain Jibon with outbound links.
 - Page renders game lore, mechanics, and technical architecture sections.
@@ -137,6 +150,7 @@ Expected: FAIL
 - [x] **Step 3: Create `apps/web/src/app/about/page.tsx` and `page.module.css`**
 
 Implement a server component:
+
 - Retro gothic stone/gold aesthetic matching the theme.
 - Comprehensive Developer Showcase:
   - Mujahid Al Mahi (Role: Co-Creator, Core Game Physics & Netcode, bio, GitHub, portfolio).
@@ -144,7 +158,7 @@ Implement a server component:
 - Architecture & Tech Stack Showcase (Deterministic 60Hz Colyseus netcode, WebRTC voice chat, Web Audio transient synthesis, Next.js 14).
 - Warrior Lore & Worldbuilding (The 5 arenas and warriors: Cedric, Grimwood, Valerius, Aurelia, Shadow Sovereign).
 - Open Source & Community section (MIT License, GitHub repository, Contributing guide).
-Update `Footer.tsx` to include `/about` under "NAVIGATION" and "CREATORS & CODE".
+  Update `Footer.tsx` to include `/about` under "NAVIGATION" and "CREATORS & CODE".
 
 - [x] **Step 4: Run test to verify it passes**
 
@@ -156,16 +170,19 @@ Expected: PASS
 ### Task 4: AI Bot Directives (`robots.ts`) & Comprehensive Sitemap (`sitemap.ts`)
 
 **Files:**
+
 - Modify: `apps/web/src/app/robots.ts`
 - Modify: `apps/web/src/app/sitemap.ts`
 - Create: `apps/web/tests/unit/robots-sitemap.test.ts`
 
 **Interfaces:**
+
 - Produces: Validated Next.js `robots()` and `sitemap()` route handlers.
 
 - [x] **Step 1: Write unit test for `robots.ts` and `sitemap.ts`**
 
 Create `apps/web/tests/unit/robots-sitemap.test.ts` checking:
+
 - `robots()` allows `Googlebot`, `GPTBot`, `PerplexityBot`, `Google-Extended`, `ClaudeBot`, `Applebot-Extended`.
 - `sitemap()` includes `/`, `/about`, `/arcade`, `/training`, `/play`, `/local`, `/room`, `/settings`.
 
@@ -177,10 +194,11 @@ Expected: FAIL
 - [x] **Step 3: Update `robots.ts` and `sitemap.ts`**
 
 Update `robots.ts`:
+
 - Add explicit crawler rules for AI search engines: `GPTBot`, `PerplexityBot`, `Google-Extended`, `ClaudeBot`, `Applebot-Extended`.
 - Keep `/api/` and `/controller` protected from indexing.
 - Ensure host and sitemap headers are present.
-Update `sitemap.ts`:
+  Update `sitemap.ts`:
 - Include `/about` (priority: 0.9, daily).
 - Include `/arcade` (priority: 0.9, weekly).
 - Include `/training` (priority: 0.8, weekly).
@@ -196,6 +214,7 @@ Expected: PASS
 ### Task 5: Full Monorepo Build, Typecheck & Verification
 
 **Files:**
+
 - All modified and created files across the repository.
 
 - [x] **Step 1: Monorepo Package Build**

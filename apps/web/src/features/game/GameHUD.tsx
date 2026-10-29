@@ -50,28 +50,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
   // Audio pause menu settings state
   const [volume, setVolume] = useState<number>(50);
   const [sfxMuted, setSfxMuted] = useState<boolean>(false);
-  const [replayCopied, setReplayCopied] = useState<boolean>(false);
-  const [combatNotice, setCombatNotice] = useState<string | null>(null);
-
-  // Combat Action Callout Edge Detection
-  useEffect(() => {
-    if (!snapshot) return;
-    if (snapshot.p1.isBurstActive || snapshot.p2.isBurstActive) {
-      setCombatNotice('👑 CROWN BURST!');
-      const timer = setTimeout(() => setCombatNotice(null), 1400);
-      return () => clearTimeout(timer);
-    } else if (snapshot.p1.isGrabbed || snapshot.p2.isGrabbed) {
-      setCombatNotice('🤼 COMMAND THROW!');
-      const timer = setTimeout(() => setCombatNotice(null), 1000);
-      return () => clearTimeout(timer);
-    }
-    return undefined;
-  }, [
-    snapshot?.p1.isBurstActive,
-    snapshot?.p2.isBurstActive,
-    snapshot?.p1.isGrabbed,
-    snapshot?.p2.isGrabbed,
-  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -405,51 +383,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             />
           </div>
 
-          {/* Golden Crown Burst Gauge (P1) */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: '7px',
-              backgroundColor: 'rgba(10, 14, 23, 0.9)',
-              border:
-                (p1.burstMeter ?? 0) >= 100
-                  ? '1px solid #ffd700'
-                  : '1px solid rgba(180, 140, 20, 0.4)',
-              borderRadius: '2px',
-              overflow: 'hidden',
-              marginTop: '4px',
-              boxShadow: (p1.burstMeter ?? 0) >= 100 ? '0 0 10px rgba(255, 215, 0, 0.8)' : 'none',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${Math.min(100, p1.burstMeter ?? 0)}%`,
-                background:
-                  (p1.burstMeter ?? 0) >= 100
-                    ? 'linear-gradient(90deg, #f39c12 0%, #ffd700 60%, #fff 100%)'
-                    : 'linear-gradient(90deg, #b7791f 0%, #d69e2e 100%)',
-                boxShadow: (p1.burstMeter ?? 0) >= 100 ? '0 0 8px #ffd700' : 'none',
-                transition: 'width 0.1s linear',
-              }}
-            />
-          </div>
-          {(p1.burstMeter ?? 0) >= 100 && (
-            <div
-              style={{
-                fontFamily: "'Press Start 2P', monospace",
-                fontSize: '0.55rem',
-                color: '#ffd700',
-                letterSpacing: '0.08em',
-                textShadow: '0 0 8px rgba(255, 215, 0, 0.9)',
-                marginTop: '2px',
-              }}
-            >
-              👑 BURST READY [KEY B]
-            </div>
-          )}
-
           {/* Exhaustion Warning Badge */}
           {isP1Exhausted && (
             <div
@@ -685,53 +618,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
             />
           </div>
 
-          {/* Golden Crown Burst Gauge (P2) */}
-          <div
-            style={{
-              position: 'relative',
-              width: '100%',
-              height: '7px',
-              backgroundColor: 'rgba(10, 14, 23, 0.9)',
-              border:
-                (p2.burstMeter ?? 0) >= 100
-                  ? '1px solid #ffd700'
-                  : '1px solid rgba(180, 140, 20, 0.4)',
-              borderRadius: '2px',
-              overflow: 'hidden',
-              marginTop: '4px',
-              boxShadow: (p2.burstMeter ?? 0) >= 100 ? '0 0 10px rgba(255, 215, 0, 0.8)' : 'none',
-            }}
-          >
-            <div
-              style={{
-                height: '100%',
-                width: `${Math.min(100, p2.burstMeter ?? 0)}%`,
-                float: 'right',
-                background:
-                  (p2.burstMeter ?? 0) >= 100
-                    ? 'linear-gradient(270deg, #f39c12 0%, #ffd700 60%, #fff 100%)'
-                    : 'linear-gradient(270deg, #b7791f 0%, #d69e2e 100%)',
-                boxShadow: (p2.burstMeter ?? 0) >= 100 ? '0 0 8px #ffd700' : 'none',
-                transition: 'width 0.1s linear',
-              }}
-            />
-          </div>
-          {(p2.burstMeter ?? 0) >= 100 && (
-            <div
-              style={{
-                fontFamily: "'Press Start 2P', monospace",
-                fontSize: '0.55rem',
-                color: '#ffd700',
-                letterSpacing: '0.08em',
-                textShadow: '0 0 8px rgba(255, 215, 0, 0.9)',
-                marginTop: '2px',
-                textAlign: 'right',
-              }}
-            >
-              👑 BURST READY
-            </div>
-          )}
-
           {/* Exhaustion Warning Badge */}
           {isP2Exhausted && (
             <div
@@ -803,35 +689,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
           )}
         </div>
       </div>
-
-      {/* Combat Action Callout Splash (Burst, Throw, etc) */}
-      {combatNotice && matchState === 'in_progress' && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '32%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            textAlign: 'center',
-            pointerEvents: 'none',
-            zIndex: 110,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "'Press Start 2P', monospace",
-              fontSize: 'clamp(1.1rem, 2.5vw, 1.8rem)',
-              fontWeight: 900,
-              color: combatNotice.includes('BURST') ? '#ffd700' : '#ff7675',
-              textShadow:
-                '-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 4px 0 #000, 0 0 20px rgba(255, 215, 0, 0.9)',
-              animation: 'pulse 0.3s infinite alternate',
-            }}
-          >
-            {combatNotice}
-          </div>
-        </div>
-      )}
 
       {/* Opponent Disconnected Grace Banner in Multiplayer */}
       {mode === 'multiplayer' && colyseusRoom?.state?.isOpponentDisconnected && (
@@ -994,52 +851,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                     title="Return to Castle Hall"
                   />
                 )}
-                {/* Share Replay Link Button */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (typeof window === 'undefined') return;
-                    const matchData = {
-                      id: currentMatchIdRef.current,
-                      p1: p1.name,
-                      p2: p2.name,
-                      winner: isWin ? p1.name : isDraw ? 'Draw' : p2.name,
-                      rounds: `${p1.roundsWon} - ${p2.roundsWon}`,
-                      time: new Date().toISOString(),
-                    };
-                    try {
-                      const encoded = btoa(JSON.stringify(matchData));
-                      const replayUrl = `${window.location.origin}/game#replay=${encoded}`;
-                      navigator.clipboard.writeText(replayUrl).then(() => {
-                        setReplayCopied(true);
-                        setTimeout(() => setReplayCopied(false), 2500);
-                      });
-                    } catch {
-                      setReplayCopied(false);
-                    }
-                  }}
-                  style={{
-                    position: 'absolute',
-                    top: '72%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    fontFamily: "'Press Start 2P', monospace",
-                    fontSize: 'clamp(0.5rem, 1.2vw, 0.65rem)',
-                    color: '#ffd700',
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                    border: '2px solid #f1c40f',
-                    borderRadius: '4px',
-                    padding: '8px 16px',
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 0 #000, 0 0 14px rgba(241, 196, 15, 0.5)',
-                    letterSpacing: '0.04em',
-                    whiteSpace: 'nowrap',
-                    zIndex: 10,
-                  }}
-                  title="Copy shareable replay link"
-                >
-                  {replayCopied ? '✅ REPLAY LINK COPIED!' : '📜 COPY MATCH REPLAY LINK'}
-                </button>
               </div>
             </div>
           );

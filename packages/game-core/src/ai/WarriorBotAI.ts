@@ -4,11 +4,7 @@ import { getAttackDefinition } from '@last-crown/game-config';
 export type BotDifficulty = 'novice' | 'adept' | 'expert' | 'master';
 
 export type BotStance =
-  | 'berserker'
-  | 'leaping_slayer'
-  | 'sweep_trickster'
-  | 'tactical_counter'
-  | 'bloodlust_executioner';
+  'berserker' | 'leaping_slayer' | 'sweep_trickster' | 'tactical_counter' | 'bloodlust_executioner';
 
 interface DifficultyConfig {
   decisionIntervalMinMs: number;

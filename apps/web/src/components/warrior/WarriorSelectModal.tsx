@@ -213,7 +213,10 @@ export const WarriorSelectModal: React.FC<WarriorSelectModalProps> = ({
                       <div className={styles.statBarTrack}>
                         <div
                           className={styles.statBarFill}
-                          style={{ width: `${warrior.staminaPercent}%`, backgroundColor: '#00cec9' }}
+                          style={{
+                            width: `${warrior.staminaPercent}%`,
+                            backgroundColor: '#00cec9',
+                          }}
                         />
                       </div>
                     </div>

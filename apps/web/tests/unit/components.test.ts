@@ -4,7 +4,10 @@ import { Badge } from '../../src/components/ui/Badge.js';
 import { Card } from '../../src/components/ui/Card.js';
 import { ArenaSelectModal, ARENA_LIST } from '../../src/components/arena/ArenaSelectModal.js';
 import { BotSelectModal, BOT_CHARACTERS } from '../../src/components/bot/BotSelectModal.js';
-import { WarriorSelectModal, WARRIOR_OPTIONS } from '../../src/components/warrior/WarriorSelectModal.js';
+import {
+  WarriorSelectModal,
+  WARRIOR_OPTIONS,
+} from '../../src/components/warrior/WarriorSelectModal.js';
 import { GameHUD } from '../../src/features/game/GameHUD.js';
 
 describe('Web UI Components', () => {

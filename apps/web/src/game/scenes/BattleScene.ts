@@ -83,7 +83,6 @@ export class BattleScene extends Phaser.Scene {
 
   public setPaused(paused: boolean): void {
     this.isPaused = paused;
-    this.soundManager?.applyPauseFilter(paused);
   }
 
   public getIsPaused(): boolean {
@@ -129,49 +128,29 @@ export class BattleScene extends Phaser.Scene {
     // Camera cinematic fade-in from pitch black
     this.cameras.main.fadeIn(700, 5, 8, 16);
 
+    // Initialize atmospheric floating dust/ember particles
+    this.emberParticles = this.add.graphics();
+    this.embers = [];
+    for (let i = 0; i < 40; i++) {
+      this.embers.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 20 + 5,
+        vy: -Math.random() * 25 - 10,
+        alpha: Math.random() * 0.7 + 0.2,
+        size: Math.random() * 2.5 + 1,
+      });
+    }
+
     // Determine effective arena ID (multiplayer room state or passed config, default coloseum)
     const effectiveArenaId =
       this.config.colyseusRoom?.state?.arenaId || this.config.arenaId || 'coloseum';
 
-    // Start Procedural Arena Battle BGM
-    this.soundManager?.startBattleBgm(effectiveArenaId);
-
-    // Initialize atmospheric biome weather & ember particles tailored to the active arena
-    this.emberParticles = this.add.graphics();
-    this.embers = [];
-    const isStorm = effectiveArenaId === 'stormforce';
-    const isDragon = effectiveArenaId === 'dragonland';
-    const isSea = effectiveArenaId === 'seaside';
-    const particleCount = isStorm ? 65 : isDragon ? 50 : 40;
-
-    for (let i = 0; i < particleCount; i++) {
-      this.embers.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: isStorm
-          ? -160 - Math.random() * 80
-          : isSea
-            ? 35 + Math.random() * 45
-            : (Math.random() - 0.5) * 20 + 5,
-        vy: isStorm
-          ? 480 + Math.random() * 220
-          : isDragon
-            ? -50 - Math.random() * 50
-            : isSea
-              ? (Math.random() - 0.5) * 16
-              : -Math.random() * 25 - 10,
-        alpha: Math.random() * 0.7 + 0.25,
-        size: isStorm ? 1 : Math.random() * 2.5 + 1,
-      });
-    }
-
-    // Instantiate warrior renderers with specific archetype presets using arena floor height
+    // Instantiate warrior renderers using arena floor height
     const arenaConfig = getArenaConfig(effectiveArenaId);
     const arenaFloorY = arenaConfig.floorY;
-    const p1Preset = this.config.playerPreset || 'knight';
-    const p2Preset = this.config.opponentPreset || 'knight';
-    this.p1Renderer = new WarriorRenderer(this, true, arenaFloorY, p1Preset);
-    this.p2Renderer = new WarriorRenderer(this, false, arenaFloorY, p2Preset);
+    this.p1Renderer = new WarriorRenderer(this, true, arenaFloorY);
+    this.p2Renderer = new WarriorRenderer(this, false, arenaFloorY);
 
     // If in singleplayer mode, initialize local offline GameSimulation + AI
     if (this.config.mode === 'singleplayer') {
@@ -375,11 +354,9 @@ export class BattleScene extends Phaser.Scene {
       this.arenaGraphics.fillRect(0, 0, width, height);
     }
 
-    // 2. Colosseum pillar torches ambient flickering glow (only rendered for Bastion Courtyard / Colosseum)
-    if (effectiveArenaId === 'coloseum') {
-      this.torchGlowLeft = this.add.circle(150, 390, 110, 0xffa502, 0.2);
-      this.torchGlowRight = this.add.circle(width - 150, 390, 110, 0xffa502, 0.2);
-    }
+    // 2. Colosseum pillar torches ambient flickering glow
+    this.torchGlowLeft = this.add.circle(150, 390, 110, 0xffa502, 0.2);
+    this.torchGlowRight = this.add.circle(width - 150, 390, 110, 0xffa502, 0.2);
 
     // 3. Soft Radial Screen Vignette for dramatic colosseum depth
     const vignette = this.add.graphics();
@@ -413,20 +390,10 @@ export class BattleScene extends Phaser.Scene {
       this.torchGlowRight.setAlpha(flicker);
     }
 
-    // 3. Animate Biome Environmental Particles (Rain in StormForce, Embers in DragonLand, Sea Mist in SeaSide)
+    // 3. Animate Ambient Castle Embers & Dust Motes
     if (this.emberParticles) {
       this.emberParticles.clear();
       const { width, height } = this.scale;
-      const effectiveArenaId =
-        this.config.colyseusRoom?.state?.arenaId || this.config.arenaId || 'coloseum';
-      const isStorm = effectiveArenaId === 'stormforce';
-      const isDragon = effectiveArenaId === 'dragonland';
-      const isSea = effectiveArenaId === 'seaside';
-
-      // Periodic subtle thunderstorm lightning flash in StormForce
-      if (isStorm && Math.random() < 0.0035) {
-        this.cameras.main.flash(75, 215, 235, 255);
-      }
 
       for (const ember of this.embers) {
         ember.x += ember.vx * deltaSec;
@@ -434,28 +401,11 @@ export class BattleScene extends Phaser.Scene {
 
         // Wrap particles
         if (ember.y < 0) ember.y = height;
-        if (ember.y > height) ember.y = 0;
         if (ember.x > width) ember.x = 0;
         if (ember.x < 0) ember.x = width;
 
-        if (isStorm) {
-          // Driving diagonal rain streaks
-          this.emberParticles.lineStyle(1.5, 0x81ecec, ember.alpha * 0.7);
-          this.emberParticles.lineBetween(ember.x, ember.y, ember.x - 5, ember.y + 14);
-        } else if (isDragon) {
-          // Fiery volcanic ash & sparks
-          const color = Math.random() > 0.5 ? 0xff4757 : 0xffa502;
-          this.emberParticles.fillStyle(color, ember.alpha * 0.85);
-          this.emberParticles.fillCircle(ember.x, ember.y, ember.size * 1.2);
-        } else if (isSea) {
-          // Soft sea foam mist
-          this.emberParticles.fillStyle(0xe0f2fe, ember.alpha * 0.5);
-          this.emberParticles.fillCircle(ember.x, ember.y, ember.size * 1.5);
-        } else {
-          // Bastion courtyard golden torch motes
-          this.emberParticles.fillStyle(0xffa502, ember.alpha * 0.8);
-          this.emberParticles.fillCircle(ember.x, ember.y, ember.size);
-        }
+        this.emberParticles.fillStyle(0xffa502, ember.alpha * 0.8);
+        this.emberParticles.fillCircle(ember.x, ember.y, ember.size);
       }
     }
 
@@ -502,9 +452,6 @@ export class BattleScene extends Phaser.Scene {
       // Trigger sword swing sound only on attack initiation edge
       if (p1Input.attack && !this.wasP1Attacking && this.soundManager) {
         this.soundManager.playSwordSwing();
-        if (p1Input.attackType === 'heavy' || p1Input.attackType === 'aerial') {
-          this.soundManager.playExertionGrunt();
-        }
       }
       this.wasP1Attacking = !!p1Input.attack;
 
@@ -532,9 +479,6 @@ export class BattleScene extends Phaser.Scene {
 
       if (p2Input.attack && !this.wasP2Attacking && this.soundManager) {
         this.soundManager.playSwordSwing();
-        if (p2Input.attackType === 'heavy' || p2Input.attackType === 'aerial') {
-          this.soundManager.playExertionGrunt();
-        }
       }
       this.wasP2Attacking = !!p2Input.attack;
 
@@ -597,9 +541,6 @@ export class BattleScene extends Phaser.Scene {
 
       if (p2Input.attack && !this.wasP2Attacking && this.soundManager) {
         this.soundManager.playSwordSwing();
-        if (p2Input.attackType === 'heavy' || p2Input.attackType === 'aerial') {
-          this.soundManager.playExertionGrunt();
-        }
       }
       this.wasP2Attacking = !!p2Input.attack;
 
@@ -714,15 +655,13 @@ export class BattleScene extends Phaser.Scene {
       localHealthRatio =
         this.lastRemoteSnapshot.p1.health / (this.lastRemoteSnapshot.p1.maxHealth || 100);
     }
-    if (localHealthRatio > 0 && localHealthRatio <= 0.3) {
-      this.soundManager?.setTensionMode(true);
+    if (localHealthRatio > 0 && localHealthRatio <= 0.25) {
       this.heartbeatTimerMs -= delta;
       if (this.heartbeatTimerMs <= 0) {
         this.heartbeatTimerMs = 1100;
         this.soundManager?.playHeartbeatPulse();
       }
     } else {
-      this.soundManager?.setTensionMode(false);
       this.heartbeatTimerMs = 0;
     }
 
@@ -754,10 +693,7 @@ export class BattleScene extends Phaser.Scene {
       isExhausted: nw.isExhausted || false,
       isDecapitated: nw.isDecapitated || false,
       comboCount: nw.comboCount || 0,
-      burstMeter: (nw as unknown as { burstMeter?: number }).burstMeter ?? 0,
-      isBurstActive: (nw as unknown as { isBurstActive?: boolean }).isBurstActive ?? false,
-      isGrabbed: (nw as unknown as { isGrabbed?: boolean }).isGrabbed ?? false,
-      grabBreakWindowMs: (nw as unknown as { grabBreakWindowMs?: number }).grabBreakWindowMs ?? 0,
+      burstMeter: nw.burstMeter ?? 0,
     };
   }
 
@@ -913,18 +849,6 @@ export class BattleScene extends Phaser.Scene {
       if (this.effects) {
         this.effects.resetRound();
       }
-      this.soundManager?.playRoundStart(snapshot.roundNumber);
-      this.time.delayedCall(850, () => {
-        this.soundManager?.playDuelStart();
-      });
-    }
-
-    if (snapshot.matchState === 'match_over' && this.previousMatchState !== 'match_over') {
-      if (snapshot.winnerId === 'p1') {
-        this.soundManager?.playVictoryFanfare();
-      } else {
-        this.soundManager?.playDefeatTone();
-      }
     }
     this.previousMatchState = snapshot.matchState;
   }
@@ -947,31 +871,6 @@ export class BattleScene extends Phaser.Scene {
           : this.lastRemoteSnapshot.p2;
       impactX = defender.position.x;
       impactY = defender.position.y;
-    }
-
-    if (result.isBurstBreaker) {
-      this.effects.triggerParryFlash({ x: impactX, y: impactY });
-      this.soundManager.playCrownBurst();
-      this.hitStopRemainingMs = 90;
-      this.cameras.main.flash(180, 255, 215, 0); // Golden burst aura explosion
-      this.cameras.main.shake(200, 0.02);
-      return;
-    }
-
-    if (result.isThrowTech || result.resolution === 'tech_break') {
-      this.effects.triggerClashSparks({ x: impactX, y: impactY });
-      this.soundManager.playTechBreak();
-      this.hitStopRemainingMs = 70;
-      this.cameras.main.shake(120, 0.012);
-      return;
-    }
-
-    if (result.isThrow || result.resolution === 'thrown') {
-      this.effects.triggerHitImpact({ x: impactX, y: impactY }, true, result.damage);
-      this.soundManager.playCommandThrow();
-      this.hitStopRemainingMs = 100;
-      this.cameras.main.shake(160, 0.016);
-      return;
     }
 
     if (result.resolution === 'clash' || result.isClash) {
@@ -1012,7 +911,6 @@ export class BattleScene extends Phaser.Scene {
         this.hitStopRemainingMs = 30; // 30ms block hit-stop
       }
     } else if (result.resolution === 'hit') {
-      this.soundManager.playHurtGrunt();
       if (result.isDecapitation) {
         let attackerFacing: Direction = 'right';
         let isVictimPlayer = false;

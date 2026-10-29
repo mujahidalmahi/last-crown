@@ -1,4 +1,4 @@
-/* Fonts optimized via next/font/google in layout.tsx */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
 
 :root {
   --bg-primary: #000000;
@@ -24,9 +24,9 @@
   --stamina-full: #00cec9;
   --stamina-low: #f39c12;
 
-  --font-retro: var(--font-press-start-2p), 'Press Start 2P', monospace;
-  --font-heading: var(--font-press-start-2p), 'Press Start 2P', monospace, system-ui, sans-serif;
-  --font-mono: var(--font-vt323), 'VT323', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  --font-retro: 'Press Start 2P', monospace;
+  --font-heading: 'Press Start 2P', monospace, system-ui, sans-serif;
+  --font-mono: 'VT323', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
   /* 144Hz & Modern Web Motion Design Tokens */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);

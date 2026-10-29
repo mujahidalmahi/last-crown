@@ -307,7 +307,16 @@ export const PhaserGameContainer: React.FC<PhaserGameContainerProps> = ({
       bootstrap.destroy();
       bootstrapRef.current = null;
     };
-  }, [mode, playerPreset, opponentPreset, botDifficulty, botName, arenaId, colyseusRoom]);
+  }, [
+    mode,
+    playerPreset,
+    opponentPreset,
+    botDifficulty,
+    botName,
+    arenaId,
+    colyseusRoom,
+    onSnapshot,
+  ]);
 
   const effectiveArenaId = colyseusRoom?.state?.arenaId || arenaId || 'coloseum';
   const arenaConfig = getArenaConfig(effectiveArenaId);

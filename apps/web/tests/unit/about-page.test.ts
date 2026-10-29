@@ -13,7 +13,8 @@ describe('Dedicated /about Page (Server-Rendered SSR)', () => {
 
   it('renders rich semantic developer bios and tech architecture', () => {
     const pagePath = path.resolve(__dirname, '../../src/app/about/page.tsx');
-    const pageContent = fs.readFileSync(pagePath, 'utf-8');
+    const rawContent = fs.readFileSync(pagePath, 'utf-8');
+    const pageContent = rawContent.replace(/\s+/g, ' ');
 
     // Mujahid Al Mahi profile details
     expect(pageContent).toContain('Mujahid Al Mahi');
@@ -28,7 +29,7 @@ describe('Dedicated /about Page (Server-Rendered SSR)', () => {
 
     // Game Lore and Arenas
     expect(pageContent).toContain('Bastion Courtyard');
-    expect(pageContent).toContain('The Shadow Sovereign');
+    expect(pageContent).toContain('Shadow Sovereign');
 
     // Tech stack
     expect(pageContent).toContain('Deterministic 60Hz');

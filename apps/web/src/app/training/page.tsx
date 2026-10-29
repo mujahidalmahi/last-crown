@@ -6,8 +6,7 @@ import dynamic from 'next/dynamic';
 import { GameSimulationSnapshot } from '@last-crown/game-core';
 
 const PhaserGameContainer = dynamic(
-  () =>
-    import('../../features/game/PhaserGameContainer').then(mod => mod.PhaserGameContainer),
+  () => import('../../features/game/PhaserGameContainer').then(mod => mod.PhaserGameContainer),
   {
     ssr: false,
     loading: () => (
@@ -141,7 +140,9 @@ export default function TrainingPage() {
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ color: '#a4b0be' }}>ADVANTAGE:</span>
-          <span style={{ color: isOpponentStunned ? '#2ed573' : isP1InRecovery ? '#ff4757' : '#fff' }}>
+          <span
+            style={{ color: isOpponentStunned ? '#2ed573' : isP1InRecovery ? '#ff4757' : '#fff' }}
+          >
             {isOpponentStunned
               ? `+${Math.round((p2?.hitstunRemainingMs ?? 0) / 16)}F`
               : isP1InRecovery

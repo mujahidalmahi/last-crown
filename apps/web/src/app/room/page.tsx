@@ -78,7 +78,6 @@ export default function RoomPage() {
 
   const [inputCode, setInputCode] = useState('');
   const [playerName, setPlayerName] = useState('Crown Warrior');
-  const [selectedPreset, setSelectedPreset] = useState<string>('knight');
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isArenaModalOpen, setIsArenaModalOpen] = useState(false);
@@ -131,7 +130,7 @@ export default function RoomPage() {
     } catch {
       // Handled gracefully
     }
-    await findQuickMatch(playerName.trim() || 'Crown Warrior', selectedPreset);
+    await findQuickMatch(playerName.trim() || 'Crown Warrior', 'knight');
   };
 
   const handleCreate = async () => {
@@ -145,7 +144,7 @@ export default function RoomPage() {
 
   const handleSelectArenaAndCreate = async (chosenArenaId: string) => {
     setIsArenaModalOpen(false);
-    await createPrivateRoom(playerName.trim() || 'Crown Warrior', selectedPreset, chosenArenaId);
+    await createPrivateRoom(playerName.trim() || 'Crown Warrior', 'knight', chosenArenaId);
   };
 
   const handleJoin = async (e?: React.FormEvent) => {
@@ -157,7 +156,7 @@ export default function RoomPage() {
     } catch {
       // Handled gracefully
     }
-    await joinPrivateRoom(cleanCode, playerName.trim() || 'Crown Warrior', selectedPreset);
+    await joinPrivateRoom(cleanCode, playerName.trim() || 'Crown Warrior', 'knight');
   };
 
   const handleCopyCode = () => {
@@ -503,45 +502,6 @@ export default function RoomPage() {
             aria-label="Your Battle Name"
             title="Choose your battle name before entering combat"
           />
-
-          {/* WARRIOR ARCHETYPE SELECTOR */}
-          <div style={{ width: '100%', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={{ fontFamily: "var(--font-retro), 'Press Start 2P', monospace", fontSize: '0.62rem', color: '#ffdb15' }}>
-              CHOOSE YOUR WARRIOR:
-            </span>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px' }}>
-              {[
-                { id: 'knight', name: 'Knight', icon: '🛡️' },
-                { id: 'duelist', name: 'Duelist', icon: '🗡️' },
-                { id: 'vanguard', name: 'Vanguard', icon: '🔨' },
-                { id: 'marauder', name: 'Marauder', icon: '🪓' },
-              ].map(w => (
-                <button
-                  key={w.id}
-                  type="button"
-                  onClick={() => setSelectedPreset(w.id)}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '4px',
-                    padding: '8px 4px',
-                    background: selectedPreset === w.id ? '#1c273c' : '#0e1524',
-                    border: selectedPreset === w.id ? '2px solid #ffdb15' : '1px solid #23334d',
-                    borderRadius: '4px',
-                    color: selectedPreset === w.id ? '#ffdb15' : '#8da4c4',
-                    fontFamily: "var(--font-retro), 'Press Start 2P', monospace",
-                    fontSize: '0.52rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <span style={{ fontSize: '1.2rem' }}>{w.icon}</span>
-                  <span>{w.name}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* 2. QUICK DUEL BUTTON */}
           <button

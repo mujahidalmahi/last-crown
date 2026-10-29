@@ -12,17 +12,15 @@ export class WarriorRenderer {
   private nameText: Phaser.GameObjects.Text;
   private isPlayer: boolean;
   private floorY: number;
-  private presetId: string = 'knight';
 
   // Animation clocks
   private animTimer: number = 0;
   private capePoints: { x: number; y: number }[] = [];
 
-  constructor(scene: Phaser.Scene, isPlayer: boolean, floorY: number = 625, presetId: string = 'knight') {
+  constructor(scene: Phaser.Scene, isPlayer: boolean, floorY: number = 625) {
     this.scene = scene;
     this.isPlayer = isPlayer;
     this.floorY = floorY;
-    this.presetId = presetId || 'knight';
 
     this.container = this.scene.add.container(0, 0);
 
@@ -63,16 +61,6 @@ export class WarriorRenderer {
     for (let i = 0; i < 5; i++) {
       this.capePoints.push({ x: -16 - i * 4, y: -65 + i * 14 });
     }
-  }
-
-  public setPreset(presetId: string): void {
-    if (presetId) {
-      this.presetId = presetId;
-    }
-  }
-
-  public getPreset(): string {
-    return this.presetId;
   }
 
   public render(snapshot: WarriorSnapshot, deltaSec: number = 0.016): void {
@@ -265,203 +253,65 @@ export class WarriorRenderer {
       this.bodyGraphics.lineStyle(2, goldTrim, 1);
       this.bodyGraphics.strokeRoundedRect(-20, torsoY, 40, 32, 5);
 
-      // Breastplate Heraldic Insignia & Pauldron Variations
-      if (this.presetId === 'duelist') {
-        // Exiled Fencer: Diagonal silver sash & fencing corslet
-        this.bodyGraphics.lineStyle(3, 0xcbd5e1, 0.9);
-        this.bodyGraphics.lineBetween(-16, torsoY + 4, 16, torsoY + 28);
-        this.bodyGraphics.fillStyle(goldTrim, 1);
-        this.bodyGraphics.fillCircle(0, torsoY + 16, 4); // Gilded sash clasp
-      } else if (this.presetId === 'vanguard') {
-        // Northern Jarl: Fur mantle trim & dual iron battle torcs
-        this.bodyGraphics.fillStyle(0x5c4033, 0.95);
-        this.bodyGraphics.fillRoundedRect(-18, torsoY + 1, 36, 9, 3);
-        this.bodyGraphics.fillStyle(steelDark, 1);
-        this.bodyGraphics.fillCircle(-8, torsoY + 16, 3.5);
-        this.bodyGraphics.fillCircle(8, torsoY + 16, 3.5);
-      } else if (this.presetId === 'marauder') {
-        // Iron Marauder: Jagged ribbed rib-cage steel plates
-        this.bodyGraphics.fillStyle(shadowColor, 1);
-        this.bodyGraphics.fillRect(-12, torsoY + 8, 24, 3);
-        this.bodyGraphics.fillRect(-14, torsoY + 15, 28, 3);
-        this.bodyGraphics.fillRect(-10, torsoY + 22, 20, 3);
-      } else {
-        // Crown Knight: Royal Golden Cross Heraldry
-        this.bodyGraphics.fillStyle(goldTrim, 1);
-        this.bodyGraphics.fillRect(-2, torsoY + 6, 4, 18);
-        this.bodyGraphics.fillRect(-8, torsoY + 11, 16, 4);
-      }
+      // Breastplate Royal Crest (golden cross heraldry)
+      this.bodyGraphics.fillStyle(goldTrim, 1);
+      this.bodyGraphics.fillRect(-2, torsoY + 6, 4, 18);
+      this.bodyGraphics.fillRect(-8, torsoY + 11, 16, 4);
 
       // Pauldrons (Flanged shoulder armor plates)
-      if (this.presetId === 'marauder') {
-        // Marauder: Asymmetric massive spiked pauldron
-        this.bodyGraphics.fillStyle(steelDark, 1);
-        this.bodyGraphics.fillRoundedRect(-22, torsoY - 4, 12, 16, 2);
-        this.bodyGraphics.fillStyle(steelHighlight, 1);
-        this.bodyGraphics.fillRoundedRect(10, torsoY - 6, 18, 22, 3);
-        this.bodyGraphics.lineStyle(2, 0xe74c3c, 1);
-        this.bodyGraphics.strokeRoundedRect(10, torsoY - 6, 18, 22, 3);
-        // Spikes on pauldron
-        this.bodyGraphics.fillStyle(shadowColor, 1);
-        this.bodyGraphics.fillTriangle(14, torsoY - 6, 18, torsoY - 6, 16, torsoY - 14);
-        this.bodyGraphics.fillTriangle(22, torsoY - 6, 26, torsoY - 6, 24, torsoY - 12);
-      } else if (this.presetId === 'duelist') {
-        // Duelist: Light agile single-shoulder guard
-        this.bodyGraphics.fillStyle(armorSecondary, 1);
-        this.bodyGraphics.fillRoundedRect(12, torsoY, 12, 14, 3);
-        this.bodyGraphics.lineStyle(1.5, 0xcbd5e1, 1);
-        this.bodyGraphics.strokeRoundedRect(12, torsoY, 12, 14, 3);
-      } else if (this.presetId === 'vanguard') {
-        // Vanguard: Heavy studded wolf-fur pauldrons
-        this.bodyGraphics.fillStyle(0x4a3525, 1);
-        this.bodyGraphics.fillRoundedRect(-24, torsoY - 4, 14, 18, 4);
-        this.bodyGraphics.fillRoundedRect(10, torsoY - 4, 16, 20, 4);
-        this.bodyGraphics.fillStyle(steelHighlight, 1);
-        this.bodyGraphics.fillCircle(18, torsoY + 6, 3);
-      } else {
-        // Crown Knight: Flanged royal steel pauldrons
-        this.bodyGraphics.fillStyle(steelHighlight, 1);
-        this.bodyGraphics.fillRoundedRect(-24, torsoY - 2, 12, 16, 4);
-        this.bodyGraphics.fillRoundedRect(12, torsoY - 2, 14, 18, 4);
-        this.bodyGraphics.lineStyle(1.5, goldTrim, 1);
-        this.bodyGraphics.strokeRoundedRect(12, torsoY - 2, 14, 18, 4);
-      }
+      this.bodyGraphics.fillStyle(steelHighlight, 1);
+      this.bodyGraphics.fillRoundedRect(-24, torsoY - 2, 12, 16, 4); // Rear pauldron
+      this.bodyGraphics.fillRoundedRect(12, torsoY - 2, 14, 18, 4); // Front pauldron
+      this.bodyGraphics.lineStyle(1.5, goldTrim, 1);
+      this.bodyGraphics.strokeRoundedRect(12, torsoY - 2, 14, 18, 4);
 
-      // --- DISTINCT HELMETS & HEADPIECES ---
+      // --- GREATHELM (KNIGHT HELMET) ---
       const helmY = torsoY - 22;
 
-      if (this.presetId === 'duelist') {
-        // --- EXILED FENCER: CAVALIER CAP & FEATHER ---
-        this.bodyGraphics.fillStyle(armorSecondary, 1);
-        this.bodyGraphics.fillRoundedRect(-14, helmY + 4, 28, 14, 4);
-        this.bodyGraphics.lineStyle(1.5, 0xcbd5e1, 0.9);
-        this.bodyGraphics.strokeRoundedRect(-14, helmY + 4, 28, 14, 4);
+      // Helm Dome
+      this.bodyGraphics.fillStyle(steelHighlight, 1);
+      this.bodyGraphics.fillRoundedRect(-15, helmY, 30, 24, 4);
+      this.bodyGraphics.lineStyle(1.5, goldTrim, 0.8);
+      this.bodyGraphics.strokeRoundedRect(-15, helmY, 30, 24, 4);
 
-        // Agile domino ocular slit
-        this.bodyGraphics.fillStyle(0x0c1017, 1);
-        this.bodyGraphics.fillRect(-2, helmY + 10, 15, 3);
-        this.bodyGraphics.fillStyle(this.isPlayer ? 0x00cec9 : 0xff7675, 1);
-        this.bodyGraphics.fillRect(2, helmY + 10, 4, 2);
+      // T-Slit Visor (Gothic crusader cross visor)
+      this.bodyGraphics.fillStyle(0x0c1017, 1);
+      this.bodyGraphics.fillRect(-4, helmY + 9, 18, 4); // Horizontal ocular slit
+      this.bodyGraphics.fillRect(3, helmY + 7, 4, 13); // Vertical ventilation slit
 
-        // Sweeping peacock feather plume
-        const plumeColor = this.isPlayer ? 0x00cec9 : 0xe74c3c;
-        this.bodyGraphics.fillStyle(plumeColor, 1);
-        const plumeSway = Math.sin(this.animTimer * 4) * 4 - snapshot.velocity.x * 0.03;
-        this.bodyGraphics.fillTriangle(-4, helmY + 6, 6, helmY + 6, -16 + plumeSway * 1.4, helmY - 16);
-      } else if (this.presetId === 'vanguard') {
-        // --- NORTHERN JARL: VIKING SPANGENHELM ---
-        // Conical iron helmet dome
-        this.bodyGraphics.fillStyle(steelHighlight, 1);
-        this.bodyGraphics.beginPath();
-        this.bodyGraphics.moveTo(-15, helmY + 20);
-        this.bodyGraphics.lineTo(0, helmY - 4);
-        this.bodyGraphics.lineTo(15, helmY + 20);
-        this.bodyGraphics.closePath();
-        this.bodyGraphics.fillPath();
-        this.bodyGraphics.lineStyle(1.5, 0x4a3525, 1);
-        this.bodyGraphics.strokePath();
+      // Visor ocular glow
+      const glowColor = this.isPlayer ? 0x38ef7d : 0xe74c3c;
+      this.bodyGraphics.fillStyle(glowColor, 0.9);
+      this.bodyGraphics.fillRect(-1, helmY + 10, 5, 2);
 
-        // Iron Nasal Guard bar
-        this.bodyGraphics.fillStyle(steelDark, 1);
-        this.bodyGraphics.fillRect(0, helmY + 8, 4, 14);
+      // Royal Plume / Feathers atop helmet
+      const plumeColor = this.isPlayer ? 0xf1c40f : 0xe74c3c;
+      this.bodyGraphics.fillStyle(plumeColor, 1);
+      const plumeSway = Math.sin(this.animTimer * 4) * 3 - snapshot.velocity.x * 0.02;
+      this.bodyGraphics.fillTriangle(-4, helmY, 4, helmY, -8 + plumeSway, helmY - 14);
 
-        // Eye slit shadow & fierce warrior eyes
-        this.bodyGraphics.fillStyle(0x0c1017, 1);
-        this.bodyGraphics.fillRect(-8, helmY + 11, 7, 3);
-        this.bodyGraphics.fillRect(4, helmY + 11, 7, 3);
-        this.bodyGraphics.fillStyle(this.isPlayer ? 0x74b9ff : 0xff7675, 1);
-        this.bodyGraphics.fillRect(5, helmY + 11, 3, 2);
-
-        // Fur neck collar
-        this.bodyGraphics.fillStyle(0x4a3525, 0.95);
-        this.bodyGraphics.fillRoundedRect(-16, helmY + 17, 32, 7, 2);
-      } else if (this.presetId === 'marauder') {
-        // --- IRON MARAUDER: SPIKED EXECUTIONER MASK ---
-        // Dark iron skull faceplate
-        this.bodyGraphics.fillStyle(shadowColor, 1);
-        this.bodyGraphics.fillRoundedRect(-15, helmY, 30, 24, 2);
-        this.bodyGraphics.lineStyle(2, 0xe74c3c, 0.8);
-        this.bodyGraphics.strokeRoundedRect(-15, helmY, 30, 24, 2);
-
-        // Menacing glowing crimson eye slits
-        this.bodyGraphics.fillStyle(0xe74c3c, 1);
-        this.bodyGraphics.fillRect(-6, helmY + 9, 5, 2.5);
-        this.bodyGraphics.fillRect(3, helmY + 9, 5, 2.5);
-
-        // Jagged Iron Brow Horn Spikes
-        this.bodyGraphics.fillStyle(steelHighlight, 1);
-        this.bodyGraphics.fillTriangle(-13, helmY + 2, -9, helmY + 2, -15, helmY - 12);
-        this.bodyGraphics.fillTriangle(9, helmY + 2, 13, helmY + 2, 15, helmY - 12);
-      } else {
-        // --- CROWN KNIGHT: CRUSADER GREATHELM ---
-        this.bodyGraphics.fillStyle(steelHighlight, 1);
-        this.bodyGraphics.fillRoundedRect(-15, helmY, 30, 24, 4);
-        this.bodyGraphics.lineStyle(1.5, goldTrim, 0.8);
-        this.bodyGraphics.strokeRoundedRect(-15, helmY, 30, 24, 4);
-
-        // T-Slit Visor (Gothic crusader cross visor)
-        this.bodyGraphics.fillStyle(0x0c1017, 1);
-        this.bodyGraphics.fillRect(-4, helmY + 9, 18, 4);
-        this.bodyGraphics.fillRect(3, helmY + 7, 4, 13);
-
-        const glowColor = this.isPlayer ? 0x38ef7d : 0xe74c3c;
-        this.bodyGraphics.fillStyle(glowColor, 0.9);
-        this.bodyGraphics.fillRect(-1, helmY + 10, 5, 2);
-
-        const plumeColor = this.isPlayer ? 0xf1c40f : 0xe74c3c;
-        this.bodyGraphics.fillStyle(plumeColor, 1);
-        const plumeSway = Math.sin(this.animTimer * 4) * 3 - snapshot.velocity.x * 0.02;
-        this.bodyGraphics.fillTriangle(-4, helmY, 4, helmY, -8 + plumeSway, helmY - 14);
-      }
-
-      // --- DISTINCT SHIELDS (in blocking stance) ---
+      // --- HEATER SHIELD (in blocking stance) ---
       if (snapshot.state === 'blocking') {
         const shieldX = 14;
         const shieldY = torsoY + 2;
+        // Shield wood/steel base
+        this.bodyGraphics.fillStyle(armorPrimary, 1);
+        this.bodyGraphics.beginPath();
+        this.bodyGraphics.moveTo(shieldX - 8, shieldY - 20);
+        this.bodyGraphics.lineTo(shieldX + 16, shieldY - 20);
+        this.bodyGraphics.lineTo(shieldX + 16, shieldY + 8);
+        this.bodyGraphics.lineTo(shieldX + 4, shieldY + 24);
+        this.bodyGraphics.lineTo(shieldX - 8, shieldY + 8);
+        this.bodyGraphics.closePath();
+        this.bodyGraphics.fillPath();
 
-        if (this.presetId === 'duelist') {
-          // Duelist: Polished Silver Buckler
-          this.bodyGraphics.fillStyle(steelDark, 1);
-          this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 13);
-          this.bodyGraphics.lineStyle(2, 0xcbd5e1, 1);
-          this.bodyGraphics.strokeCircle(shieldX + 4, shieldY + 2, 13);
-          this.bodyGraphics.fillStyle(goldTrim, 1);
-          this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 4);
-        } else if (this.presetId === 'vanguard') {
-          // Vanguard: Heavy Round Nordic Wooden Shield
-          this.bodyGraphics.fillStyle(0x4a3525, 1);
-          this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 18);
-          this.bodyGraphics.lineStyle(3, steelHighlight, 1);
-          this.bodyGraphics.strokeCircle(shieldX + 4, shieldY + 2, 18);
-          this.bodyGraphics.fillStyle(steelHighlight, 1);
-          this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 6);
-        } else if (this.presetId === 'marauder') {
-          // Marauder: Spiked Heavy Iron Pavise Shield
-          this.bodyGraphics.fillStyle(shadowColor, 1);
-          this.bodyGraphics.fillRoundedRect(shieldX - 4, shieldY - 18, 20, 36, 2);
-          this.bodyGraphics.lineStyle(2.5, 0xe74c3c, 1);
-          this.bodyGraphics.strokeRoundedRect(shieldX - 4, shieldY - 18, 20, 36, 2);
-          // 3 Shield Spikes
-          this.bodyGraphics.fillStyle(steelHighlight, 1);
-          this.bodyGraphics.fillTriangle(shieldX + 16, shieldY - 12, shieldX + 16, shieldY - 6, shieldX + 22, shieldY - 9);
-          this.bodyGraphics.fillTriangle(shieldX + 16, shieldY - 2, shieldX + 16, shieldY + 4, shieldX + 23, shieldY + 1);
-          this.bodyGraphics.fillTriangle(shieldX + 16, shieldY + 8, shieldX + 16, shieldY + 14, shieldX + 22, shieldY + 11);
-        } else {
-          // Crown Knight: Traditional Royal Heater Shield
-          this.bodyGraphics.fillStyle(armorPrimary, 1);
-          this.bodyGraphics.beginPath();
-          this.bodyGraphics.moveTo(shieldX - 8, shieldY - 20);
-          this.bodyGraphics.lineTo(shieldX + 16, shieldY - 20);
-          this.bodyGraphics.lineTo(shieldX + 16, shieldY + 8);
-          this.bodyGraphics.lineTo(shieldX + 4, shieldY + 24);
-          this.bodyGraphics.lineTo(shieldX - 8, shieldY + 8);
-          this.bodyGraphics.closePath();
-          this.bodyGraphics.fillPath();
-          this.bodyGraphics.lineStyle(2.5, goldTrim, 1);
-          this.bodyGraphics.strokePath();
-          this.bodyGraphics.fillStyle(goldTrim, 1);
-          this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 5);
-        }
+        // Shield gold rim & boss
+        this.bodyGraphics.lineStyle(2.5, goldTrim, 1);
+        this.bodyGraphics.strokePath();
+
+        // Golden shield boss center rivet
+        this.bodyGraphics.fillStyle(goldTrim, 1);
+        this.bodyGraphics.fillCircle(shieldX + 4, shieldY + 2, 5);
       }
     }
 
@@ -616,108 +466,40 @@ export class WarriorRenderer {
       swordBaseY = torsoY + 14;
     }
 
-    // Blade Drawing — Forged Weapons per Archetype
+    // Blade Drawing — Forged Dark Gray Steel Blade
     const swordTipX = swordBaseX + Math.cos(swordAngle) * swordBladeLength;
     const swordTipY = swordBaseY + Math.sin(swordAngle) * swordBladeLength;
 
-    if (this.presetId === 'duelist') {
-      // --- EXILED FENCER: SLENDER STEEL RAPIER ---
-      const rapierTipX = swordBaseX + Math.cos(swordAngle) * (swordBladeLength + 6);
-      const rapierTipY = swordBaseY + Math.sin(swordAngle) * (swordBladeLength + 6);
+    // 1. Outer Dark Silhouette Outline
+    this.weaponGraphics.lineStyle(isHeavy ? 6 : 5, swordBladeOutline, 1);
+    this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
 
-      this.weaponGraphics.lineStyle(4, shadowColor, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, rapierTipX, rapierTipY);
-      this.weaponGraphics.lineStyle(2, 0xe2e8f0, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, rapierTipX, rapierTipY);
+    // 2. Dark Gray Steel Blade Body
+    this.weaponGraphics.lineStyle(isHeavy ? 4 : 3, swordBladeDark, 1);
+    this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
 
-      this.weaponGraphics.lineStyle(2, goldTrim, 1);
-      this.weaponGraphics.strokeCircle(swordBaseX, swordBaseY, 6.5);
-      this.weaponGraphics.fillStyle(goldTrim, 1);
-      this.weaponGraphics.fillCircle(
-        swordBaseX - Math.cos(swordAngle) * 5,
-        swordBaseY - Math.sin(swordAngle) * 5,
-        3
-      );
-    } else if (this.presetId === 'vanguard') {
-      // --- NORTHERN JARL: TWO-HANDED WAR-HAMMER ---
-      this.weaponGraphics.lineStyle(5, 0x3d2817, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
-      this.weaponGraphics.lineStyle(3, 0x6e4726, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
+    // 3. Central Dark Fuller Groove
+    this.weaponGraphics.lineStyle(1.5, swordBladeFuller, 1);
+    this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
 
-      const hammerAngle = swordAngle + Math.PI / 2;
-      this.weaponGraphics.fillStyle(steelDark, 1);
-      this.weaponGraphics.fillCircle(swordTipX, swordTipY, 7);
-      this.weaponGraphics.fillStyle(steelHighlight, 1);
-      this.weaponGraphics.fillRoundedRect(swordTipX - 7, swordTipY - 7, 14, 14, 2);
-      this.weaponGraphics.lineStyle(2, 0x181e28, 1);
-      this.weaponGraphics.strokeRoundedRect(swordTipX - 7, swordTipY - 7, 14, 14, 2);
+    // Crossguard
+    const guardNormal = swordAngle + Math.PI / 2;
+    const guardHalfLen = 9;
+    this.weaponGraphics.lineStyle(3, goldTrim, 1);
+    this.weaponGraphics.lineBetween(
+      swordBaseX - Math.cos(guardNormal) * guardHalfLen,
+      swordBaseY - Math.sin(guardNormal) * guardHalfLen,
+      swordBaseX + Math.cos(guardNormal) * guardHalfLen,
+      swordBaseY + Math.sin(guardNormal) * guardHalfLen
+    );
 
-      this.weaponGraphics.fillStyle(steelHighlight, 1);
-      this.weaponGraphics.fillTriangle(
-        swordTipX - Math.cos(hammerAngle) * 6,
-        swordTipY - Math.sin(hammerAngle) * 6,
-        swordTipX + Math.cos(hammerAngle) * 6,
-        swordTipY + Math.sin(hammerAngle) * 6,
-        swordTipX - Math.cos(swordAngle) * 12,
-        swordTipY - Math.sin(swordAngle) * 12
-      );
-    } else if (this.presetId === 'marauder') {
-      // --- IRON MARAUDER: EXECUTIONER BLOOD CLEAVER ---
-      this.weaponGraphics.lineStyle(isHeavy ? 9 : 7, swordBladeOutline, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
-      this.weaponGraphics.lineStyle(isHeavy ? 6 : 5, swordBladeDark, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
-
-      this.weaponGraphics.lineStyle(2, 0x7a0c0c, 1);
-      this.weaponGraphics.lineBetween(swordBaseX + 6, swordBaseY, swordTipX - 6, swordTipY);
-
-      const guardNormal = swordAngle + Math.PI / 2;
-      const guardHalfLen = 11;
-      this.weaponGraphics.lineStyle(4, shadowColor, 1);
-      this.weaponGraphics.lineBetween(
-        swordBaseX - Math.cos(guardNormal) * guardHalfLen,
-        swordBaseY - Math.sin(guardNormal) * guardHalfLen,
-        swordBaseX + Math.cos(guardNormal) * guardHalfLen,
-        swordBaseY + Math.sin(guardNormal) * guardHalfLen
-      );
-      this.weaponGraphics.fillStyle(0xe74c3c, 1);
-      this.weaponGraphics.fillTriangle(
-        swordBaseX - 3,
-        swordBaseY - 3,
-        swordBaseX + 3,
-        swordBaseY + 3,
-        swordBaseX - Math.cos(swordAngle) * 8,
-        swordBaseY - Math.sin(swordAngle) * 8
-      );
-    } else {
-      // --- CROWN KNIGHT: ROYAL LONG-SWORD ---
-      this.weaponGraphics.lineStyle(isHeavy ? 6 : 5, swordBladeOutline, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
-
-      this.weaponGraphics.lineStyle(isHeavy ? 4 : 3, swordBladeDark, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
-
-      this.weaponGraphics.lineStyle(1.5, swordBladeFuller, 1);
-      this.weaponGraphics.lineBetween(swordBaseX, swordBaseY, swordTipX, swordTipY);
-
-      const guardNormal = swordAngle + Math.PI / 2;
-      const guardHalfLen = 9;
-      this.weaponGraphics.lineStyle(3, goldTrim, 1);
-      this.weaponGraphics.lineBetween(
-        swordBaseX - Math.cos(guardNormal) * guardHalfLen,
-        swordBaseY - Math.sin(guardNormal) * guardHalfLen,
-        swordBaseX + Math.cos(guardNormal) * guardHalfLen,
-        swordBaseY + Math.sin(guardNormal) * guardHalfLen
-      );
-
-      this.weaponGraphics.fillStyle(goldTrim, 1);
-      this.weaponGraphics.fillCircle(
-        swordBaseX - Math.cos(swordAngle) * 6,
-        swordBaseY - Math.sin(swordAngle) * 6,
-        3.5
-      );
-    }
+    // Golden Pommel
+    this.weaponGraphics.fillStyle(goldTrim, 1);
+    this.weaponGraphics.fillCircle(
+      swordBaseX - Math.cos(swordAngle) * 6,
+      swordBaseY - Math.sin(swordAngle) * 6,
+      3.5
+    );
   }
 
   public destroy(): void {

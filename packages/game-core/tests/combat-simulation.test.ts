@@ -879,7 +879,19 @@ describe('Combat Simulation', () => {
 
       // Step forward to active phase (windup is 120ms)
       for (let i = 0; i < 10; i++) {
-        sim.step(null, { sequence: 3, timestamp: Date.now(), moveX: 0, jump: false, attack: false, block: true, parry: false }, 0.016);
+        sim.step(
+          null,
+          {
+            sequence: 3,
+            timestamp: Date.now(),
+            moveX: 0,
+            jump: false,
+            attack: false,
+            block: true,
+            parry: false,
+          },
+          0.016
+        );
       }
 
       expect(hitEvent).not.toBeNull();
@@ -917,16 +929,20 @@ describe('Combat Simulation', () => {
       expect(sim.p2.combat.isGrabbed).toBe(true);
 
       // P2 inputs throw to tech break!
-      sim.step(null, {
-        sequence: 2,
-        timestamp: Date.now(),
-        moveX: 0,
-        jump: false,
-        attack: false,
-        block: false,
-        parry: false,
-        throw: true,
-      }, 0.016);
+      sim.step(
+        null,
+        {
+          sequence: 2,
+          timestamp: Date.now(),
+          moveX: 0,
+          jump: false,
+          attack: false,
+          block: false,
+          parry: false,
+          throw: true,
+        },
+        0.016
+      );
 
       expect(techEvent).not.toBeNull();
       expect((techEvent as HitResult).resolution).toBe('tech_break');
@@ -949,16 +965,20 @@ describe('Combat Simulation', () => {
       });
 
       // P1 activates Crown Burst
-      sim.step({
-        sequence: 1,
-        timestamp: Date.now(),
-        moveX: 0,
-        jump: false,
-        attack: false,
-        block: false,
-        parry: false,
-        burst: true,
-      }, null, 0.016);
+      sim.step(
+        {
+          sequence: 1,
+          timestamp: Date.now(),
+          moveX: 0,
+          jump: false,
+          attack: false,
+          block: false,
+          parry: false,
+          burst: true,
+        },
+        null,
+        0.016
+      );
 
       expect(burstEvent).not.toBeNull();
       expect((burstEvent as HitResult).isBurstBreaker).toBe(true);
@@ -998,7 +1018,19 @@ describe('Combat Simulation', () => {
       });
 
       for (let i = 0; i < 20; i++) {
-        sim.step(null, { sequence: 3, timestamp: Date.now(), moveX: -1, jump: false, attack: false, block: false, parry: false }, 0.016);
+        sim.step(
+          null,
+          {
+            sequence: 3,
+            timestamp: Date.now(),
+            moveX: -1,
+            jump: false,
+            attack: false,
+            block: false,
+            parry: false,
+          },
+          0.016
+        );
       }
 
       // Heavy attack knockback is 240. Holding -1 (moveX = -1) with DI factor 0.35 reduces x knockback
@@ -1048,7 +1080,9 @@ describe('Combat Simulation', () => {
       expect(vSim.p2.combat.currentAttack?.id).toBe('heavy_strike');
 
       let hitResult: HitResult | null = null;
-      vSim.onCombatEvent(r => { hitResult = r; });
+      vSim.onCombatEvent(r => {
+        hitResult = r;
+      });
 
       // P1 strikes with light slash
       vSim.p1.processInput({

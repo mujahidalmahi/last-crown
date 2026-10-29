@@ -56,8 +56,9 @@ export default function AboutPage() {
             MEET THE DEVELOPERS
           </h2>
           <p className={styles.leadText}>
-            Last-Crown was conceived and forged by two independent developers driven by the passion to
-            build a zero-install, esports-grade retro fighting game capable of running seamlessly in any modern web browser.
+            Last-Crown was conceived and forged by two independent developers driven by the passion
+            to build a zero-install, esports-grade retro fighting game capable of running seamlessly
+            in any modern web browser.
           </p>
 
           <div className={styles.developersGrid}>
@@ -78,9 +79,10 @@ export default function AboutPage() {
                 </div>
               </div>
               <p className={styles.devBio}>
-                Engineered Last-Crown&apos;s deterministic 60Hz physics core, custom integer collision hitboxes,
-                frame-cancel windows, responsive player controlling mechanics, and server-authoritative Colyseus netcode.
-                Specializes in low-latency systems, state synchronization, and full-stack architecture.
+                Engineered Last-Crown&apos;s deterministic 60Hz physics core, custom integer
+                collision hitboxes, frame-cancel windows, responsive player controlling mechanics,
+                and server-authoritative Colyseus netcode. Specializes in low-latency systems, state
+                synchronization, and full-stack architecture.
               </p>
               <div className={styles.devLinks}>
                 <a
@@ -119,9 +121,10 @@ export default function AboutPage() {
                 </div>
               </div>
               <p className={styles.devBio}>
-                Crafted the 16-bit visual identity, responsive multi-device layout, retro interface, arena cinematography,
-                and touch controller experience across desktop, mobile, and tablets. Specializes in frontend engineering,
-                interactive aesthetics, and modern web ergonomics.
+                Crafted the 16-bit visual identity, responsive multi-device layout, retro interface,
+                arena cinematography, and touch controller experience across desktop, mobile, and
+                tablets. Specializes in frontend engineering, interactive aesthetics, and modern web
+                ergonomics.
               </p>
               <div className={styles.devLinks}>
                 <a
@@ -151,37 +154,38 @@ export default function AboutPage() {
             ENGINEERING &amp; ARCHITECTURE
           </h2>
           <p className={styles.leadText}>
-            Built with modern web standards and zero third-party commercial game engines, Last-Crown achieves
-            frame-consistent determinism directly inside browser environments.
+            Built with modern web standards and zero third-party commercial game engines, Last-Crown
+            achieves frame-consistent determinism directly inside browser environments.
           </p>
 
           <div className={styles.architectureGrid}>
             <div className={styles.techCard}>
               <h3 className={styles.techTitle}>Deterministic 60Hz Physics</h3>
               <p className={styles.techDesc}>
-                A decoupled simulation loop running at 16.66ms ticks using integer collision geometry to eliminate
-                floating-point desyncs between client and server.
+                A decoupled simulation loop running at 16.66ms ticks using integer collision
+                geometry to eliminate floating-point desyncs between client and server.
               </p>
             </div>
             <div className={styles.techCard}>
               <h3 className={styles.techTitle}>Colyseus Authoritative Netcode</h3>
               <p className={styles.techDesc}>
-                Real-time room coordination with state reconciliation, input buffering, and anti-cheat validation
-                for fair competitive 1v1 online matches.
+                Real-time room coordination with state reconciliation, input buffering, and
+                anti-cheat validation for fair competitive 1v1 online matches.
               </p>
             </div>
             <div className={styles.techCard}>
               <h3 className={styles.techTitle}>WebRTC Low-Latency Voice</h3>
               <p className={styles.techDesc}>
-                Peer-to-peer audio mesh with automatic NAT traversal and TURN fallback, allowing combatants to taunt
-                and communicate during live duels.
+                Peer-to-peer audio mesh with automatic NAT traversal and TURN fallback, allowing
+                combatants to taunt and communicate during live duels.
               </p>
             </div>
             <div className={styles.techCard}>
               <h3 className={styles.techTitle}>Web Audio Synthesis</h3>
               <p className={styles.techDesc}>
-                Zero static audio assets. Dynamic 3-layer transient stacking (click, mid crunch, sub-bass) and
-                adaptive low-HP tension stems synthesized purely via native Web Audio oscillators.
+                Zero static audio assets. Dynamic 3-layer transient stacking (click, mid crunch,
+                sub-bass) and adaptive low-HP tension stems synthesized purely via native Web Audio
+                oscillators.
               </p>
             </div>
           </div>
@@ -193,43 +197,44 @@ export default function AboutPage() {
             THE FIVE REALMS &amp; WARRIOR LORE
           </h2>
           <p className={styles.leadText}>
-            Champions from across the fractured empires fight for the sacred artifact that commands sovereignty:
+            Champions from across the fractured empires fight for the sacred artifact that commands
+            sovereignty:
           </p>
 
           <div className={styles.loreGrid}>
             <div className={styles.loreCard}>
               <h3 className={styles.loreHeader}>Bastion Courtyard (Colosseum)</h3>
               <p className={styles.techDesc}>
-                The sun-drenched imperial arena where gladiators clash amid ancient stone pillars and the roar of spectators.
-                Home to Sir Cedric the Loyal.
+                The sun-drenched imperial arena where gladiators clash amid ancient stone pillars
+                and the roar of spectators. Home to Sir Cedric the Loyal.
               </p>
             </div>
             <div className={styles.loreCard}>
               <h3 className={styles.loreHeader}>DragonLand Caldera</h3>
               <p className={styles.techDesc}>
-                Treacherous stone bridges suspended over cascading rivers of molten magma under the gaze of the volcanic dragon.
-                Haunt of Grimwood the Savage.
+                Treacherous stone bridges suspended over cascading rivers of molten magma under the
+                gaze of the volcanic dragon. Haunt of Grimwood the Savage.
               </p>
             </div>
             <div className={styles.loreCard}>
               <h3 className={styles.loreHeader}>StormForce Ramparts</h3>
               <p className={styles.techDesc}>
-                Gale-swept ramparts battered by downpours and lightning, testing warrior balance and reflex.
-                Domain of Valerius the Swift.
+                Gale-swept ramparts battered by downpours and lightning, testing warrior balance and
+                reflex. Domain of Valerius the Swift.
               </p>
             </div>
             <div className={styles.loreCard}>
               <h3 className={styles.loreHeader}>SeaSide Pirate Haven</h3>
               <p className={styles.techDesc}>
-                Decaying pirate docks and sandbanks where crashing oceanic surges shift the combat footing each round.
-                Guarded by Aurelia the Radiant.
+                Decaying pirate docks and sandbanks where crashing oceanic surges shift the combat
+                footing each round. Guarded by Aurelia the Radiant.
               </p>
             </div>
             <div className={styles.loreCard}>
               <h3 className={styles.loreHeader}>The Royal Keep</h3>
               <p className={styles.techDesc}>
-                The sacred Gothic throne room where contenders meet their fate against The Shadow Sovereign and only the supreme
-                victor claims the Last-Crown.
+                The sacred Gothic throne room where contenders meet their fate against The Shadow
+                Sovereign and only the supreme victor claims the Last-Crown.
               </p>
             </div>
           </div>
