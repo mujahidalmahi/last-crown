@@ -1,5 +1,5 @@
 import { PlayerInputMessage, WarriorSnapshot, AttackType } from '@last-crown/shared';
-import { getAttackDefinition } from '@last-crown/game-config';
+import { getAttackDefinition, AI_DEFAULTS } from '@last-crown/game-config';
 
 export type BotDifficulty = 'novice' | 'adept' | 'expert' | 'master';
 
@@ -22,68 +22,7 @@ interface DifficultyConfig {
   retreatStaminaThreshold: number;
 }
 
-const DIFFICULTY_PROFILES: Record<BotDifficulty, DifficultyConfig> = {
-  novice: {
-    decisionIntervalMinMs: 160,
-    decisionIntervalMaxMs: 280,
-    reactionDelayMs: 220,
-    parryChance: 0.2,
-    attackChance: 0.45,
-    heavyAttackChance: 0.15,
-    thrustAttackChance: 0.15,
-    sweepAttackChance: 0.15,
-    jumpChance: 0.15,
-    dashChance: 0.12,
-    feintChance: 0.0,
-    blockChance: 0.35,
-    retreatStaminaThreshold: 25,
-  },
-  adept: {
-    decisionIntervalMinMs: 90,
-    decisionIntervalMaxMs: 160,
-    reactionDelayMs: 130,
-    parryChance: 0.55,
-    attackChance: 0.65,
-    heavyAttackChance: 0.26,
-    thrustAttackChance: 0.24,
-    sweepAttackChance: 0.24,
-    jumpChance: 0.3,
-    dashChance: 0.3,
-    feintChance: 0.18,
-    blockChance: 0.55,
-    retreatStaminaThreshold: 20,
-  },
-  expert: {
-    decisionIntervalMinMs: 60,
-    decisionIntervalMaxMs: 120,
-    reactionDelayMs: 105,
-    parryChance: 0.72,
-    attackChance: 0.72,
-    heavyAttackChance: 0.28,
-    thrustAttackChance: 0.26,
-    sweepAttackChance: 0.26,
-    jumpChance: 0.4,
-    dashChance: 0.4,
-    feintChance: 0.28,
-    blockChance: 0.6,
-    retreatStaminaThreshold: 18,
-  },
-  master: {
-    decisionIntervalMinMs: 40,
-    decisionIntervalMaxMs: 90,
-    reactionDelayMs: 90,
-    parryChance: 0.85,
-    attackChance: 0.8,
-    heavyAttackChance: 0.3,
-    thrustAttackChance: 0.28,
-    sweepAttackChance: 0.28,
-    jumpChance: 0.48,
-    dashChance: 0.48,
-    feintChance: 0.38,
-    blockChance: 0.65,
-    retreatStaminaThreshold: 15,
-  },
-};
+const DIFFICULTY_PROFILES: Record<BotDifficulty, DifficultyConfig> = AI_DEFAULTS;
 
 export class WarriorBotAI {
   public difficulty: BotDifficulty;

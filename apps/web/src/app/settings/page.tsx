@@ -9,6 +9,7 @@ import {
   calculateWinRate,
   formatWinRate,
 } from '@last-crown/shared';
+import { CONTROLLER_DEFAULTS, formatKeyCode } from '@last-crown/game-config';
 import { requestBrowserFullscreen, isBrowserFullscreen } from '../../utils/fullscreen';
 import styles from './settings.module.css';
 
@@ -418,33 +419,60 @@ export default function SettingsPage() {
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Move</span>
                   <div>
-                    <span className={`${styles.keyTag} ${styles.tagOrange}`}>A</span>
-                    <span className={`${styles.keyTag} ${styles.tagOrange}`}>D</span>
+                    {CONTROLLER_DEFAULTS.keyboard.moveLeft.slice(0, 1).map(k => (
+                      <span key={k} className={`${styles.keyTag} ${styles.tagOrange}`}>
+                        {formatKeyCode(k)}
+                      </span>
+                    ))}
+                    {CONTROLLER_DEFAULTS.keyboard.moveRight.slice(0, 1).map(k => (
+                      <span key={k} className={`${styles.keyTag} ${styles.tagOrange}`}>
+                        {formatKeyCode(k)}
+                      </span>
+                    ))}
                   </div>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Jump</span>
-                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>SPACE / W</span>
+                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>
+                    {CONTROLLER_DEFAULTS.keyboard.jump.slice(0, 2).map(formatKeyCode).join(' / ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Dash</span>
-                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>C / E</span>
+                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>
+                    {CONTROLLER_DEFAULTS.keyboard.dash.map(formatKeyCode).join(' / ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Slash</span>
-                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>J</span>
+                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>
+                    {CONTROLLER_DEFAULTS.keyboard.lightAttack
+                      .slice(0, 1)
+                      .map(formatKeyCode)
+                      .join(' / ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Low Sweep</span>
-                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>S + J</span>
+                  <span className={`${styles.keyTag} ${styles.tagOrange}`}>
+                    {formatKeyCode(CONTROLLER_DEFAULTS.keyboard.crouch[0] || 'KeyS')} +{' '}
+                    {formatKeyCode(CONTROLLER_DEFAULTS.keyboard.lightAttack[0] || 'KeyJ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Heavy</span>
-                  <span className={`${styles.keyTag} ${styles.tagRed}`}>K</span>
+                  <span className={`${styles.keyTag} ${styles.tagRed}`}>
+                    {CONTROLLER_DEFAULTS.keyboard.heavyAttack
+                      .slice(0, 1)
+                      .map(formatKeyCode)
+                      .join(' / ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Thrust</span>
-                  <span className={`${styles.keyTag} ${styles.tagPurple}`}>U</span>
+                  <span className={`${styles.keyTag} ${styles.tagPurple}`}>
+                    {CONTROLLER_DEFAULTS.keyboard.thrust.slice(0, 1).map(formatKeyCode).join(' / ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Feint</span>
@@ -452,11 +480,15 @@ export default function SettingsPage() {
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Defence</span>
-                  <span className={`${styles.keyTag} ${styles.tagBlue}`}>SHIFT</span>
+                  <span className={`${styles.keyTag} ${styles.tagBlue}`}>
+                    {CONTROLLER_DEFAULTS.keyboard.block.slice(0, 1).map(formatKeyCode).join(' / ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Parry</span>
-                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>L</span>
+                  <span className={`${styles.keyTag} ${styles.tagYellow}`}>
+                    {CONTROLLER_DEFAULTS.keyboard.parry.slice(0, 1).map(formatKeyCode).join(' / ')}
+                  </span>
                 </div>
                 <div className={styles.keyRow}>
                   <span className={styles.keyAction}>Pause</span>

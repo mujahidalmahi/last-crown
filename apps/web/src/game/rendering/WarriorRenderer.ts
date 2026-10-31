@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { WarriorSnapshot } from '@last-crown/shared';
+import { COLOR_DEFAULTS } from '@last-crown/game-config';
 
 export class WarriorRenderer {
   private scene: Phaser.Scene;
@@ -44,13 +45,15 @@ export class WarriorRenderer {
     this.weaponGraphics = this.scene.add.graphics();
     this.container.add(this.weaponGraphics);
 
+    const colors = isPlayer ? COLOR_DEFAULTS.p1 : COLOR_DEFAULTS.p2;
+
     // Floating heraldic name banner (kept outside the flipped body container so text never mirrors/reverses)
     this.nameText = this.scene.add.text(0, -108, '', {
       fontFamily: 'system-ui, sans-serif',
       fontSize: '13px',
-      color: isPlayer ? '#f1c40f' : '#e74c3c',
+      color: colors.nameTag,
       fontStyle: '800',
-      stroke: '#05070a',
+      stroke: colors.nameTagStroke,
       strokeThickness: 3,
       shadow: { offsetX: 0, offsetY: 2, color: '#000000', blur: 4, fill: true, stroke: true },
     });
@@ -108,8 +111,11 @@ export class WarriorRenderer {
 
     // 3. Flowing Royal Cape Simulation
     this.capeGraphics.clear();
-    const capeBaseColor = this.isPlayer ? 0x224488 : 0x881122;
-    const capeTrimColor = this.isPlayer ? 0x3366cc : 0xaa2233;
+    const colors = this.isPlayer ? COLOR_DEFAULTS.p1 : COLOR_DEFAULTS.p2;
+    const mats = COLOR_DEFAULTS.materials;
+
+    const capeBaseColor = colors.capeBase;
+    const capeTrimColor = colors.capeTrim;
 
     if (isDecapitated) {
       // Cape draped limply behind collapsed kneeling warrior
@@ -144,17 +150,17 @@ export class WarriorRenderer {
     this.bodyGraphics.clear();
 
     const isFlashing = snapshot.hitstunRemainingMs > 120;
-    const armorPrimary = isFlashing ? 0xffffff : this.isPlayer ? 0x2c4a8a : 0x9b1b1b;
-    const armorSecondary = isFlashing ? 0xffffff : this.isPlayer ? 0x1e3360 : 0x6e1010;
-    const steelHighlight = isFlashing ? 0xffffff : 0xecf0f1;
-    const steelDark = isFlashing ? 0xdddddd : 0x7f8c8d;
-    const goldTrim = isFlashing ? 0xffffff : 0xf1c40f;
-    const shadowColor = 0x181e28;
+    const armorPrimary = isFlashing ? mats.hitFlash : colors.armorPrimary;
+    const armorSecondary = isFlashing ? mats.hitFlash : colors.armorSecondary;
+    const steelHighlight = isFlashing ? mats.hitFlash : mats.steelHighlight;
+    const steelDark = isFlashing ? 0xdddddd : mats.steelDark;
+    const goldTrim = isFlashing ? mats.hitFlash : mats.goldTrim;
+    const shadowColor = mats.shadow;
 
     // Forged Dark Gray Steel Blade Palette
-    const swordBladeOutline = 0x161a22; // Deep charcoal blade edge / outline
-    const swordBladeDark = isFlashing ? 0x94a3b8 : 0x3d4450; // Authentic dark gray steel blade body
-    const swordBladeFuller = isFlashing ? 0xcbd5e1 : 0x222730; // Dark fuller channel groove
+    const swordBladeOutline = mats.swordBladeOutline; // Deep charcoal blade edge / outline
+    const swordBladeDark = isFlashing ? mats.swordBladeLight : mats.swordBladeDark; // Steel blade body
+    const swordBladeFuller = isFlashing ? mats.swordBladeHighlight : mats.swordBladeFuller; // Fuller channel groove
 
     const breathBob = Math.sin(this.animTimer * 2) * 1.5;
     const torsoY = isDecapitated ? -42 : -68 + breathBob;
@@ -280,12 +286,12 @@ export class WarriorRenderer {
       this.bodyGraphics.fillRect(3, helmY + 7, 4, 13); // Vertical ventilation slit
 
       // Visor ocular glow
-      const glowColor = this.isPlayer ? 0x38ef7d : 0xe74c3c;
+      const glowColor = colors.glow;
       this.bodyGraphics.fillStyle(glowColor, 0.9);
       this.bodyGraphics.fillRect(-1, helmY + 10, 5, 2);
 
       // Royal Plume / Feathers atop helmet
-      const plumeColor = this.isPlayer ? 0xf1c40f : 0xe74c3c;
+      const plumeColor = colors.plume;
       this.bodyGraphics.fillStyle(plumeColor, 1);
       const plumeSway = Math.sin(this.animTimer * 4) * 3 - snapshot.velocity.x * 0.02;
       this.bodyGraphics.fillTriangle(-4, helmY, 4, helmY, -8 + plumeSway, helmY - 14);

@@ -1,4 +1,5 @@
 import { PlayerInputMessage, AttackType } from '@last-crown/shared';
+import { CONTROLLER_DEFAULTS } from '@last-crown/game-config';
 
 export interface GamepadInfo {
   index: number;
@@ -97,8 +98,8 @@ export class GamepadInputAdapter {
       return current && !was;
     };
 
-    // Axes handling with 0.25 deadzone
-    const deadzone = 0.25;
+    const gpConfig = CONTROLLER_DEFAULTS.gamepad;
+    const deadzone = gpConfig.deadzone;
     const rawX = gp.axes[0] ?? 0;
     const rawY = gp.axes[1] ?? 0;
     const axisX = Math.abs(rawX) > deadzone ? rawX : 0;
@@ -106,47 +107,45 @@ export class GamepadInputAdapter {
 
     // Movement resolution
     let moveX = 0;
-    if (axisX < -0.28 || isPressed(14)) {
+    if (axisX < -gpConfig.stickThresholds.moveX || isPressed(gpConfig.buttons.dpadLeft)) {
       moveX -= 1; // Left (Stick Left or D-Pad Left)
     }
-    if (axisX > 0.28 || isPressed(15)) {
+    if (axisX > gpConfig.stickThresholds.moveX || isPressed(gpConfig.buttons.dpadRight)) {
       moveX += 1; // Right (Stick Right or D-Pad Right)
     }
 
     let moveY = 0;
-    if (axisY > 0.4 || isPressed(13)) {
+    if (axisY > gpConfig.stickThresholds.moveYDown || isPressed(gpConfig.buttons.dpadDown)) {
       moveY += 1; // Down / Crouch / Fast-fall (Stick Down or D-Pad Down)
     }
-    if (axisY < -0.4 || isPressed(12)) {
+    if (axisY < gpConfig.stickThresholds.moveYUp || isPressed(gpConfig.buttons.dpadUp)) {
       moveY -= 1; // Up (Stick Up or D-Pad Up)
     }
 
-    // Jump: A/Cross (btn 0), D-Pad Up (btn 12), or Stick Up
-    const jump = isPressed(0) || isPressed(12) || axisY < -0.4;
+    // Jump: Configured jump buttons or Stick Up
+    const jump =
+      gpConfig.buttons.jump.some(btn => isPressed(btn)) || axisY < gpConfig.stickThresholds.moveYUp;
 
-    // Guard / Block: L1/LB (btn 4) or L2/LT (btn 6) - continuous hold
-    const block = isPressed(4) || isPressed(6);
+    // Guard / Block: Configured block triggers / shoulder buttons
+    const block = gpConfig.buttons.block.some(btn => isPressed(btn));
 
-    // Evasive Dash: R2/RT (btn 7) or Left Stick Click (btn 10) - single edge
-    const dash = isEdgeTrigger(7) || isEdgeTrigger(10);
+    // Evasive Dash: Configured dash buttons
+    const dash = gpConfig.buttons.dash.some(btn => isEdgeTrigger(btn));
 
-    // Parry: R1/RB (btn 5)
-    const parry = isEdgeTrigger(5);
+    // Parry: Configured parry buttons
+    const parry = gpConfig.buttons.parry.some(btn => isEdgeTrigger(btn));
 
-    // Attack Resolution (Diamond action buttons)
-    // Button 2: X (Xbox) / Square (PlayStation) -> Light Slash
-    // Button 3: Y (Xbox) / Triangle (PlayStation) -> Heavy Strike
-    // Button 1: B (Xbox) / Circle (PlayStation) -> Forward Thrust
+    // Attack Resolution
     let attack = false;
     let attackType: AttackType = 'light';
 
-    if (isEdgeTrigger(3)) {
+    if (gpConfig.buttons.heavyAttack.some(btn => isEdgeTrigger(btn))) {
       attack = true;
       attackType = 'heavy';
-    } else if (isEdgeTrigger(1)) {
+    } else if (gpConfig.buttons.thrust.some(btn => isEdgeTrigger(btn))) {
       attack = true;
       attackType = 'thrust';
-    } else if (isEdgeTrigger(2)) {
+    } else if (gpConfig.buttons.lightAttack.some(btn => isEdgeTrigger(btn))) {
       attack = true;
       if (dash) {
         attackType = 'dash';
@@ -178,9 +177,9 @@ export class GamepadInputAdapter {
 
   public vibrateGamepad(
     gamepadIndex: number,
-    durationMs: number = 100,
-    weakMagnitude: number = 0.5,
-    strongMagnitude: number = 0.5
+    durationMs: number = CONTROLLER_DEFAULTS.gamepad.vibration.defaultDurationMs,
+    weakMagnitude: number = CONTROLLER_DEFAULTS.gamepad.vibration.weakMagnitude,
+    strongMagnitude: number = CONTROLLER_DEFAULTS.gamepad.vibration.strongMagnitude
   ): void {
     if (typeof navigator === 'undefined' || !navigator.getGamepads) {
       return;

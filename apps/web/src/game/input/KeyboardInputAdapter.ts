@@ -1,4 +1,5 @@
 import { PlayerInputMessage, AttackType } from '@last-crown/shared';
+import { CONTROLLER_DEFAULTS, matchesBinding } from '@last-crown/game-config';
 import { TouchInputBridge } from './TouchInputBridge';
 import { GamepadInputAdapter } from './GamepadInputAdapter';
 
@@ -22,6 +23,7 @@ export class KeyboardInputAdapter {
 
   constructor() {
     this.controlPreset = this.loadControlPreset();
+    const kb = CONTROLLER_DEFAULTS.keyboard;
 
     this.onKeyDownHandler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -32,8 +34,8 @@ export class KeyboardInputAdapter {
         return;
       }
 
-      // Prevent scrolling on Space, Slash, and Arrow keys
-      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Slash'].includes(e.code)) {
+      // Prevent scrolling on configured navigation keys
+      if (kb.preventScrollKeys.includes(e.code)) {
         e.preventDefault();
       }
       this.keysPressed.add(e.code);
@@ -41,43 +43,33 @@ export class KeyboardInputAdapter {
       const now = Date.now();
 
       // Double-tap direction detection for tactical evasive dash
-      if (['KeyA', 'KeyD', 'ArrowLeft', 'ArrowRight'].includes(e.code) && !e.repeat) {
-        if (this.lastTapKey === e.code && now - this.lastTapTime < 250) {
+      if (kb.doubleTapDash.enabled && kb.doubleTapDash.keys.includes(e.code) && !e.repeat) {
+        if (this.lastTapKey === e.code && now - this.lastTapTime < kb.doubleTapDash.thresholdMs) {
           this.dashBuffer = true;
         }
         this.lastTapKey = e.code;
         this.lastTapTime = now;
       }
 
-      // Dedicated Dash keys: KeyE or KeyC
-      if (e.code === 'KeyE' || e.code === 'KeyC') {
+      // Dedicated Dash keys
+      if (kb.dash.includes(e.code)) {
         this.dashBuffer = true;
       }
 
       // Attack & Combat Action Buffer resolution
-      // J = Light Attack
-      if (e.code === 'KeyJ' || e.code === 'KeyZ') {
+      if (kb.lightAttack.includes(e.code)) {
         this.lightAttackBuffer = true;
       }
 
-      // K = Heavy Attack
-      if (e.code === 'KeyK' || e.code === 'KeyX') {
+      if (kb.heavyAttack.includes(e.code)) {
         this.heavyAttackBuffer = true;
       }
 
-      // L = Parry (also AltLeft/AltRight, KeyO, KeyF for accessibility)
-      if (
-        e.code === 'KeyL' ||
-        e.code === 'KeyO' ||
-        e.code === 'KeyF' ||
-        e.code === 'AltLeft' ||
-        e.code === 'AltRight'
-      ) {
+      if (kb.parry.includes(e.code)) {
         this.parryBuffer = true;
       }
 
-      // U / I = Forward Thrust
-      if (e.code === 'KeyU' || e.code === 'KeyI') {
+      if (kb.thrust.includes(e.code)) {
         this.thrustBuffer = true;
       }
     };
@@ -130,43 +122,33 @@ export class KeyboardInputAdapter {
 
   public pollInput(): PlayerInputMessage {
     this.sequence++;
+    const kb = CONTROLLER_DEFAULTS.keyboard;
 
     const touch = TouchInputBridge.poll();
     const gp = this.gamepadAdapter.pollInput(0);
 
     let moveX = gp?.moveX || 0;
-    if (this.keysPressed.has('KeyA') || this.keysPressed.has('ArrowLeft') || touch.moveLeft) {
+    if (matchesBinding(this.keysPressed, kb.moveLeft) || touch.moveLeft) {
       moveX -= 1;
     }
-    if (this.keysPressed.has('KeyD') || this.keysPressed.has('ArrowRight') || touch.moveRight) {
+    if (matchesBinding(this.keysPressed, kb.moveRight) || touch.moveRight) {
       moveX += 1;
     }
 
     let moveY = gp?.moveY || 0;
-    if (this.keysPressed.has('KeyS') || this.keysPressed.has('ArrowDown') || touch.moveDown) {
+    if (matchesBinding(this.keysPressed, kb.crouch) || touch.moveDown) {
       moveY += 1;
     }
-    if (this.keysPressed.has('KeyW') || this.keysPressed.has('ArrowUp') || touch.moveUp) {
+    if (matchesBinding(this.keysPressed, kb.jump) || touch.moveUp) {
       moveY -= 1;
     }
 
-    // Space is the universal jump standard across all modern PC games!
-    // W and ArrowUp are also preserved for player flexibility
+    // Space / W / configured keys are evaluated for jump
     const jump =
-      this.keysPressed.has('Space') ||
-      this.keysPressed.has('KeyW') ||
-      this.keysPressed.has('ArrowUp') ||
-      touch.jump ||
-      touch.moveUp ||
-      !!gp?.jump;
+      matchesBinding(this.keysPressed, kb.jump) || touch.jump || touch.moveUp || !!gp?.jump;
 
-    // Defence / Block mapping: Shift (Left/Right) is primary defence, KeyI is secondary
-    const block =
-      this.keysPressed.has('ShiftLeft') ||
-      this.keysPressed.has('ShiftRight') ||
-      this.keysPressed.has('KeyI') ||
-      touch.block ||
-      !!gp?.block;
+    // Defence / Block mapping
+    const block = matchesBinding(this.keysPressed, kb.block) || touch.block || !!gp?.block;
 
     const dash = this.dashBuffer || touch.dashTrigger || !!gp?.dash;
     this.dashBuffer = false;
@@ -193,11 +175,7 @@ export class KeyboardInputAdapter {
       attack = true;
       if (dash) {
         attackType = 'dash';
-      } else if (
-        this.keysPressed.has('KeyS') ||
-        this.keysPressed.has('ArrowDown') ||
-        touch.moveDown
-      ) {
+      } else if (matchesBinding(this.keysPressed, kb.crouch) || touch.moveDown) {
         attackType = this.controlPreset === 'modern' ? 'sweep' : 'heavy';
       } else {
         attackType = 'light';
@@ -208,8 +186,8 @@ export class KeyboardInputAdapter {
     const parry = Boolean(this.parryBuffer || touch.parryTrigger || gp?.parry);
     this.parryBuffer = false;
 
-    const isThrow = Boolean(this.keysPressed.has('KeyG') || touch.throwTrigger);
-    const isBurst = Boolean(this.keysPressed.has('KeyB') || touch.burstTrigger);
+    const isThrow = Boolean(matchesBinding(this.keysPressed, kb.throw) || touch.throwTrigger);
+    const isBurst = Boolean(matchesBinding(this.keysPressed, kb.burst) || touch.burstTrigger);
 
     return {
       sequence: this.sequence,

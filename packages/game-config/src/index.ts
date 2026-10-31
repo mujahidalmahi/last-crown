@@ -1,3 +1,4 @@
+export * from './defaults.js';
 export * from './warriors.js';
 export * from './attacks.js';
 export * from './arenas.js';

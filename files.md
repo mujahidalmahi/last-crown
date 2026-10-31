@@ -287,9 +287,25 @@ Colyseus synchronized state schema models:
 
 ## 5. Package: `@last-crown/game-config`
 
-The [`@last-crown/game-config`](file:///c:/Users/Mahi/Desktop/last_crown/packages/game-config) package houses pure game design configuration, character balance parameters, attack frame data, and arena specifications.
+The [`@last-crown/game-config`](file:///c:/Users/Mahi/Desktop/last_crown/packages/game-config) package houses the master system defaults, character balance parameters, attack frame data, arena specifications, controller profiles, and live tuning APIs.
 
 ### Files Breakdown
+
+#### [`src/defaults.ts`](file:///c:/Users/Mahi/Desktop/last_crown/packages/game-config/src/defaults.ts)
+
+The central mega-configuration hub governing all game-wide variables:
+
+- **`CONTROLLER_DEFAULTS`**: Keyboard (single & dual player), Gamepad buttons/axes/vibrations, and Virtual Touch settings.
+- **`COLOR_DEFAULTS` & Themes**: P1/P2 heraldry, armor steels, blade channels, and combat VFX shockwaves/sparks.
+- **`PHYSICS_DEFAULTS`**: Ground/air accelerations, friction, gravity, terminal velocity, and separation distance.
+- **`COMBAT_DEFAULTS`**: Parry active windows, counter stuns, block absorption, dash speed, and Crown Burst meters.
+- **`ATTACK_DEFAULTS`**: Frame data (windup, active, recovery), hitbox dimensions, damage, and knockback for all 9 attacks.
+- **`WARRIOR_CLASS_DEFAULTS`**: Stats, weights, walk speeds, and hurtboxes for Knight, Duelist, Vanguard, and Marauder.
+- **`ARENA_DEFAULTS`**: Boundary limits, floor heights, and spawn coordinates across all arenas.
+- **`AI_DEFAULTS`**: Bot reaction times, decision intervals, and combat aggression probabilities across difficulty tiers.
+- **`CAMERA_AND_VFX_DEFAULTS`**: Dynamic zoom ranges, screen shake intensities, and hit-stop freeze durations.
+- **`GAMEPLAY_PRESETS`**: One-click complete game overhauls (`standard`, `tournament`, `casual`, `turbo`, `lethal_ironman`).
+- **Dynamic Configuration API**: `updateGameDefaults()`, `resetGameDefaults()`, `exportGameDefaultsJSON()`, and `importGameDefaultsJSON()`.
 
 #### [`src/warriors.ts`](file:///c:/Users/Mahi/Desktop/last_crown/packages/game-config/src/warriors.ts)
 

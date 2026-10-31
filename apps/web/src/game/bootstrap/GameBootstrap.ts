@@ -1,6 +1,27 @@
 import * as Phaser from 'phaser';
+import {
+  GAME_DEFAULTS,
+  applyGamePreset,
+  applyColorTheme,
+  applyControllerProfile,
+  updateGameDefaults,
+  resetGameDefaults,
+  exportGameDefaultsJSON,
+} from '@last-crown/game-config';
 import { createPhaserConfig } from '../config/phaserConfig';
 import { BattleScene, BattleSceneConfig } from '../scenes/BattleScene';
+
+// Expose runtime config helpers on window in browser dev environments
+if (typeof window !== 'undefined') {
+  const win = window as any;
+  win.GAME_DEFAULTS = GAME_DEFAULTS;
+  win.applyGamePreset = applyGamePreset;
+  win.applyColorTheme = applyColorTheme;
+  win.applyControllerProfile = applyControllerProfile;
+  win.updateGameDefaults = updateGameDefaults;
+  win.resetGameDefaults = resetGameDefaults;
+  win.exportGameDefaultsJSON = exportGameDefaultsJSON;
+}
 
 export class GameBootstrap {
   private game: Phaser.Game | null = null;

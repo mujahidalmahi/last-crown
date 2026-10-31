@@ -13,7 +13,7 @@ import {
   MatchState,
 } from '@last-crown/shared';
 import { GameSimulation, WarriorBotAI, GameSimulationSnapshot } from '@last-crown/game-core';
-import { getArenaConfig, getWarriorPreset } from '@last-crown/game-config';
+import { getArenaConfig, getWarriorPreset, GAME_DEFAULTS } from '@last-crown/game-config';
 import { WarriorRenderer } from '../rendering/WarriorRenderer';
 import { CombatEffects } from '../effects/CombatEffects';
 import { SoundManager } from '../audio/SoundManager';
@@ -431,13 +431,14 @@ export class BattleScene extends Phaser.Scene {
     );
 
     const fighterDist = Math.abs(p1X - p2X);
+    const zoomCfg = GAME_DEFAULTS.vfx.camera.zoom;
     let targetZoom = 1.0;
-    if (fighterDist < 190) {
-      targetZoom = 1.05; // Zoom in for intense close quarters
-    } else if (fighterDist > 550) {
-      targetZoom = 0.96; // Zoom out to keep full spacing in frame
+    if (fighterDist < zoomCfg.closeThreshold) {
+      targetZoom = zoomCfg.closeQuarters; // Zoom in for intense close quarters
+    } else if (fighterDist > zoomCfg.wideThreshold) {
+      targetZoom = zoomCfg.wide; // Zoom out to keep full spacing in frame
     }
-    const cameraZoomFactor = 1 - Math.exp(-4.5 * deltaSec);
+    const cameraZoomFactor = 1 - Math.exp(-zoomCfg.lerpSpeed * deltaSec);
     this.cameras.main.zoom = Phaser.Math.Linear(
       this.cameras.main.zoom,
       targetZoom,
@@ -873,10 +874,13 @@ export class BattleScene extends Phaser.Scene {
       impactY = defender.position.y;
     }
 
+    const hs = GAME_DEFAULTS.vfx.hitStop;
+    const shake = GAME_DEFAULTS.vfx.camera.shake;
+
     if (result.resolution === 'clash' || result.isClash) {
       this.effects.triggerClashSparks({ x: impactX, y: impactY - 20 });
       this.soundManager.playSwordClash();
-      this.hitStopRemainingMs = 120; // Dramatic double-freeze on sword clash
+      this.hitStopRemainingMs = hs.clash; // Dramatic double-freeze on sword clash
       this.cameras.main.zoomTo(1.08, 120, 'Quad.easeOut');
       this.time.delayedCall(220, () => {
         this.cameras.main.zoomTo(1.0, 320, 'Quad.easeIn');
@@ -889,26 +893,26 @@ export class BattleScene extends Phaser.Scene {
       const wallX = isLeft ? 80 : 1200;
       this.effects.triggerWallBounceImpact({ x: wallX, y: impactY }, isLeft);
       this.soundManager.playWallBounce();
-      this.hitStopRemainingMs = 60;
+      this.hitStopRemainingMs = hs.burst;
       return;
     }
 
     if (result.isGuardCrush) {
       this.effects.triggerGuardBreak({ x: impactX, y: impactY });
       this.soundManager.playExhaustionBreak();
-      this.hitStopRemainingMs = 100;
-      this.cameras.main.shake(160, 0.015);
+      this.hitStopRemainingMs = hs.counterHit;
+      this.cameras.main.shake(shake.guardCrush.duration, shake.guardCrush.intensity);
     }
 
     if (result.resolution === 'parried') {
       this.effects.triggerParryFlash({ x: impactX, y: impactY });
       this.soundManager.playParryChime();
-      this.hitStopRemainingMs = 70; // 70ms cinematic hit-stop
+      this.hitStopRemainingMs = hs.throw; // Cinematic parry hit-stop
     } else if (result.resolution === 'blocked') {
       this.effects.triggerBlockSparks({ x: impactX, y: impactY });
       this.soundManager.playBlockClang();
       if (!result.isGuardCrush) {
-        this.hitStopRemainingMs = 30; // 30ms block hit-stop
+        this.hitStopRemainingMs = hs.block; // Subtle block hit-stop
       }
     } else if (result.resolution === 'hit') {
       if (result.isDecapitation) {
@@ -936,11 +940,11 @@ export class BattleScene extends Phaser.Scene {
         );
         this.soundManager.playDecapitationSlash();
         this.soundManager.playCrowdCheer('roar');
-        this.hitStopRemainingMs = 180; // Dramatic mortal decapitation hit-stop freeze
+        this.hitStopRemainingMs = hs.decapitation; // Dramatic mortal decapitation hit-stop freeze
 
         // Cinematic slow-motion camera zoom punch and crimson flash
         this.cameras.main.flash(200, 200, 25, 25);
-        this.cameras.main.shake(260, 0.022);
+        this.cameras.main.shake(shake.fatalDecap.duration, shake.fatalDecap.intensity);
         this.cameras.main.zoomTo(1.1, 240, 'Quad.easeOut');
         this.time.delayedCall(900, () => {
           this.cameras.main.zoomTo(1.0, 450, 'Quad.easeIn');
@@ -949,24 +953,24 @@ export class BattleScene extends Phaser.Scene {
         // High-damage counter-puncture against stunned/exhausted rival
         this.effects.triggerRiposteImpact({ x: impactX, y: impactY }, result.damage);
         this.soundManager.playRiposteCrit();
-        this.hitStopRemainingMs = 120; // Intense mortal riposte freeze
+        this.hitStopRemainingMs = hs.riposte; // Intense mortal riposte freeze
         this.cameras.main.flash(120, 180, 20, 20);
-        this.cameras.main.shake(180, 0.018);
+        this.cameras.main.shake(shake.parry.duration, shake.parry.intensity);
       } else if (result.attackType === 'sweep' || result.attackId === 'low_sweep') {
         // Low sweep trips defender and bypasses high block
         this.effects.triggerLowSweepTrip({ x: impactX, y: impactY });
         this.soundManager.playLowSweep();
         this.effects.triggerHitImpact({ x: impactX, y: impactY }, true, result.damage);
-        this.hitStopRemainingMs = 90;
-        this.cameras.main.shake(120, 0.012);
+        this.hitStopRemainingMs = hs.sweepTrip;
+        this.cameras.main.shake(shake.clash.duration, shake.clash.intensity);
       } else if (result.isCounterHit) {
         // High-damage counter-hit interrupt on attacking defender
         this.effects.triggerCounterHit({ x: impactX, y: impactY });
         this.soundManager.playCounterHit();
         this.soundManager.playCrowdCheer('small');
         this.effects.triggerHitImpact({ x: impactX, y: impactY }, true, result.damage);
-        this.hitStopRemainingMs = 100; // Heavy counter hit-stop crunch
-        this.cameras.main.shake(150, 0.014);
+        this.hitStopRemainingMs = hs.counterHit; // Heavy counter hit-stop crunch
+        this.cameras.main.shake(shake.heavyHit.duration, shake.heavyHit.intensity);
       } else {
         this.effects.triggerHitImpact({ x: impactX, y: impactY }, result.isCritical, result.damage);
         if (result.comboCount && result.comboCount >= 2) {
@@ -974,7 +978,7 @@ export class BattleScene extends Phaser.Scene {
         } else {
           this.soundManager.playHitFlesh();
         }
-        this.hitStopRemainingMs = result.isCritical ? 85 : 50; // Satisfying impact weight
+        this.hitStopRemainingMs = result.isCritical ? hs.criticalHit : hs.normalHit; // Impact weight
       }
     }
   }

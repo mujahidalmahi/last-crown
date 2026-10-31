@@ -7,6 +7,23 @@ import {
   getAttackDefinition,
   getArenaConfig,
   BALANCE_CONFIG,
+  GAME_DEFAULTS,
+  CONTROLLER_DEFAULTS,
+  COLOR_DEFAULTS,
+  PHYSICS_DEFAULTS,
+  ATTACK_DEFAULTS,
+  WARRIOR_CLASS_DEFAULTS,
+  ARENA_DEFAULTS,
+  AI_DEFAULTS,
+  CAMERA_AND_VFX_DEFAULTS,
+  applyGamePreset,
+  applyControllerProfile,
+  applyColorTheme,
+  updateGameDefaults,
+  resetGameDefaults,
+  exportGameDefaultsJSON,
+  importGameDefaultsJSON,
+  matchesBinding,
 } from '../src/index.js';
 
 describe('Game Config', () => {
@@ -65,5 +82,108 @@ describe('Game Config', () => {
     expect(seaside.name).toBe('seaSide');
     expect(seaside.backgroundKey).toBe('playground4');
     expect(seaside.backgroundImage).toContain('playground4.jpg');
+  });
+
+  describe('GAME_DEFAULTS (Master Configuration)', () => {
+    it('exports all major subsystems in the master GAME_DEFAULTS object', () => {
+      expect(GAME_DEFAULTS.controllers).toBeDefined();
+      expect(GAME_DEFAULTS.colors).toBeDefined();
+      expect(GAME_DEFAULTS.physics).toBeDefined();
+      expect(GAME_DEFAULTS.combat).toBeDefined();
+      expect(GAME_DEFAULTS.rules).toBeDefined();
+      expect(GAME_DEFAULTS.display).toBeDefined();
+      expect(GAME_DEFAULTS.audio).toBeDefined();
+    });
+
+    it('defines valid keyboard and dual-player controller bindings', () => {
+      const kb = CONTROLLER_DEFAULTS.keyboard;
+      expect(kb.moveLeft).toContain('KeyA');
+      expect(kb.moveRight).toContain('KeyD');
+      expect(kb.jump).toContain('Space');
+      expect(kb.lightAttack).toContain('KeyJ');
+      expect(kb.parry).toContain('KeyL');
+
+      const dual = CONTROLLER_DEFAULTS.dualPlayer;
+      expect(dual.p1.moveLeft).toContain('KeyA');
+      expect(dual.p2.moveLeft).toContain('ArrowLeft');
+      expect(dual.p2.lightAttack).toContain('Numpad1');
+    });
+
+    it('defines color defaults for P1, P2, and combat materials', () => {
+      expect(COLOR_DEFAULTS.p1.nameTag).toBe('#f1c40f');
+      expect(COLOR_DEFAULTS.p2.nameTag).toBe('#e74c3c');
+      expect(COLOR_DEFAULTS.materials.steelHighlight).toBeDefined();
+      expect(COLOR_DEFAULTS.effects.parryRing).toBeDefined();
+    });
+
+    it('matches key bindings accurately using matchesBinding helper', () => {
+      const activeKeys = new Set(['KeyA', 'KeyJ']);
+      expect(matchesBinding(activeKeys, ['KeyA', 'KeyD'])).toBe(true);
+      expect(matchesBinding(activeKeys, ['KeyW', 'KeyS'])).toBe(false);
+      expect(matchesBinding(activeKeys, ['KeyJ'])).toBe(true);
+    });
+
+    it('connects physics defaults into BALANCE_CONFIG movement', () => {
+      expect(BALANCE_CONFIG.movement.groundAcceleration).toBe(PHYSICS_DEFAULTS.groundAcceleration);
+      expect(BALANCE_CONFIG.movement.gravity).toBe(PHYSICS_DEFAULTS.gravity);
+      expect(BALANCE_CONFIG.movement.maxFallSpeed).toBe(PHYSICS_DEFAULTS.maxFallSpeed);
+    });
+
+    it('exports attack defaults, warrior defaults, arena defaults, and AI profiles', () => {
+      expect(ATTACK_DEFAULTS.light_slash.damage).toBe(14);
+      expect(WARRIOR_CLASS_DEFAULTS.knight.attributes.maxHealth).toBe(100);
+      expect(ARENA_DEFAULTS.coloseum.floorY).toBe(625);
+      expect(AI_DEFAULTS.master.parryChance).toBe(0.85);
+      expect(CAMERA_AND_VFX_DEFAULTS.hitStop.decapitation).toBe(180);
+    });
+
+    it('supports applying game presets (e.g. tournament, casual, turbo)', () => {
+      applyGamePreset('tournament');
+      expect(GAME_DEFAULTS.combat.parryWindowMs).toBe(110);
+      expect(GAME_DEFAULTS.rules.roundsToWin).toBe(3);
+
+      applyGamePreset('casual');
+      expect(GAME_DEFAULTS.combat.parryWindowMs).toBe(210);
+
+      // Clean up back to standard
+      applyGamePreset('standard');
+      expect(GAME_DEFAULTS.combat.parryWindowMs).toBe(150);
+      expect(GAME_DEFAULTS.rules.roundsToWin).toBe(2);
+    });
+
+    it('supports quick-swapping controller profiles and color themes', () => {
+      applyControllerProfile('arrow_classic');
+      expect(GAME_DEFAULTS.controllers.keyboard.moveLeft).toEqual(['ArrowLeft']);
+
+      applyColorTheme('synthwave_neon');
+      expect(GAME_DEFAULTS.colors.p1.capeBase).toBe(0x00cec9);
+
+      // Reset
+      resetGameDefaults();
+      expect(GAME_DEFAULTS.controllers.keyboard.moveLeft).toContain('KeyA');
+      expect(GAME_DEFAULTS.colors.p1.capeBase).toBe(0x224488);
+    });
+
+    it('supports runtime partial mutation and JSON export / import', () => {
+      updateGameDefaults({
+        combat: { dashSpeed: 999 } as any,
+      });
+      expect(GAME_DEFAULTS.combat.dashSpeed).toBe(999);
+
+      const json = exportGameDefaultsJSON();
+      expect(typeof json).toBe('string');
+      expect(json).toContain('"dashSpeed": 999');
+
+      resetGameDefaults();
+      expect(GAME_DEFAULTS.combat.dashSpeed).toBe(420);
+
+      // Re-import from JSON
+      const ok = importGameDefaultsJSON(json);
+      expect(ok).toBe(true);
+      expect(GAME_DEFAULTS.combat.dashSpeed).toBe(999);
+
+      resetGameDefaults();
+      expect(GAME_DEFAULTS.combat.dashSpeed).toBe(420);
+    });
   });
 });

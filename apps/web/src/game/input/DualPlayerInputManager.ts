@@ -1,4 +1,5 @@
 import { PlayerInputMessage, AttackType } from '@last-crown/shared';
+import { CONTROLLER_DEFAULTS, matchesBinding } from '@last-crown/game-config';
 import { GamepadInputAdapter } from './GamepadInputAdapter';
 import { PartyControllerBridge } from './PartyControllerBridge';
 import { TouchInputBridge } from './TouchInputBridge';
@@ -30,6 +31,8 @@ export class DualPlayerInputManager {
     this.gamepadAdapter = new GamepadInputAdapter();
     this.partyBridge = PartyControllerBridge.getInstance();
 
+    const { p1, p2, preventScrollKeys } = CONTROLLER_DEFAULTS.dualPlayer;
+
     this.onKeyDownHandler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (
@@ -39,32 +42,24 @@ export class DualPlayerInputManager {
         return;
       }
 
-      if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Slash'].includes(e.code)) {
+      if (preventScrollKeys.includes(e.code)) {
         e.preventDefault();
       }
       this.keysPressed.add(e.code);
 
-      // P1 Keyboard Controls (A/D move, W/Space jump, J light, K heavy, L parry, Shift defence, U thrust)
-      if (e.code === 'KeyJ' || e.code === 'KeyZ') this.p1LightBuffer = true;
-      if (e.code === 'KeyK' || e.code === 'KeyX') this.p1HeavyBuffer = true;
-      if (e.code === 'KeyU') this.p1ThrustBuffer = true;
-      if (
-        e.code === 'KeyL' ||
-        e.code === 'KeyO' ||
-        e.code === 'KeyF' ||
-        e.code === 'AltLeft' ||
-        e.code === 'AltRight'
-      ) {
-        this.p1ParryBuffer = true;
-      }
-      if (e.code === 'KeyE' || e.code === 'KeyC') this.p1DashBuffer = true;
+      // P1 Keyboard Controls
+      if (p1.lightAttack.includes(e.code)) this.p1LightBuffer = true;
+      if (p1.heavyAttack.includes(e.code)) this.p1HeavyBuffer = true;
+      if (p1.thrust.includes(e.code)) this.p1ThrustBuffer = true;
+      if (p1.parry.includes(e.code)) this.p1ParryBuffer = true;
+      if (p1.dash.includes(e.code)) this.p1DashBuffer = true;
 
-      // P2 Keyboard Controls (Arrows + Numpad OR [ / ' \ etc.)
-      if (e.code === 'Numpad1' || e.code === 'Period') this.p2LightBuffer = true;
-      if (e.code === 'Numpad2' || e.code === 'Slash') this.p2HeavyBuffer = true;
-      if (e.code === 'Numpad3' || e.code === 'Quote') this.p2ThrustBuffer = true;
-      if (e.code === 'Numpad5' || e.code === 'Semicolon') this.p2ParryBuffer = true;
-      if (e.code === 'Numpad4' || e.code === 'Enter') this.p2DashBuffer = true;
+      // P2 Keyboard Controls
+      if (p2.lightAttack.includes(e.code)) this.p2LightBuffer = true;
+      if (p2.heavyAttack.includes(e.code)) this.p2HeavyBuffer = true;
+      if (p2.thrust.includes(e.code)) this.p2ThrustBuffer = true;
+      if (p2.parry.includes(e.code)) this.p2ParryBuffer = true;
+      if (p2.dash.includes(e.code)) this.p2DashBuffer = true;
     };
 
     this.onKeyUpHandler = (e: KeyboardEvent) => {
@@ -108,16 +103,17 @@ export class DualPlayerInputManager {
     const touch = TouchInputBridge.poll();
 
     // 4. Resolve P1 Keyboard
+    const { p1 } = CONTROLLER_DEFAULTS.dualPlayer;
     let kbMoveX = 0;
-    if (this.keysPressed.has('KeyA')) kbMoveX -= 1;
-    if (this.keysPressed.has('KeyD')) kbMoveX += 1;
+    if (matchesBinding(this.keysPressed, p1.moveLeft)) kbMoveX -= 1;
+    if (matchesBinding(this.keysPressed, p1.moveRight)) kbMoveX += 1;
 
     let kbMoveY = 0;
-    if (this.keysPressed.has('KeyS')) kbMoveY += 1;
-    if (this.keysPressed.has('KeyW')) kbMoveY -= 1;
+    if (matchesBinding(this.keysPressed, p1.crouch)) kbMoveY += 1;
+    if (matchesBinding(this.keysPressed, p1.jump)) kbMoveY -= 1;
 
-    const kbJump = this.keysPressed.has('Space') || this.keysPressed.has('KeyW');
-    const kbBlock = this.keysPressed.has('ShiftLeft') || this.keysPressed.has('KeyI');
+    const kbJump = matchesBinding(this.keysPressed, p1.jump);
+    const kbBlock = matchesBinding(this.keysPressed, p1.block);
     const kbDash = this.p1DashBuffer;
     this.p1DashBuffer = false;
     const kbParry = this.p1ParryBuffer;
@@ -195,17 +191,18 @@ export class DualPlayerInputManager {
     // 2. Check Virtual Phone Controller 2
     const phone2 = this.partyBridge.pollP2Input();
 
-    // 3. Resolve P2 Keyboard (Arrow Keys + Numpad or Right hand keys)
+    // 3. Resolve P2 Keyboard
+    const { p2 } = CONTROLLER_DEFAULTS.dualPlayer;
     let kbMoveX = 0;
-    if (this.keysPressed.has('ArrowLeft')) kbMoveX -= 1;
-    if (this.keysPressed.has('ArrowRight')) kbMoveX += 1;
+    if (matchesBinding(this.keysPressed, p2.moveLeft)) kbMoveX -= 1;
+    if (matchesBinding(this.keysPressed, p2.moveRight)) kbMoveX += 1;
 
     let kbMoveY = 0;
-    if (this.keysPressed.has('ArrowDown')) kbMoveY += 1;
-    if (this.keysPressed.has('ArrowUp')) kbMoveY -= 1;
+    if (matchesBinding(this.keysPressed, p2.crouch)) kbMoveY += 1;
+    if (matchesBinding(this.keysPressed, p2.jump)) kbMoveY -= 1;
 
-    const kbJump = this.keysPressed.has('ArrowUp') || this.keysPressed.has('Numpad0');
-    const kbBlock = this.keysPressed.has('ShiftRight') || this.keysPressed.has('Numpad0');
+    const kbJump = matchesBinding(this.keysPressed, p2.jump);
+    const kbBlock = matchesBinding(this.keysPressed, p2.block);
     const kbDash = this.p2DashBuffer;
     this.p2DashBuffer = false;
     const kbParry = this.p2ParryBuffer;
@@ -269,8 +266,16 @@ export class DualPlayerInputManager {
     };
   }
 
-  public vibrateGamepad(playerIndex: 0 | 1, durationMs: number = 100): void {
-    this.gamepadAdapter.vibrateGamepad(playerIndex, durationMs);
+  public vibrateGamepad(gamepadIndex: number, durationMs: number = 100): void {
+    this.gamepadAdapter.vibrateGamepad(gamepadIndex, durationMs);
+  }
+
+  public hasGamepad(gamepadIndex: number): boolean {
+    return this.gamepadAdapter.hasGamepad(gamepadIndex);
+  }
+
+  public getConnectedGamepads() {
+    return this.gamepadAdapter.getConnectedGamepads();
   }
 
   public destroy(): void {
@@ -280,5 +285,7 @@ export class DualPlayerInputManager {
       window.removeEventListener('keyup', this.onKeyUpHandler);
       window.removeEventListener('blur', this.onBlurHandler);
     }
+    this.keysPressed.clear();
+    this.resetBuffers();
   }
 }

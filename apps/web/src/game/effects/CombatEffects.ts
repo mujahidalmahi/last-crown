@@ -1,5 +1,6 @@
 import * as Phaser from 'phaser';
 import { Vector2, Direction } from '@last-crown/shared';
+import { COLOR_DEFAULTS } from '@last-crown/game-config';
 
 interface SeveredHeadPhysics {
   container: Phaser.GameObjects.Container;
@@ -109,7 +110,7 @@ export class CombatEffects {
   public triggerBlockSparks(pos: Vector2): void {
     // 1. Deflection shockwave ring
     const ring = this.scene.add.graphics();
-    ring.lineStyle(3, 0x74b9ff, 0.9);
+    ring.lineStyle(3, COLOR_DEFAULTS.effects.parryRing, 0.9);
     ring.strokeCircle(pos.x, pos.y, 14);
 
     this.scene.tweens.add({
@@ -129,7 +130,7 @@ export class CombatEffects {
         pos.y,
         Math.random() * 4 + 2,
         Math.random() * 2 + 1,
-        Math.random() > 0.3 ? 0xffeaa7 : 0x74b9ff
+        Math.random() > 0.3 ? COLOR_DEFAULTS.effects.parrySpark : COLOR_DEFAULTS.effects.parryRing
       );
       const angle = Math.random() * Math.PI * 2;
       const speed = Math.random() * 140 + 60;
@@ -171,7 +172,7 @@ export class CombatEffects {
 
     // 2. Expanding golden runic outer shockwave ring
     const goldRing = this.scene.add.graphics();
-    goldRing.lineStyle(4, 0xffd700, 1);
+    goldRing.lineStyle(4, COLOR_DEFAULTS.effects.burstShockwave, 1);
     goldRing.strokeCircle(pos.x, pos.y, 18);
 
     this.scene.tweens.add({
@@ -190,7 +191,7 @@ export class CombatEffects {
     for (let i = 0; i < rayCount; i++) {
       const angle = (Math.PI * 2 * i) / rayCount;
       const rayLen = 50 + Math.random() * 30;
-      rays.lineStyle(3, 0xffeaa7, 0.85);
+      rays.lineStyle(3, COLOR_DEFAULTS.effects.clashRays, 0.85);
       rays.lineBetween(
         pos.x + Math.cos(angle) * 10,
         pos.y + Math.sin(angle) * 10,

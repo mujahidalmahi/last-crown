@@ -1,7 +1,9 @@
+import { AUDIO_DEFAULTS } from '@last-crown/game-config';
+
 export class SoundManager {
   private ctx: AudioContext | null = null;
-  private isMuted: boolean = false;
-  private volume: number = 0.5;
+  private isMuted: boolean = AUDIO_DEFAULTS.defaultMuted;
+  private volume: number = AUDIO_DEFAULTS.defaultMasterVolume;
 
   private boundSettingsListener: (() => void) | null = null;
   private noiseBuffer: AudioBuffer | null = null;
@@ -104,7 +106,7 @@ export class SoundManager {
       const gain = ctx.createGain();
 
       osc.type = 'triangle';
-      osc.frequency.setValueAtTime(380, now);
+      osc.frequency.setValueAtTime(AUDIO_DEFAULTS.baseSwordWhooshFreq, now);
       osc.frequency.exponentialRampToValueAtTime(120, now + 0.14);
 
       gain.gain.setValueAtTime(0.3 * this.volume, now);
@@ -127,7 +129,7 @@ export class SoundManager {
 
     try {
       const now = ctx.currentTime;
-      [840, 1260].forEach(freq => {
+      AUDIO_DEFAULTS.baseMetalClangFreqs.forEach(freq => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
@@ -155,7 +157,7 @@ export class SoundManager {
 
     try {
       const now = ctx.currentTime;
-      [1400, 1800, 2400].forEach((freq, idx) => {
+      AUDIO_DEFAULTS.baseParryChimeFreqs.forEach((freq, idx) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
 
